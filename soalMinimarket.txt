@@ -1,0 +1,7 @@
+Buatlah aplikasi Streamlit yang menampilkan inventori tiap cabang, mencatat transaksi per cabang (stok hanya berkurang di cabang yang bersangkutan), lalu jawablah soal berikut:
+
+Apa saja kategori unik dari seluruh cabang?
+Berapa total nilai aset (harga × stok) tiap cabang, dan cabang mana yang terbesar?
+Berapa total stok Roti Tawar (BRG001) di semua cabang, dan di cabang mana stoknya paling banyak?
+Apakah SKU BRG005 ada di cabang CBG02? Buat pencarian dua tingkat (cabang dulu, baru SKU).
+Tambahkan cabang baru ke dictionary melalui form, dengan validasi kode cabang yang sudah ada.

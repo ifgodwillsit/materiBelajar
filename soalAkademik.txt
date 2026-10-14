@@ -1,0 +1,8 @@
+Buatlah aplikasi Streamlit yang menampilkan data mahasiswa tiap prodi, memungkinkan input atau perubahan nilai (dengan riwayat perubahan), lalu jawablah soal berikut:
+
+Angkatan apa saja yang ada di seluruh prodi?
+Berapa rata-rata nilai Struktur Data (IF102) dari semua mahasiswa di semua prodi?
+Siapa mahasiswa terbaik di tiap prodi berdasarkan rata-rata nilai tertimbang SKS?
+Berapa nilai mahasiswa dengan NIM 2024001 di prodi TI untuk mata kuliah IF103? Buat pencarian tiga tingkat.
+Tambahkan mahasiswa baru ke prodi tertentu melalui form, dengan validasi NIM yang tidak boleh sama dengan NIM di prodi mana pun.
+Konsep yang berbeda dar
