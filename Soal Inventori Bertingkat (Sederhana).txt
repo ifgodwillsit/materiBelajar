@@ -1,0 +1,21 @@
+Soal: Inventori Bertingkat (Versi Sederhana)
+
+Barang disimpan dalam kategori dan sub-kategori dengan kedalaman tidak tentu. Dictionary yang punya key harga dan stok adalah barang, selain itu adalah kategori.
+
+python
+gudang = {
+    "Makanan": {
+        "Roti Tawar": {"harga": 18000, "stok": 20},
+        "Instan": {
+            "Mi Instan": {"harga": 3500, "stok": 100},
+        },
+    },
+    "Minyak Goreng": {"harga": 17000, "stok": 15},
+}
+
+Kerjakan dengan fungsi rekursif:
+
+Hitung total stok seluruh barang.
+Hitung total nilai aset (harga × stok) seluruh barang.
+Cari barang berdasarkan nama dan tampilkan jalur lengkapnya, misalnya Minuman/Kopi/Kopi Botol.
+Ambil stok barang berdasarkan jalur, misalnya Makanan/Instan/Mi Instan.
