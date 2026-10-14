@@ -1,0 +1,29 @@
+Soal: Inventori Gudang Bertingkat (Kedalaman Tidak Tentu)
+
+Sebuah gudang menyimpan barang dalam kategori dan sub-kategori yang kedalamannya bebas. Berbeda dengan soal folder, di sini barang bukan angka, tapi dictionary dengan key harga dan stok:
+
+dictionary yang punya key harga dan stok adalah barang (daun pohon)
+dictionary lain adalah kategori (boleh berisi kategori atau barang lain)
+python
+gudang = {
+    "Makanan": {
+        "Roti & Kue": {
+            "Roti Tawar": {"harga": 18000, "stok": 20},
+            "Kue Kering": {
+                "Nastar": {"harga": 45000, "stok": 12},
+            },
+        },
+    },
+    "Minuman": {"Susu UHT": {"harga": 15000, "stok": 25}},
+    "Kantong Plastik": {"harga": 500, "stok": 500},  # barang langsung di root
+}
+
+Kerjakan dengan fungsi rekursif:
+
+Tampilkan seluruh struktur inventori dalam bentuk pohon.
+Hitung jumlah jenis barang, total stok, dan nilai aset (harga × stok) tiap kategori, termasuk isi semua sub-kategorinya.
+Tampilkan daftar barang dengan stok menipis (kurang dari batas tertentu) beserta jalur lengkapnya.
+Cari barang berdasarkan kata kunci nama, misalnya kopi, di semua kedalaman.
+Ambil value berdasarkan jalur, misalnya Makanan/Roti & Kue/Kue Kering/Nastar/harga. Jalur boleh berakhir di atribut, barang, atau kategori.
+
+Aplikasinya juga punya fitur tambah kategori atau barang ke lokasi mana pun dan transaksi penjualan yang mengurangi stok barang di kedalaman berapa pun (kurangi_stok()), seperti di soal minimarket awal.
