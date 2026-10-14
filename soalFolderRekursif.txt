@@ -1,0 +1,30 @@
+Soal: Simulasi Struktur Folder (Kedalaman Tidak Tentu)
+
+Sebuah sistem file disimpan dalam nested dictionary dengan aturan:
+
+value bertipe dict adalah folder (boleh berisi folder atau file lain, kedalamannya bebas)
+value bertipe int adalah file (nilainya ukuran dalam KB)
+python
+folder = {
+    "Dokumen": {
+        "Kuliah": {
+            "Struktur Data": {
+                "modul.pdf": 2048,
+                "Praktikum": {"latihan.py": 12},
+            },
+        },
+        "laporan.pdf": 900,
+    },
+    "Unduhan": {"laporan.pdf": 1200},
+    "catatan.txt": 4,
+}
+
+Karena kedalamannya tidak diketahui, tidak bisa memakai loop bersarang dengan jumlah tetap. Semua soal harus dikerjakan dengan fungsi rekursif:
+
+Tampilkan seluruh struktur dalam bentuk pohon (dengan ├── dan └──).
+Hitung total ukuran file di setiap folder, termasuk isi semua subfolder-nya.
+Cari semua lokasi file bernama laporan.pdf (nama yang sama bisa ada di beberapa folder).
+Berapa kedalaman maksimum struktur folder tersebut?
+Ambil value berdasarkan jalur, misalnya Dokumen/Kuliah/Struktur Data/modul.pdf. Jalur boleh menunjuk ke file atau folder, dan harus ada penanganan kalau jalurnya tidak ada.
+
+Aplikasinya juga punya fitur tambah file atau folder ke lokasi mana pun, yang juga memakai fungsi rekursif (tambah_item()).
