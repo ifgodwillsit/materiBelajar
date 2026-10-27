@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modul Praktikum ALSD: Pengolahan String, File, dan Streamlit</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            },
+            code: {
+              bg: '#0d1117',
+              border: '#30363d',
+              keyword: '#ff7b72',
+              function: '#d2a8ff',
+              string: '#a5d6ff',
+              comment: '#8b949e',
+              number: '#79c0ff'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- SheetJS (xlsx.full.min.js) for true client-side Excel workbook generation -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+    /* Code Container Styling */
+    .code-box {
+      background-color: #0d1117;
+      color: #e6edf3;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+    }
+    .line-number {
+      user-select: none;
+      color: #6e7681;
+      text-align: right;
+      padding-right: 1.25rem;
+      min-width: 2.75rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-2xl text-sm font-medium flex items-center space-x-2 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600"></i>
+    <span id="toast-msg">Notifikasi</span>
+  </div>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur flex-none border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-gradient-to-tr from-brand-600 to-indigo-500 text-white p-2.5 rounded-xl shadow-md">
+          <i class="fa-solid fa-laptop-code text-base"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-bold leading-tight">Praktikum Struktur Data: String, File & Streamlit</h1>
+            <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300 rounded-md">Pertemuan 10</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Source Code Lengkap, Penjelasan Line-by-Line & Simulator</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" class="p-2.5 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Ubah Tema Gelap/Terang">
+          <i id="theme-icon" class="fa-solid fa-moon"></i>
+        </button>
+        <button onclick="switchTab('tab-sim-streamlit')" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-300 border border-red-200 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors">
+          <i class="fa-solid fa-play text-red-500"></i>
+          <span class="hidden xs:inline">Coba Live</span> App
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Sidebar Navigasi -->
+    <aside class="lg:col-span-3">
+      <nav class="sticky top-24 space-y-1 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-sm">
+        <div class="px-3 py-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">Materi Teori</div>
+        
+        <button onclick="switchTab('tab-ringkasan-materi')" class="nav-tab active w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-left transition-all bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+          <i class="fa-solid fa-book-open w-4 text-center"></i>
+          <span>1. Teori String & File</span>
+        </button>
+
+        <div class="pt-3 px-3 py-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase border-t border-slate-100 dark:border-slate-800">Kegiatan Praktikum 10.4</div>
+
+        <button onclick="switchTab('tab-json-nasabah')" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-left transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-file-code w-4 text-center text-amber-500"></i>
+          <span>2. 10.4.1 Manipulasi JSON</span>
+        </button>
+        <button onclick="switchTab('tab-csv-menu')" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-left transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-file-csv w-4 text-center text-emerald-500"></i>
+          <span>3. 10.4.2 Penambahan CSV</span>
+        </button>
+
+        <div class="pt-3 px-3 py-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase border-t border-slate-100 dark:border-slate-800">Latihan 10.4.1 Streamlit</div>
+
+        <button onclick="switchTab('tab-code-streamlit')" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-left transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-code w-4 text-center text-red-500"></i>
+          <span>4. Source Code app.py (7 Bagian)</span>
+        </button>
+        <button onclick="switchTab('tab-sim-streamlit')" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-left transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-play-circle w-4 text-center text-indigo-500"></i>
+          <span>5. Simulator Live App</span>
+        </button>
+        <button onclick="switchTab('tab-kuis')" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-medium text-left transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-circle-question w-4 text-center text-cyan-500"></i>
+          <span>6. Kuis Pemahaman</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="lg:col-span-9 space-y-8">
+
+      <!-- ================= SECTION 1: RINGKASAN MATERI DASAR ================= -->
+      <section id="tab-ringkasan-materi" class="content-section space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div class="flex items-center gap-2 text-brand-600 dark:text-brand-400 text-xs font-bold uppercase tracking-wider mb-2">
+            <i class="fa-solid fa-book-bookmark"></i> Teori Dasar Modul 10
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight">Karakteristik String & Mekanisme File Python</h2>
+          <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+            Sebelum mempelajari source code kegiatan praktikum, pahami pilar-pilar penting bagaimana Python memperlakukan string, stream file teks, tabel CSV, dan hierarki JSON.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            <div class="flex items-center gap-2 text-amber-600 font-bold text-sm">
+              <i class="fa-solid fa-lock"></i> Sifat Immutability String
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              String bersifat <strong>immutable</strong> (tidak dapat diubah di tempat). Sintaks seperti <code>s[0] = 'X'</code> akan memicu <em>TypeError</em>. Setiap fungsi string (seperti <code>.strip()</code>, <code>.replace()</code>, <code>.split()</code>) menghasilkan objek string baru di memori komputer.
+            </p>
+          </div>
+
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            <div class="flex items-center gap-2 text-brand-600 font-bold text-sm">
+              <i class="fa-solid fa-folder-open"></i> File Context Manager (`with`)
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Menggunakan <code>with open(...) as f:</code> menjamin file pointer ditutup secara otomatis saat keluar dari blok indentasi, bahkan saat terjadi *runtime exception*. Ini mencegah terjadinya <em>memory leak</em> atau *file lock* oleh sistem operasi.
+            </p>
+          </div>
+        </div>
+
+        <!-- Tabel Perbandingan Format File -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-3">
+          <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">Perbandingan Tiga Format Berkas Utama dalam Modul</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border border-slate-200 dark:border-slate-800 rounded-xl">
+              <thead class="bg-slate-50 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-300">
+                <tr>
+                  <th class="p-3">Format</th>
+                  <th class="p-3">Karakteristik Utama</th>
+                  <th class="p-3">Modul Python Standar</th>
+                  <th class="p-3">Struktur Data Python</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tr>
+                  <td class="p-3 font-bold font-mono">Teks (.txt)</td>
+                  <td class="p-3">Aliran karakter linier, dipisahkan karakter pindah baris (<code>\n</code>).</td>
+                  <td class="p-3 font-mono">Bawaan (open)</td>
+                  <td class="p-3 font-mono">str / list of str</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold font-mono text-emerald-600">CSV (.csv)</td>
+                  <td class="p-3">Representasi baris-kolom terpisah delimiter (<code>,</code> atau <code>;</code>).</td>
+                  <td class="p-3 font-mono">import csv</td>
+                  <td class="p-3 font-mono">list of dict (DictReader)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold font-mono text-amber-600">JSON (.json)</td>
+                  <td class="p-3">Format terstruktur berbasis hierarki key-value JavaScript Object Notation.</td>
+                  <td class="p-3 font-mono">import json</td>
+                  <td class="p-3 font-mono">dict / list of dict</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 2: KEGIATAN 10.4.1 (JSON) ================= -->
+      <section id="tab-json-nasabah" class="content-section hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div class="flex items-center gap-2 text-amber-500 text-xs font-bold uppercase tracking-wider mb-2">
+            <i class="fa-solid fa-file-code"></i> Kegiatan Praktikum 10.4 - Kasus 1
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight">10.4.1 Mengubah Isi File JSON (`nasabah.json`)</h2>
+          <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+            Tugas: Membaca berkas <code>nasabah.json</code>, mengubah nama nasabah pertama menjadi <code>Agus Gus Gus Gus</code>, mengubah saldo nasabah kedua menjadi <code>300000</code>, lalu menyimpannya kembali.
+          </p>
+        </div>
+
+        <!-- Source Code Lengkap ubah_json.py -->
+        <div class="rounded-2xl border border-slate-800 overflow-hidden shadow-lg bg-[#0d1117]">
+          <div class="flex items-center justify-between px-4 py-3 bg-[#161b22] border-b border-[#30363d]">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+              <span class="font-mono text-xs text-slate-300 ml-2 font-semibold flex items-center gap-1.5">
+                <i class="fa-brands fa-python text-amber-400"></i> ubah_json.py (Lengkap)
+              </span>
+            </div>
+            <button onclick="copyRawCode('raw-ubah-json')" class="text-xs bg-[#21262d] hover:bg-[#30363d] text-slate-200 px-3 py-1.5 rounded-lg border border-[#30363d] flex items-center gap-1.5 transition-all">
+              <i class="fa-regular fa-copy"></i> Salin Seluruh Kode
+            </button>
+          </div>
+          <div class="p-4 overflow-x-auto code-box text-xs">
+            <pre id="raw-ubah-json"><code><span class="line-number">1</span><span class="text-code-keyword">import</span> json
+<span class="line-number">2</span>
+<span class="line-number">3</span><span class="text-code-comment"># Inisialisasi variabel penampung data objek</span>
+<span class="line-number">4</span>data = <span class="text-code-keyword">None</span>
+<span class="line-number">5</span>
+<span class="line-number">6</span><span class="text-code-comment"># 1. Buka file nasabah.json dalam mode read ('r') & deserialisasi ke list of dict</span>
+<span class="line-number">7</span><span class="text-code-keyword">with</span> <span class="text-code-function">open</span>(<span class="text-code-string">'nasabah.json'</span>, <span class="text-code-string">'r'</span>) <span class="text-code-keyword">as</span> datafile:
+<span class="line-number">8</span>    data = json.<span class="text-code-function">load</span>(datafile)
+<span class="line-number">9</span>
+<span class="line-number">10</span><span class="text-code-comment"># 2. Modifikasi nilai field spesifik menggunakan indeks list & key dictionary</span>
+<span class="line-number">11</span>data[<span class="text-code-number">0</span>][<span class="text-code-string">'nama'</span>] = <span class="text-code-string">'Agus Gus Gus Gus'</span>
+<span class="line-number">12</span>data[<span class="text-code-number">1</span>][<span class="text-code-string">'saldo'</span>] = <span class="text-code-number">300000</span>
+<span class="line-number">13</span>
+<span class="line-number">14</span><span class="text-code-comment"># 3. Buka file kembali dalam mode write ('w') & simpan kembali objek ke format JSON</span>
+<span class="line-number">15</span><span class="text-code-keyword">with</span> <span class="text-code-function">open</span>(<span class="text-code-string">'nasabah.json'</span>, <span class="text-code-string">'w'</span>) <span class="text-code-keyword">as</span> datafile:
+<span class="line-number">16</span>    json.<span class="text-code-function">dump</span>(data, datafile, indent=<span class="text-code-number">2</span>)
+<span class="line-number">17</span>
+<span class="line-number">18</span><span class="text-code-function">print</span>(<span class="text-code-string">"Proses modifikasi file nasabah.json berhasil dilakukan!"</span>)</code></pre>
+          </div>
+        </div>
+
+        <!-- Penjelasan Mendalam Block-by-Block -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <h3 class="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+            <i class="fa-solid fa-list-check text-brand-600"></i>
+            Penjelasan Baris demi Baris / Blok Kode (Detailed Breakdown)
+          </h3>
+          
+          <div class="space-y-3 text-xs">
+            <!-- Blok 1 -->
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2 font-mono font-bold text-brand-600 dark:text-brand-400">
+                <span class="px-2 py-0.5 rounded bg-brand-100 dark:bg-brand-900/60 text-[11px]">Baris 1 & 4</span>
+                <span>import json dan data = None</span>
+              </div>
+              <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>Fungsi:</strong> Mengimpor pustaka standar bawaan Python untuk pengolahan format JSON. Variabel <code>data</code> diinisialisasi dengan nilai <code>None</code> agar variabel tersebut memiliki cakupan (*scope*) di luar blok <code>with</code>.
+              </p>
+            </div>
+
+            <!-- Blok 2 -->
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2 font-mono font-bold text-amber-600 dark:text-amber-400">
+                <span class="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-[11px]">Baris 6 - 8</span>
+                <span>with open('nasabah.json', 'r') as datafile: data = json.load(datafile)</span>
+              </div>
+              <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>Fungsi:</strong> Membuka file dengan mode <em>Read-Only</em> (<code>'r'</code>). Fungsi <code>json.load(datafile)</code> melakukan proses <strong>Deserialisasi</strong>, yaitu membaca string teks JSON dari disk dan mengonversinya menjadi objek struktur data asli Python (dalam hal ini sebuah <code>list</code> yang menampung dua buah <code>dict</code>).
+              </p>
+            </div>
+
+            <!-- Blok 3 -->
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                <span class="px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-[11px]">Baris 10 - 12</span>
+                <span>data[0]['nama'] = 'Agus Gus Gus Gus' & data[1]['saldo'] = 300000</span>
+              </div>
+              <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>Fungsi:</strong> Melakukan modifikasi nilai di memori RAM.
+                <br>• <code>data[0]</code> mengakses dictionary urutan pertama milik Agus Bagus, lalu key <code>['nama']</code> ditimpa dengan string baru.
+                <br>• <code>data[1]</code> mengakses dictionary urutan kedua milik Bambang Gentolet, lalu key <code>['saldo']</code> diubah nilainya menjadi integer numerik <code>300000</code>.
+              </p>
+            </div>
+
+            <!-- Blok 4 -->
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-[11px]">Baris 14 - 16</span>
+                <span>json.dump(data, datafile, indent=2)</span>
+              </div>
+              <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>Fungsi:</strong> File dibuka kembali dalam mode tulis <code>'w'</code> (yang akan menimpa/overwrite isi lama). Fungsi <code>json.dump()</code> melakukan proses <strong>Serialisasi</strong>, yaitu mengubah list/dict Python menjadi string berformat JSON dan menyimpannya secara fisik ke media penyimpanan. Argumen <code>indent=2</code> membuat file hasil keluaran rapi bertingkat (tidak menyatu dalam satu baris panjang).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Komparasi Struktur Data Sebelum vs Sesudah -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 bg-slate-900 rounded-2xl border border-slate-800 font-mono text-xs">
+            <div class="text-rose-400 font-bold mb-2 pb-1 border-b border-slate-800 flex items-center justify-between">
+              <span>nasabah.json (SEBELUM)</span>
+              <span class="text-[10px] text-slate-500">Nilai Awal</span>
+            </div>
+<pre class="text-slate-300"><code>[
+  {
+    "norekening": 8199918188,
+    <span class="bg-rose-950 text-rose-300 px-1">"nama": "Agus Bagus",</span>
+    "saldo": "19.57",
+    "matauang": "USD"
+  },
+  {
+    "norekening": 9288818881,
+    "nama": "Bambang Gentolet",
+    <span class="bg-rose-950 text-rose-300 px-1">"saldo": "123000",</span>
+    "matauang": "Yen"
+  }
+]</code></pre>
+          </div>
+
+          <div class="p-4 bg-slate-900 rounded-2xl border border-slate-800 font-mono text-xs">
+            <div class="text-emerald-400 font-bold mb-2 pb-1 border-b border-slate-800 flex items-center justify-between">
+              <span>nasabah.json (SESUDAH DIUBAH)</span>
+              <span class="text-[10px] text-emerald-500">Hasil Output</span>
+            </div>
+<pre class="text-slate-300"><code>[
+  {
+    "norekening": 8199918188,
+    <span class="bg-emerald-950 text-emerald-300 px-1">"nama": "Agus Gus Gus Gus",</span>
+    "saldo": "19.57",
+    "matauang": "USD"
+  },
+  {
+    "norekening": 9288818881,
+    "nama": "Bambang Gentolet",
+    <span class="bg-emerald-950 text-emerald-300 px-1">"saldo": 300000,</span>
+    "matauang": "Yen"
+  }
+]</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 3: KEGIATAN 10.4.2 (CSV) ================= -->
+      <section id="tab-csv-menu" class="content-section hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div class="flex items-center gap-2 text-emerald-600 text-xs font-bold uppercase tracking-wider mb-2">
+            <i class="fa-solid fa-file-csv"></i> Kegiatan Praktikum 10.4 - Kasus 2
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight">10.4.2 Menambah Data File CSV (`menu.csv` &rarr; `menu-new.csv`)</h2>
+          <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+            Tugas: Membaca berkas <code>menu.csv</code>, membersihkan karakter whitespace tak kasat mata, menambahkan 4 menu baru menggunakan metode list <code>append()</code>, lalu menyimpannya ke berkas baru bernama <code>menu-new.csv</code>.
+          </p>
+        </div>
+
+        <!-- Source Code Lengkap tambah_csv.py -->
+        <div class="rounded-2xl border border-slate-800 overflow-hidden shadow-lg bg-[#0d1117]">
+          <div class="flex items-center justify-between px-4 py-3 bg-[#161b22] border-b border-[#30363d]">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+              <span class="font-mono text-xs text-slate-300 ml-2 font-semibold flex items-center gap-1.5">
+                <i class="fa-brands fa-python text-emerald-400"></i> tambah_csv.py (Lengkap)
+              </span>
+            </div>
+            <button onclick="copyRawCode('raw-tambah-csv')" class="text-xs bg-[#21262d] hover:bg-[#30363d] text-slate-200 px-3 py-1.5 rounded-lg border border-[#30363d] flex items-center gap-1.5 transition-all">
+              <i class="fa-regular fa-copy"></i> Salin Seluruh Kode
+            </button>
+          </div>
+          <div class="p-4 overflow-x-auto code-box text-xs">
+            <pre id="raw-tambah-csv"><code><span class="line-number">1</span><span class="text-code-comment"># 1. Buka dan baca seluruh baris file menu.csv</span>
+<span class="line-number">2</span>data = <span class="text-code-keyword">None</span>
+<span class="line-number">3</span><span class="text-code-keyword">with</span> <span class="text-code-function">open</span>(<span class="text-code-string">'menu.csv'</span>, <span class="text-code-string">'r'</span>) <span class="text-code-keyword">as</span> datafile:
+<span class="line-number">4</span>    data = datafile.<span class="text-code-function">readlines</span>()
+<span class="line-number">5</span>
+<span class="line-number">6</span><span class="text-code-comment"># Bersihkan whitespace dan karakter newline '\n' di ujung tiap baris</span>
+<span class="line-number">7</span><span class="text-code-keyword">for</span> i <span class="text-code-keyword">in</span> <span class="text-code-function">range</span>(<span class="text-code-number">0</span>, <span class="text-code-function">len</span>(data)):
+<span class="line-number">8</span>    data[i] = data[i].<span class="text-code-function">strip</span>()
+<span class="line-number">9</span>
+<span class="line-number">10</span><span class="text-code-comment"># 2. Tambahkan data menu baru ke dalam list</span>
+<span class="line-number">11</span>data.<span class="text-code-function">append</span>(<span class="text-code-string">'Makanan, Ayam Geprek Lombok Ijo, 20000'</span>)
+<span class="line-number">12</span>data.<span class="text-code-function">append</span>(<span class="text-code-string">'Makanan, Bebek Goreng, 25000'</span>)
+<span class="line-number">13</span>data.<span class="text-code-function">append</span>(<span class="text-code-string">'Makanan, Sate Kambing, 25000'</span>)
+<span class="line-number">14</span>data.<span class="text-code-function">append</span>(<span class="text-code-string">'Minuman, Es Doger, 15000'</span>)
+<span class="line-number">15</span>
+<span class="line-number">16</span><span class="text-code-comment"># 3. Simpan seluruh data gabungan ke file baru menu-new.csv</span>
+<span class="line-number">17</span><span class="text-code-keyword">with</span> <span class="text-code-function">open</span>(<span class="text-code-string">'menu-new.csv'</span>, <span class="text-code-string">'w'</span>) <span class="text-code-keyword">as</span> datafile:
+<span class="line-number">18</span>    <span class="text-code-keyword">for</span> line <span class="text-code-keyword">in</span> data:
+<span class="line-number">19</span>        datafile.<span class="text-code-function">write</span>(line + <span class="text-code-string">'\n'</span>)
+<span class="line-number">20</span>
+<span class="line-number">21</span><span class="text-code-function">print</span>(<span class="text-code-string">"Sukses menulis menu-new.csv. Total baris:"</span>, <span class="text-code-function">len</span>(data))</code></pre>
+          </div>
+        </div>
+
+        <!-- Penjelasan Mendalam Block-by-Block -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <h3 class="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+            <i class="fa-solid fa-list-check text-emerald-600"></i>
+            Penjelasan Baris demi Baris / Blok Kode (Detailed Breakdown)
+          </h3>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-[11px]">Baris 3 - 4</span>
+                <span>with open('menu.csv', 'r') as datafile: data = datafile.readlines()</span>
+              </div>
+              <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>Fungsi:</strong> Metode <code>.readlines()</code> membaca seluruh teks dari berkas sekaligus dan memecahnya menjadi sebuah list string berdasarkan karakter pindah baris. Setiap elemen di dalam <code>data</code> merepresentasikan satu baris berkas CSV.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2 font-mono font-bold text-amber-600 dark:text-amber-400">
+                <span class="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-[11px]">Baris 7 - 8</span>
+                <span>for i in range(0, len(data)): data[i] = data[i].strip()</span>
+              </div>
+              <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>Mengapa baris ini sangat krusial?</strong> Saat <code>readlines()</code> membaca file, karakter <code>\n</code> di ujung baris tetap ikut terbawa (misal: <code>'Makanan, Ayam Goreng, 15000\n'</code>). Jika kita tidak memanggil <code>.strip()</code>, lalu saat menyimpan kembali kita menambahkan <code>line + '\n'</code>, maka pada file baru akan tercipta <strong>dua kali baris baru</strong> (menghasilkan baris kosong ganda / spasi berlebih yang merusak format CSV).
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                <span class="px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-[11px]">Baris 11 - 14</span>
+                <span>data.append('Makanan, Ayam Geprek Lombok Ijo, 20000')</span>
+              </div>
+              <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>Fungsi:</strong> Menambahkan elemen string baru di indeks paling belakang dari list <code>data</code>. Format kolom harus konsisten dengan header baris pertama (<code>Kategori, Nama, Harga</code>).
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2 font-mono font-bold text-slate-700 dark:text-slate-200">
+                <span class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-[11px]">Baris 17 - 19</span>
+                <span>with open('menu-new.csv', 'w') as datafile: datafile.write(line + '\n')</span>
+              </div>
+              <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>Fungsi:</strong> Berkas baru <code>menu-new.csv</code> dibuat dalam mode tulis (<code>'w'</code>). Karena tadi semua elemen sudah di-<code>strip()</code>, kita dengan aman menyambungkan karakter <code>\n</code> secara eksplisit agar setiap menu menempati baris baru yang rapi.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 4: SOURCE CODE STREAMLIT 7 BAGIAN ================= -->
+      <section id="tab-code-streamlit" class="content-section hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div class="flex items-center gap-2 text-red-500 text-xs font-bold uppercase tracking-wider mb-2">
+            <i class="fa-solid fa-code"></i> Bagian 10.4.1 Modul Praktikum + Solusi Excel
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight">Source Code Lengkap `app.py` & Penjelasan 7 Bagian</h2>
+          <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+            Berikut adalah file tunggal utuh <code>app.py</code> untuk aplikasi Warung Makan Pintar yang mencakup modul bawaan, data editor interaktif, kalkulasi akumulasi ringkasan, ekspor CSV/JSON, serta penanganan ekspor Microsoft Excel (<code>.xlsx</code>) yang aman dari galat.
+          </p>
+        </div>
+
+        <!-- Full Source Code app.py with Line Numbers -->
+        <div class="rounded-2xl border border-slate-800 overflow-hidden shadow-xl bg-[#0d1117]">
+          <div class="flex items-center justify-between px-4 py-3 bg-[#161b22] border-b border-[#30363d]">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+              <span class="font-mono text-xs text-slate-300 ml-2 font-semibold flex items-center gap-1.5">
+                <i class="fa-brands fa-python text-red-400"></i> app.py (Lengkap 7 Bagian)
+              </span>
+            </div>
+            <button onclick="copyRawCode('raw-app-py')" class="text-xs bg-[#21262d] hover:bg-[#30363d] text-slate-200 px-3 py-1.5 rounded-lg border border-[#30363d] flex items-center gap-1.5 transition-all">
+              <i class="fa-regular fa-copy"></i> Salin Seluruh app.py
+            </button>
+          </div>
+          <div class="p-4 overflow-x-auto code-box text-xs max-h-[580px]">
+            <pre id="raw-app-py"><code><span class="line-number">1</span><span class="text-code-keyword">import</span> streamlit <span class="text-code-keyword">as</span> st
+<span class="line-number">2</span><span class="text-code-keyword">import</span> csv
+<span class="line-number">3</span><span class="text-code-keyword">import</span> io
+<span class="line-number">4</span><span class="text-code-keyword">import</span> json
+<span class="line-number">5</span><span class="text-code-keyword">import</span> pandas <span class="text-code-keyword">as</span> pd
+<span class="line-number">6</span>
+<span class="line-number">7</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">8</span><span class="text-code-comment"># BAGIAN 1: KONFIGURASI HALAMAN STREAMLIT</span>
+<span class="line-number">9</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">10</span>st.<span class="text-code-function">set_page_config</span>(
+<span class="line-number">11</span>    page_title=<span class="text-code-string">'Warung Makan "Pintar"'</span>,
+<span class="line-number">12</span>    page_icon=<span class="text-code-string">"🍲"</span>,
+<span class="line-number">13</span>    layout=<span class="text-code-string">"centered"</span>
+<span class="line-number">14</span>)
+<span class="line-number">15</span>
+<span class="line-number">16</span>st.<span class="text-code-function">title</span>(<span class="text-code-string">'Warung Makan "Pintar"'</span>)
+<span class="line-number">17</span>st.<span class="text-code-function">caption</span>(<span class="text-code-string">"Pengelolaan Daftar Menu dan Ekspor CSV/JSON/Excel."</span>)
+<span class="line-number">18</span>
+<span class="line-number">19</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">20</span><span class="text-code-comment"># BAGIAN 2: INISIALISASI DATA SAMPLE, PARSER CSV, & SESSION STATE</span>
+<span class="line-number">21</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">22</span>SAMPLE_CSV = <span class="text-code-string">"""kategori;nama;harga
+Makanan;Ayam Bakar;25000
+Makanan;Nasi Goreng;18000
+Minuman;Es Teh;5000
+Minuman;Jus Alpukat;12000
+"""</span>
+<span class="line-number">28</span>
+<span class="line-number">29</span><span class="text-code-keyword">def</span> <span class="text-code-function">load_csv</span>(file_like):
+<span class="line-number">30</span>    <span class="text-code-keyword">try</span>:
+<span class="line-number">31</span>        text = io.<span class="text-code-function">StringIO</span>(file_like.<span class="text-code-function">getvalue</span>().<span class="text-code-function">decode</span>(<span class="text-code-string">"utf-8"</span>))
+<span class="line-number">32</span>    <span class="text-code-keyword">except</span> AttributeError:
+<span class="line-number">33</span>        text = io.<span class="text-code-function">StringIO</span>(file_like)
+<span class="line-number">34</span>    
+<span class="line-number">35</span>    reader = csv.<span class="text-code-function">DictReader</span>(text, delimiter=<span class="text-code-string">';'</span>)
+<span class="line-number">36</span>    rows = []
+<span class="line-number">37</span>    <span class="text-code-keyword">for</span> row <span class="text-code-keyword">in</span> reader:
+<span class="line-number">38</span>        rows.<span class="text-code-function">append</span>({
+<span class="line-number">39</span>            <span class="text-code-string">"kategori"</span>: (row.<span class="text-code-function">get</span>(<span class="text-code-string">"kategori"</span>) <span class="text-code-keyword">or</span> <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>(),
+<span class="line-number">40</span>            <span class="text-code-string">"nama"</span>: (row.<span class="text-code-function">get</span>(<span class="text-code-string">"nama"</span>) <span class="text-code-keyword">or</span> <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>(),
+<span class="line-number">41</span>            <span class="text-code-string">"harga"</span>: (row.<span class="text-code-function">get</span>(<span class="text-code-string">"harga"</span>) <span class="text-code-keyword">or</span> <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>()
+<span class="line-number">42</span>        })
+<span class="line-number">43</span>    <span class="text-code-keyword">return</span> rows
+<span class="line-number">44</span>
+<span class="line-number">45</span><span class="text-code-keyword">if</span> <span class="text-code-string">"menu_data"</span> <span class="text-code-keyword">not in</span> st.session_state:
+<span class="line-number">46</span>    st.session_state.menu_data = <span class="text-code-function">load_csv</span>(SAMPLE_CSV)
+<span class="line-number">47</span>
+<span class="line-number">48</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">49</span><span class="text-code-comment"># BAGIAN 3: DATA EDITOR INTERAKTIF & CONFIG KOLOM</span>
+<span class="line-number">50</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">51</span>st.<span class="text-code-function">subheader</span>(<span class="text-code-string">"📝 Data Menu (Editable)"</span>)
+<span class="line-number">52</span>
+<span class="line-number">53</span>column_config = {
+<span class="line-number">54</span>    <span class="text-code-string">"kategori"</span>: st.column_config.<span class="text-code-function">SelectboxColumn</span>(
+<span class="line-number">55</span>        <span class="text-code-string">"Kategori"</span>, options=[<span class="text-code-string">"Makanan"</span>, <span class="text-code-string">"Minuman"</span>, <span class="text-code-string">"Lainnya"</span>], required=<span class="text-code-keyword">True</span>
+<span class="line-number">56</span>    ),
+<span class="line-number">57</span>    <span class="text-code-string">"nama"</span>: st.column_config.<span class="text-code-function">TextColumn</span>(<span class="text-code-string">"Nama Menu"</span>, required=<span class="text-code-keyword">True</span>),
+<span class="line-number">58</span>    <span class="text-code-string">"harga"</span>: st.column_config.<span class="text-code-function">NumberColumn</span>(<span class="text-code-string">"Harga (Rp)"</span>, min_value=<span class="text-code-number">0</span>, step=<span class="text-code-number">1000</span>)
+<span class="line-number">59</span>}
+<span class="line-number">60</span>
+<span class="line-number">61</span>edited_rows = st.<span class="text-code-function">data_editor</span>(
+<span class="line-number">62</span>    st.session_state.menu_data,
+<span class="line-number">63</span>    num_rows=<span class="text-code-string">"dynamic"</span>,
+<span class="line-number">64</span>    key=<span class="text-code-string">"data_editor"</span>,
+<span class="line-number">65</span>    use_container_width=<span class="text-code-keyword">True</span>,
+<span class="line-number">66</span>    column_config=column_config
+<span class="line-number">67</span>)
+<span class="line-number">68</span>
+<span class="line-number">69</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">70</span><span class="text-code-comment"># BAGIAN 4: LOGIKA PERHITUNGAN RINGKASAN HARGA</span>
+<span class="line-number">71</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">72</span><span class="text-code-keyword">def</span> <span class="text-code-function">_to_number</span>(x):
+<span class="line-number">73</span>    <span class="text-code-keyword">try</span>:
+<span class="line-number">74</span>        v = <span class="text-code-function">float</span>(<span class="text-code-function">str</span>(x).<span class="text-code-function">replace</span>(<span class="text-code-string">","</span>, <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>())
+<span class="line-number">75</span>        <span class="text-code-keyword">return</span> v <span class="text-code-keyword">if</span> v >= <span class="text-code-number">0</span> <span class="text-code-keyword">else</span> <span class="text-code-keyword">None</span>
+<span class="line-number">76</span>    <span class="text-code-keyword">except</span> (ValueError, TypeError):
+<span class="line-number">77</span>        <span class="text-code-keyword">return</span> <span class="text-code-keyword">None</span>
+<span class="line-number">78</span>
+<span class="line-number">79</span><span class="text-code-keyword">def</span> <span class="text-code-function">compute_totals</span>(rows):
+<span class="line-number">80</span>    totals = {}
+<span class="line-number">81</span>    total_all = <span class="text-code-number">0.0</span>
+<span class="line-number">82</span>    <span class="text-code-keyword">for</span> r <span class="text-code-keyword">in</span> rows:
+<span class="line-number">83</span>        <span class="text-code-keyword">if not</span> (r.<span class="text-code-function">get</span>(<span class="text-code-string">"nama"</span>) <span class="text-code-keyword">or</span> <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>():
+<span class="line-number">84</span>            <span class="text-code-keyword">continue</span>
+<span class="line-number">85</span>        cat = (r.<span class="text-code-function">get</span>(<span class="text-code-string">"kategori"</span>) <span class="text-code-keyword">or</span> <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>() <span class="text-code-keyword">or</span> <span class="text-code-string">"Lainnya"</span>
+<span class="line-number">86</span>        val = <span class="text-code-function">_to_number</span>(r.<span class="text-code-function">get</span>(<span class="text-code-string">"harga"</span>))
+<span class="line-number">87</span>        <span class="text-code-keyword">if</span> val <span class="text-code-keyword">is None</span>:
+<span class="line-number">88</span>            <span class="text-code-keyword">continue</span>
+<span class="line-number">89</span>        totals[cat] = totals.<span class="text-code-function">get</span>(cat, <span class="text-code-number">0.0</span>) + val
+<span class="line-number">90</span>        total_all += val
+<span class="line-number">91</span>    <span class="text-code-keyword">return</span> totals, total_all
+<span class="line-number">92</span>
+<span class="line-number">93</span>totals, total_all = <span class="text-code-function">compute_totals</span>(edited_rows)
+<span class="line-number">94</span>
+<span class="line-number">95</span>st.<span class="text-code-function">divider</span>()
+<span class="line-number">96</span>st.<span class="text-code-function">subheader</span>(<span class="text-code-string">"📊 Ringkasan Harga"</span>)
+<span class="line-number">97</span>col_a, col_b = st.<span class="text-code-function">columns</span>(<span class="text-code-number">2</span>)
+<span class="line-number">98</span><span class="text-code-keyword">with</span> col_a:
+<span class="line-number">99</span>    st.<span class="text-code-function">write</span>(<span class="text-code-string">"**Total harga per kategori:**"</span>)
+<span class="line-number">100</span>    <span class="text-code-keyword">if</span> totals:
+<span class="line-number">101</span>        st.<span class="text-code-function">table</span>([{<span class="text-code-string">"kategori"</span>: k, <span class="text-code-string">"total"</span>: <span class="text-code-string">f"{v:,.2f}"</span>} <span class="text-code-keyword">for</span> k, v <span class="text-code-keyword">in</span> totals.<span class="text-code-function">items</span>()])
+<span class="line-number">102</span>    <span class="text-code-keyword">else</span>:
+<span class="line-number">103</span>        st.<span class="text-code-function">info</span>(<span class="text-code-string">"Belum ada data valid."</span>)
+<span class="line-number">104</span><span class="text-code-keyword">with</span> col_b:
+<span class="line-number">105</span>    st.<span class="text-code-function">metric</span>(<span class="text-code-string">"Total semua"</span>, <span class="text-code-string">f"{round(total_all, 2):,.2f}"</span>)
+<span class="line-number">106</span>
+<span class="line-number">107</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">108</span><span class="text-code-comment"># BAGIAN 5: FUNGSI EKSPOR CSV & EKSPOR JSON</span>
+<span class="line-number">109</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">110</span><span class="text-code-keyword">def</span> <span class="text-code-function">save_csv</span>(rows):
+<span class="line-number">111</span>    out = io.<span class="text-code-function">StringIO</span>()
+<span class="line-number">112</span>    writer = csv.<span class="text-code-function">DictWriter</span>(out, fieldnames=[<span class="text-code-string">"kategori"</span>, <span class="text-code-string">"nama"</span>, <span class="text-code-string">"harga"</span>], delimiter=<span class="text-code-string">';'</span>)
+<span class="line-number">113</span>    writer.<span class="text-code-function">writeheader</span>()
+<span class="line-number">114</span>    <span class="text-code-keyword">for</span> r <span class="text-code-keyword">in</span> rows:
+<span class="line-number">115</span>        <span class="text-code-keyword">if</span> (r.<span class="text-code-function">get</span>(<span class="text-code-string">"nama"</span>) <span class="text-code-keyword">or</span> <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>():
+<span class="line-number">116</span>            writer.<span class="text-code-function">writerow</span>({
+<span class="line-number">117</span>                <span class="text-code-string">"kategori"</span>: <span class="text-code-function">str</span>(r.<span class="text-code-function">get</span>(<span class="text-code-string">"kategori"</span>, <span class="text-code-string">""</span>)).<span class="text-code-function">strip</span>(),
+<span class="line-number">118</span>                <span class="text-code-string">"nama"</span>: <span class="text-code-function">str</span>(r.<span class="text-code-function">get</span>(<span class="text-code-string">"nama"</span>, <span class="text-code-string">""</span>)).<span class="text-code-function">strip</span>(),
+<span class="line-number">119</span>                <span class="text-code-string">"harga"</span>: <span class="text-code-function">str</span>(r.<span class="text-code-function">get</span>(<span class="text-code-string">"harga"</span>, <span class="text-code-string">""</span>)).<span class="text-code-function">strip</span>()
+<span class="line-number">120</span>            })
+<span class="line-number">121</span>    <span class="text-code-keyword">return</span> out.<span class="text-code-function">getvalue</span>().<span class="text-code-function">encode</span>(<span class="text-code-string">"utf-8"</span>)
+<span class="line-number">122</span>
+<span class="line-number">123</span><span class="text-code-keyword">def</span> <span class="text-code-function">export_summary_json</span>(totals, total_all, n_items):
+<span class="line-number">124</span>    data = {
+<span class="line-number">125</span>        <span class="text-code-string">"total_per_kategori"</span>: {k: <span class="text-code-function">round</span>(v, <span class="text-code-number">2</span>) <span class="text-code-keyword">for</span> k, v <span class="text-code-keyword">in</span> totals.<span class="text-code-function">items</span>()},
+<span class="line-number">126</span>        <span class="text-code-string">"total_semua"</span>: <span class="text-code-function">round</span>(total_all, <span class="text-code-number">2</span>),
+<span class="line-number">127</span>        <span class="text-code-string">"jumlah_item"</span>: <span class="text-code-function">int</span>(n_items)
+<span class="line-number">128</span>    }
+<span class="line-number">129</span>    <span class="text-code-keyword">return</span> json.<span class="text-code-function">dumps</span>(data, ensure_ascii=<span class="text-code-keyword">False</span>, indent=<span class="text-code-number">2</span>).<span class="text-code-function">encode</span>(<span class="text-code-string">"utf-8"</span>)
+<span class="line-number">130</span>
+<span class="line-number">131</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">132</span><span class="text-code-comment"># BAGIAN 6: FUNGSI EKSPOR EXCEL (SOLUSI LATIHAN & TROUBLESHOOTING SAFE)</span>
+<span class="line-number">133</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">134</span><span class="text-code-keyword">def</span> <span class="text-code-function">save_excel</span>(rows, totals, total_all):
+<span class="line-number">135</span>    <span class="text-code-keyword">try</span>:
+<span class="line-number">136</span>        <span class="text-code-keyword">import</span> openpyxl
+<span class="line-number">137</span>    <span class="text-code-keyword">except</span> ImportError:
+<span class="line-number">138</span>        <span class="text-code-keyword">return</span> <span class="text-code-keyword">None</span>  <span class="text-code-comment"># openpyxl belum terinstal di host</span>
+<span class="line-number">139</span>    
+<span class="line-number">140</span>    valid_rows = [r <span class="text-code-keyword">for</span> r <span class="text-code-keyword">in</span> rows <span class="text-code-keyword">if</span> (r.<span class="text-code-function">get</span>(<span class="text-code-string">"nama"</span>) <span class="text-code-keyword">or</span> <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>()]
+<span class="line-number">141</span>    df_menu = pd.<span class="text-code-function">DataFrame</span>(valid_rows)
+<span class="line-number">142</span>    <span class="text-code-keyword">if not</span> df_menu.empty:
+<span class="line-number">143</span>        df_menu = df_menu[[<span class="text-code-string">"kategori"</span>, <span class="text-code-string">"nama"</span>, <span class="text-code-string">"harga"</span>]]
+<span class="line-number">144</span>        df_menu.<span class="text-code-function">columns</span> = [<span class="text-code-string">"Kategori"</span>, <span class="text-code-string">"Nama Menu"</span>, <span class="text-code-string">"Harga"</span>]
+<span class="line-number">145</span>        df_menu[<span class="text-code-string">"Harga"</span>] = pd.<span class="text-code-function">to_numeric</span>(df_menu[<span class="text-code-string">"Harga"</span>], errors=<span class="text-code-string">"coerce"</span>).<span class="text-code-function">fillna</span>(<span class="text-code-number">0</span>)
+<span class="line-number">146</span>    
+<span class="line-number">147</span>    summary_data = [{<span class="text-code-string">"Kategori"</span>: k, <span class="text-code-string">"Total Harga (Rp)"</span>: v} <span class="text-code-keyword">for</span> k, v <span class="text-code-keyword">in</span> totals.<span class="text-code-function">items</span>()]
+<span class="line-number">148</span>    summary_data.<span class="text-code-function">append</span>({<span class="text-code-string">"Kategori"</span>: <span class="text-code-string">"TOTAL SEMUA"</span>, <span class="text-code-string">"Total Harga (Rp)"</span>: total_all})
+<span class="line-number">149</span>    df_summary = pd.<span class="text-code-function">DataFrame</span>(summary_data)
+<span class="line-number">150</span>    
+<span class="line-number">151</span>    excel_buffer = io.<span class="text-code-function">BytesIO</span>()
+<span class="line-number">152</span>    <span class="text-code-keyword">with</span> pd.<span class="text-code-function">ExcelWriter</span>(excel_buffer, engine=<span class="text-code-string">"openpyxl"</span>) <span class="text-code-keyword">as</span> writer:
+<span class="line-number">153</span>        df_menu.<span class="text-code-function">to_excel</span>(writer, sheet_name=<span class="text-code-string">"Daftar Menu"</span>, index=<span class="text-code-keyword">False</span>)
+<span class="line-number">154</span>        df_summary.<span class="text-code-function">to_excel</span>(writer, sheet_name=<span class="text-code-string">"Ringkasan"</span>, index=<span class="text-code-keyword">False</span>)
+<span class="line-number">155</span>    
+<span class="line-number">156</span>    <span class="text-code-keyword">return</span> excel_buffer.<span class="text-code-function">getvalue</span>()
+<span class="line-number">157</span>
+<span class="line-number">158</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">159</span><span class="text-code-comment"># BAGIAN 7: KOMPONEN TOMBOL UNDUH (DOWNLOAD BUTTON)</span>
+<span class="line-number">160</span><span class="text-code-comment"># ==============================================================================</span>
+<span class="line-number">161</span>st.<span class="text-code-function">divider</span>()
+<span class="line-number">162</span>st.<span class="text-code-function">subheader</span>(<span class="text-code-string">"💾 Ekspor Menu dan Ringkasan"</span>)
+<span class="line-number">163</span>
+<span class="line-number">164</span>valid_count = <span class="text-code-function">len</span>([r <span class="text-code-keyword">for</span> r <span class="text-code-keyword">in</span> edited_rows <span class="text-code-keyword">if</span> (r.<span class="text-code-function">get</span>(<span class="text-code-string">"nama"</span>) <span class="text-code-keyword">or</span> <span class="text-code-string">""</span>).<span class="text-code-function">strip</span>()])
+<span class="line-number">165</span>csv_bytes = <span class="text-code-function">save_csv</span>(edited_rows)
+<span class="line-number">166</span>json_bytes = <span class="text-code-function">export_summary_json</span>(totals, total_all, valid_count)
+<span class="line-number">167</span>excel_bytes = <span class="text-code-function">save_excel</span>(edited_rows, totals, total_all)
+<span class="line-number">168</span>
+<span class="line-number">169</span>c1, c2, c3 = st.<span class="text-code-function">columns</span>(<span class="text-code-number">3</span>)
+<span class="line-number">170</span><span class="text-code-keyword">with</span> c1:
+<span class="line-number">171</span>    st.<span class="text-code-function">download_button</span>(
+<span class="line-number">172</span>        label=<span class="text-code-string">"📥 Unduh CSV (hasil edit)"</span>,
+<span class="line-number">173</span>        data=csv_bytes,
+<span class="line-number">174</span>        file_name=<span class="text-code-string">"menu-new.csv"</span>,
+<span class="line-number">175</span>        mime=<span class="text-code-string">"text/csv"</span>,
+<span class="line-number">176</span>        use_container_width=<span class="text-code-keyword">True</span>
+<span class="line-number">177</span>    )
+<span class="line-number">178</span><span class="text-code-keyword">with</span> c2:
+<span class="line-number">179</span>    st.<span class="text-code-function">download_button</span>(
+<span class="line-number">180</span>        label=<span class="text-code-string">"📥 Unduh JSON (ringkasan)"</span>,
+<span class="line-number">181</span>        data=json_bytes,
+<span class="line-number">182</span>        file_name=<span class="text-code-string">"ringkasan.json"</span>,
+<span class="line-number">183</span>        mime=<span class="text-code-string">"application/json"</span>,
+<span class="line-number">184</span>        use_container_width=<span class="text-code-keyword">True</span>
+<span class="line-number">185</span>    )
+<span class="line-number">186</span><span class="text-code-keyword">with</span> c3:
+<span class="line-number">187</span>    <span class="text-code-keyword">if</span> excel_bytes <span class="text-code-keyword">is not None</span>:
+<span class="line-number">188</span>        st.<span class="text-code-function">download_button</span>(
+<span class="line-number">189</span>            label=<span class="text-code-string">"📊 Unduh Excel (.xlsx)"</span>,
+<span class="line-number">190</span>            data=excel_bytes,
+<span class="line-number">191</span>            file_name=<span class="text-code-string">"menu_dan_ringkasan.xlsx"</span>,
+<span class="line-number">192</span>            mime=<span class="text-code-string">"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"</span>,
+<span class="line-number">193</span>            use_container_width=<span class="text-code-keyword">True</span>
+<span class="line-number">194</span>        )
+<span class="line-number">195</span>    <span class="text-code-keyword">else</span>:
+<span class="line-number">196</span>        st.<span class="text-code-function">warning</span>(<span class="text-code-string">"Library openpyxl belum terpasang."</span>)
+<span class="line-number">197</span>        st.<span class="text-code-function">caption</span>(<span class="text-code-string">"Jalankan: pip install openpyxl"</span>)</code></pre>
+          </div>
+        </div>
+
+        <!-- 7 Bagian Detailed Line-by-Line Explanation -->
+        <div class="space-y-4 pt-4">
+          <h3 class="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+            <i class="fa-solid fa-layer-group text-brand-600"></i>
+            Penjelasan Mendalam 7 Bagian Source Code `app.py`
+          </h3>
+
+          <!-- Bagian 1 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs font-mono text-red-500 uppercase tracking-wider">Bagian 1 (Baris 1 - 17)</span>
+              <span class="text-[11px] bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 px-2 py-0.5 rounded font-mono">Page Configuration</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Inisialisasi Halaman & Metadata Web Streamlit</h4>
+            <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 leading-relaxed">
+              <li>• <strong>st.set_page_config():</strong> Menentukan judul tab browser (<code>page_title</code>), ikon favicon (<code>page_icon</code>), serta perataan tata letak layout (<code>layout="centered"</code>). Perintah ini wajib dipanggil sebelum perintah antarmuka Streamlit lainnya.</li>
+              <li>• <strong>st.title() & st.caption():</strong> Menampilkan elemen teks hierarki tingkat atas sebagai heading judul aplikasi beserta deskripsi sekunder.</li>
+            </ul>
+          </div>
+
+          <!-- Bagian 2 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs font-mono text-amber-500 uppercase tracking-wider">Bagian 2 (Baris 20 - 46)</span>
+              <span class="text-[11px] bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-mono">Data Loader & State Persistence</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Parsing String CSV Menjadi Objek & Session State</h4>
+            <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 leading-relaxed">
+              <li>• <strong>io.StringIO():</strong> Mengubah string teks biasa (<code>SAMPLE_CSV</code>) menjadi objek stream berkas di memori virtual komputer sehingga modul <code>csv.DictReader</code> dapat membacanya seolah-olah sedang membaca berkas fisik dari harddisk.</li>
+              <li>• <strong>csv.DictReader(..., delimiter=';'):</strong> Membaca baris pertama sebagai kunci dictionary dengan pemisah titik-koma.</li>
+              <li>• <strong>st.session_state:</strong> Karena Streamlit mengeksekusi ulang seluruh skrip dari atas ke bawah pada setiap event tombol atau perubahan input, inisialisasi ke dalam <code>st.session_state.menu_data</code> mencegah data editan ter-reset kembali ke nilai default.</li>
+            </ul>
+          </div>
+
+          <!-- Bagian 3 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs font-mono text-indigo-500 uppercase tracking-wider">Bagian 3 (Baris 48 - 67)</span>
+              <span class="text-[11px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-mono">Interactive Data Editor</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Komponen Grid Interaktif (st.data_editor)</h4>
+            <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 leading-relaxed">
+              <li>• <strong>column_config:</strong> Melakukan validasi tipe kolom. <code>SelectboxColumn</code> membatasi kategori hanya pada opsi <code>["Makanan", "Minuman", "Lainnya"]</code>; <code>TextColumn</code> untuk input teks nama; <code>NumberColumn</code> untuk angka dengan batas minimum 0 dan kenaikan step 1000.</li>
+              <li>• <strong>num_rows="dynamic":</strong> Memungkinkan pengguna menambah atau menghapus baris sesuka hati pada tabel web.</li>
+            </ul>
+          </div>
+
+          <!-- Bagian 4 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs font-mono text-emerald-500 uppercase tracking-wider">Bagian 4 (Baris 69 - 105)</span>
+              <span class="text-[11px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded font-mono">Aggregation Logic</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Validasi & Kalkulasi Akumulasi Ringkasan</h4>
+            <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 leading-relaxed">
+              <li>• <strong>_to_number():</strong> Membersihkan karakter koma dan spasi lalu mengonversinya secara aman ke tipe <code>float</code>. Mengembalikan <code>None</code> jika data tidak valid sehingga mencegah terjadinya error *ValueError*.</li>
+              <li>• <strong>totals[cat] = totals.get(cat, 0.0) + val:</strong> Pola akumulator dictionary standar Python untuk menjumlahkan total harga per kategori menu.</li>
+              <li>• <strong>st.columns(2) & st.metric():</strong> Membagi layout menjadi 2 kolom: sisi kiri menampilkan tabel per kategori, sisi kanan menampilkan visual metrik total semua harga.</li>
+            </ul>
+          </div>
+
+          <!-- Bagian 5 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs font-mono text-cyan-500 uppercase tracking-wider">Bagian 5 (Baris 107 - 129)</span>
+              <span class="text-[11px] bg-cyan-100 dark:bg-cyan-900/60 text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded font-mono">CSV & JSON Exporters</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Konversi ke Byte Stream CSV & JSON</h4>
+            <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 leading-relaxed">
+              <li>• <strong>save_csv():</strong> Menggunakan <code>csv.DictWriter</code> dengan delimiter titik koma (<code>;</code>) untuk menyusun byte stream teks UTF-8 dari baris-baris menu yang telah diedit pengguna.</li>
+              <li>• <strong>export_summary_json():</strong> Mengonversi dictionary hasil kalkulasi menjadi string JSON berindentasi menggunakan <code>json.dumps()</code> lalu di-encode ke format byte.</li>
+            </ul>
+          </div>
+
+          <!-- Bagian 6 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs font-mono text-purple-500 uppercase tracking-wider">Bagian 6 (Baris 131 - 156)</span>
+              <span class="text-[11px] bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded font-mono">Excel Engine & Safety Handler</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Solusi Ekspor Excel Multi-Sheet & Penanganan ImportError</h4>
+            <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 leading-relaxed">
+              <li>• <strong>Blok try...except ImportError:</strong> Pengecekan penting untuk menangani error <code>ModuleNotFoundError: No module named 'openpyxl'</code>. Jika library belum terpasang, fungsi mengembalikan <code>None</code> secara anggun tanpa membuat aplikasi web *crash*.</li>
+              <li>• <strong>io.BytesIO():</strong> Karena format dokumen Excel (<code>.xlsx</code>) adalah berkas terkompresi biner (ZIP OpenXML), maka penulisan di memori wajib menggunakan <code>BytesIO()</code> bukan <code>StringIO()</code>.</li>
+              <li>• <strong>pd.ExcelWriter(..., engine="openpyxl"):</strong> Membuat berkas spreadsheet Excel profesional dengan dua lembar kerja terpisah: Sheet <em>'Daftar Menu'</em> dan Sheet <em>'Ringkasan'</em>.</li>
+            </ul>
+          </div>
+
+          <!-- Bagian 7 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs font-mono text-rose-500 uppercase tracking-wider">Bagian 7 (Baris 158 - 197)</span>
+              <span class="text-[11px] bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-2 py-0.5 rounded font-mono">Download Triggers</span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Komponen Download Button Streamlit</h4>
+            <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 leading-relaxed">
+              <li>• Menampilkan 3 tombol download berdampingan menggunakan <code>st.columns(3)</code>.</li>
+              <li>• Parameter <code>mime</code> disesuaikan dengan standar IANA: <code>text/csv</code> untuk CSV, <code>application/json</code> untuk JSON, dan <code>application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</code> untuk Excel (.xlsx).</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 5: SIMULATOR LIVE STREAMLIT ================= -->
+      <section id="tab-sim-streamlit" class="content-section hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div class="flex items-center gap-2 text-indigo-500 text-xs font-bold uppercase tracking-wider mb-2">
+            <i class="fa-solid fa-play"></i> Simulator Langsung
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight">Interactive Streamlit App Simulator</h2>
+          <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+            Cobalah cara kerja aplikasi <em>Warung Makan "Pintar"</em> langsung di browser Anda. Anda dapat mengubah harga, menambah menu baru, menghapus baris, melihat kalkulasi ringkasan otomatis, dan mengunduh berkas CSV, JSON, atau berkas Excel asli (.xlsx) hasil racikan SheetJS!
+          </p>
+        </div>
+
+        <!-- STREAMLIT SIMULATOR CONTAINER -->
+        <div class="bg-white dark:bg-[#0e1117] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+          
+          <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 text-xs font-bold font-mono">
+              <i class="fa-solid fa-bolt"></i> STREAMLIT RUNNING INSTANCE
+            </div>
+            <h3 class="text-2xl font-extrabold mt-2 text-slate-900 dark:text-white">Warung Makan "Pintar"</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pengelolaan Daftar Menu dan Ekspor CSV/JSON/Excel.</p>
+          </div>
+
+          <!-- Data Editor Mockup -->
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <h4 class="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                <i class="fa-solid fa-table text-indigo-500"></i> Data Menu (Editable)
+              </h4>
+              <button onclick="addSimulatorRow()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm">
+                <i class="fa-solid fa-plus"></i> Tambah Menu Baru
+              </button>
+            </div>
+
+            <!-- Table Dynamic -->
+            <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/50">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th class="p-3 w-10 text-center">No</th>
+                    <th class="p-3 min-w-[130px]">Kategori (Selectbox)</th>
+                    <th class="p-3 min-w-[180px]">Nama Menu (Text)</th>
+                    <th class="p-3 min-w-[140px]">Harga (Rp)</th>
+                    <th class="p-3 w-16 text-center">Hapus</th>
+                  </tr>
+                </thead>
+                <tbody id="sim-tbody" class="divide-y divide-slate-200 dark:divide-slate-800 font-mono">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section Ringkasan Harga -->
+          <div class="space-y-3 pt-2">
+            <h4 class="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+              <i class="fa-solid fa-chart-pie text-emerald-500"></i> Ringkasan Harga
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total harga per kategori:</div>
+                <div id="sim-cat-totals" class="space-y-1.5 font-mono">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <div class="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col justify-center">
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total semua:</div>
+                <div id="sim-grand-total" class="text-3xl font-black text-brand-600 dark:text-brand-400 mt-2 font-mono">
+                  Rp 0,00
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Ekspor Menu & Ringkasan -->
+          <div class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <h4 class="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+              <i class="fa-solid fa-download text-amber-500"></i> Ekspor Menu dan Ringkasan
+            </h4>
+            <p class="text-xs text-slate-500">Unduh data hasil editan langsung ke format berkas pilihan Anda:</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button onclick="downloadSimCsv()" class="p-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all shadow-sm">
+                <i class="fa-solid fa-file-csv text-emerald-600 text-sm"></i>
+                <span>Unduh CSV (hasil edit)</span>
+              </button>
+              
+              <button onclick="downloadSimJson()" class="p-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all shadow-sm">
+                <i class="fa-solid fa-file-code text-indigo-600 text-sm"></i>
+                <span>Unduh JSON (ringkasan)</span>
+              </button>
+
+              <button onclick="downloadSimExcel()" class="p-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all shadow-sm">
+                <i class="fa-solid fa-file-excel text-emerald-500 text-sm"></i>
+                <span>Unduh Excel (.xlsx Multi-Sheet)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 6: KUIS PEMAHAMAN ================= -->
+      <section id="tab-kuis" class="content-section hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+          <div class="flex items-center gap-2 text-cyan-500 text-xs font-bold uppercase tracking-wider mb-2">
+            <i class="fa-solid fa-circle-question"></i> Evaluasi Mandiri
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight">Kuis Pemahaman String, File & Streamlit</h2>
+          <p class="mt-2 text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+            Uji pemahaman Anda terkait konsep immutability, cursor berkas, serialisasi JSON, dan ekspor data.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Soal 1 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            <p class="font-bold text-sm text-slate-800 dark:text-slate-200">1. Apa yang terjadi jika kita mengeksekusi kode <code>s = "apel"; s[0] = "o"</code> di Python?</p>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <input type="radio" name="q1" value="a" class="accent-brand-600">
+                <span>Nilai variabel <code>s</code> berubah menjadi "opel".</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <input type="radio" name="q1" value="b" class="accent-brand-600">
+                <span>Muncul <em>TypeError</em> karena objek string bersifat immutable.</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <input type="radio" name="q1" value="c" class="accent-brand-600">
+                <span>String dikonversi otomatis menjadi array karakter.</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Soal 2 -->
+          <div class="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            <p class="font-bold text-sm text-slate-800 dark:text-slate-200">2. Mengapa penulisan file Excel (.xlsx) di Streamlit wajib menggunakan <code>io.BytesIO()</code> dan bukan <code>io.StringIO()</code>?</p>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <input type="radio" name="q2" value="a" class="accent-brand-600">
+                <span>Karena berkas Excel (.xlsx) adalah arsip biner terkompresi ZIP, bukan teks polos ASCII/UTF-8.</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <input type="radio" name="q2" value="b" class="accent-brand-600">
+                <span>Hanya karena batasan compiler sistem operasi Windows.</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <input type="radio" name="q2" value="c" class="accent-brand-600">
+                <span>StringIO hanya dapat menampung maksimal 10 baris data.</span>
+              </label>
+            </div>
+          </div>
+
+          <button onclick="checkQuiz()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-md transition-colors">
+            Periksa Jawaban Kuis
+          </button>
+          <div id="quiz-result" class="text-xs font-bold pt-2 hidden"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-6 bg-white dark:bg-slate-900 text-center text-xs text-slate-500">
+    Modul Kuliah Praktikum Struktur Data - Pengolahan String dan File &copy; 2026.
+  </footer>
+
+  <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
+  <script>
+    // Theme Management
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      themeIcon.className = "fa-solid fa-sun";
+    } else {
+      document.documentElement.classList.remove('dark');
+      themeIcon.className = "fa-solid fa-moon";
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      themeIcon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+    });
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden'));
+      const activeSection = document.getElementById(tabId);
+      if (activeSection) activeSection.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('bg-brand-50', 'text-brand-700', 'dark:bg-brand-900/40', 'dark:text-brand-300');
+        btn.classList.add('text-slate-600', 'dark:text-slate-400');
+      });
+
+      if (event && event.currentTarget && event.currentTarget.classList.contains('nav-tab')) {
+        event.currentTarget.classList.remove('text-slate-600', 'dark:text-slate-400');
+        event.currentTarget.classList.add('bg-brand-50', 'text-brand-700', 'dark:bg-brand-900/40', 'dark:text-brand-300');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Toast Utility
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 2500);
+    }
+
+    // Salin Kode Mentah
+    function copyRawCode(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      // Ambil teks murni dengan menghilangkan karakter nomor baris
+      const lines = el.innerText.split('\n');
+      const cleaned = lines.map(line => line.replace(/^\s*\d+\s*/, '')).join('\n');
+      
+      const textArea = document.createElement("textarea");
+      textArea.value = cleaned;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showToast('Source code berhasil disalin ke clipboard!');
+    }
+
+    // ================= STREAMLIT SIMULATOR INTERACTIVE ENGINE =================
+    let simMenu = [
+      { kategori: "Makanan", nama: "Ayam Bakar", harga: 25000 },
+      { kategori: "Makanan", nama: "Nasi Goreng", harga: 18000 },
+      { kategori: "Minuman", nama: "Es Teh", harga: 5000 },
+      { kategori: "Minuman", nama: "Jus Alpukat", harga: 12000 },
+      { kategori: "Makanan", nama: "Iga Sapi", harga: 40000 },
+      { kategori: "Minuman", nama: "Es Jeruk", harga: 8000 }
+    ];
+
+    function renderSimulator() {
+      const tbody = document.getElementById('sim-tbody');
+      tbody.innerHTML = '';
+
+      simMenu.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 dark:hover:bg-slate-850/50";
+        tr.innerHTML = `
+          <td class="p-3 text-center text-slate-400">${idx + 1}</td>
+          <td class="p-3">
+            <select onchange="updateSimItem(${idx}, 'kategori', this.value)" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-brand-500 outline-none">
+              <option value="Makanan" ${item.kategori === 'Makanan' ? 'selected' : ''}>Makanan</option>
+              <option value="Minuman" ${item.kategori === 'Minuman' ? 'selected' : ''}>Minuman</option>
+              <option value="Lainnya" ${item.kategori === 'Lainnya' ? 'selected' : ''}>Lainnya</option>
+            </select>
+          </td>
+          <td class="p-3">
+            <input type="text" value="${item.nama}" oninput="updateSimItem(${idx}, 'nama', this.value)" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-brand-500 outline-none">
+          </td>
+          <td class="p-3">
+            <input type="number" min="0" step="1000" value="${item.harga}" oninput="updateSimItem(${idx}, 'harga', this.value)" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-brand-500 outline-none">
+          </td>
+          <td class="p-3 text-center">
+            <button onclick="removeSimulatorRow(${idx})" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Menu">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      calculateSimTotals();
+    }
+
+    function updateSimItem(index, field, value) {
+      if (field === 'harga') {
+        simMenu[index][field] = parseFloat(value) || 0;
+      } else {
+        simMenu[index][field] = value;
+      }
+      calculateSimTotals();
+    }
+
+    function addSimulatorRow() {
+      simMenu.push({ kategori: "Makanan", nama: "Menu Baru", harga: 15000 });
+      renderSimulator();
+      showToast('Baris menu berhasil ditambahkan!');
+    }
+
+    function removeSimulatorRow(idx) {
+      simMenu.splice(idx, 1);
+      renderSimulator();
+      showToast('Baris menu dihapus.');
+    }
+
+    function calculateSimTotals() {
+      const totals = {};
+      let grandTotal = 0;
+
+      simMenu.forEach(item => {
+        if (!item.nama.trim()) return;
+        const cat = item.kategori || 'Lainnya';
+        const val = parseFloat(item.harga) || 0;
+        totals[cat] = (totals[cat] || 0) + val;
+        grandTotal += val;
+      });
+
+      const catContainer = document.getElementById('sim-cat-totals');
+      catContainer.innerHTML = '';
+      
+      const keys = Object.keys(totals);
+      if (keys.length === 0) {
+        catContainer.innerHTML = '<div class="text-xs text-slate-400">Belum ada baris valid.</div>';
+      } else {
+        keys.forEach(k => {
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center text-xs py-1 border-b border-slate-200 dark:border-slate-800';
+          row.innerHTML = `
+            <span class="font-medium text-slate-700 dark:text-slate-300">${k}</span>
+            <span class="font-bold text-slate-900 dark:text-white">Rp ${totals[k].toLocaleString('id-ID')},00</span>
+          `;
+          catContainer.appendChild(row);
+        });
+      }
+
+      document.getElementById('sim-grand-total').textContent = `Rp ${grandTotal.toLocaleString('id-ID')},00`;
+    }
+
+    // Trigger File Download
+    function triggerDownload(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Berkas ${filename} berhasil diunduh!`);
+    }
+
+    function downloadSimCsv() {
+      let csv = 'kategori;nama;harga\r\n';
+      simMenu.forEach(i => {
+        if (i.nama.trim()) csv += `${i.kategori};${i.nama};${i.harga}\r\n`;
+      });
+      triggerDownload(csv, 'menu-new.csv', 'text/csv;charset=utf-8;');
+    }
+
+    function downloadSimJson() {
+      const totals = {};
+      let grandTotal = 0;
+      let validCount = 0;
+
+      simMenu.forEach(item => {
+        if (!item.nama.trim()) return;
+        validCount++;
+        totals[item.kategori] = (totals[item.kategori] || 0) + item.harga;
+        grandTotal += item.harga;
+      });
+
+      const data = {
+        total_per_kategori: totals,
+        total_semua: grandTotal,
+        jumlah_item: validCount
+      };
+      triggerDownload(JSON.stringify(data, null, 2), 'ringkasan.json', 'application/json');
+    }
+
+    function downloadSimExcel() {
+      if (typeof XLSX === 'undefined') {
+        showToast('Library SheetJS sedang dimuat, coba lagi.');
+        return;
+      }
+      
+      // Buat Sheet 1: Daftar Menu
+      const validRows = simMenu.filter(i => i.nama.trim()).map(i => ({
+        "Kategori": i.kategori,
+        "Nama Menu": i.nama,
+        "Harga (Rp)": i.harga
+      }));
+      const wsMenu = XLSX.utils.json_to_sheet(validRows);
+
+      // Buat Sheet 2: Ringkasan
+      const totals = {};
+      let grandTotal = 0;
+      simMenu.forEach(i => {
+        if (!i.nama.trim()) return;
+        totals[i.kategori] = (totals[i.kategori] || 0) + i.harga;
+        grandTotal += i.harga;
+      });
+
+      const summaryList = Object.keys(totals).map(k => ({
+        "Kategori": k,
+        "Total (Rp)": totals[k]
+      }));
+      summaryList.push({ "Kategori": "TOTAL SEMUA", "Total (Rp)": grandTotal });
+      const wsSummary = XLSX.utils.json_to_sheet(summaryList);
+
+      // Gabungkan ke Workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, wsMenu, "Daftar Menu");
+      XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan");
+
+      XLSX.writeFile(wb, "menu_dan_ringkasan.xlsx");
+      showToast('Berkas Excel .xlsx multi-sheet berhasil diunduh!');
+    }
+
+    // Kuis Evaluasi
+    function checkQuiz() {
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      const res = document.getElementById('quiz-result');
+
+      if (!q1 || !q2) {
+        res.className = "text-xs font-bold text-amber-500 block";
+        res.textContent = "Silakan jawab semua soal terlebih dahulu.";
+        return;
+      }
+
+      let score = 0;
+      if (q1.value === 'b') score++;
+      if (q2.value === 'a') score++;
+
+      res.classList.remove('hidden');
+      if (score === 2) {
+        res.className = "text-xs font-bold text-emerald-500 block";
+        res.textContent = "Luar biasa! Skor Anda 100/100 (2 dari 2 benar).";
+      } else {
+        res.className = "text-xs font-bold text-rose-500 block";
+        res.textContent = `Skor Anda: ${(score/2)*100}%. Pahami kembali sifat immutability string dan format biner XLSX.`;
+      }
+    }
+
+    // Render Awal Simulator
+    renderSimulator();
+  </script>
+</body>
+</html>
