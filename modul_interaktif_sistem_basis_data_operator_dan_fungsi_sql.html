@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Praktikum Sistem Basis Data - Modul 10: Operator dan Fungsi SQL</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#162032',
+              900: '#0f172a',
+              950: '#080d1a'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['Fira Code', 'JetBrains Mono', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .sql-code {
+      background-color: #090d16;
+      color: #e2e8f0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.65;
+    }
+    .kw { color: #38bdf8; font-weight: 600; } /* SQL Keywords */
+    .fn { color: #c084fc; font-weight: 600; } /* SQL Functions */
+    .st { color: #34d399; } /* Strings */
+    .nm { color: #fbbf24; } /* Numbers */
+    .cm { color: #64748b; font-style: italic; } /* Comments */
+    .op { color: #f472b6; font-weight: 600; } /* Operators */
+    .ln {
+      user-select: none;
+      color: #475569;
+      text-align: right;
+      padding-right: 1rem;
+      min-width: 2.2rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-800 border border-cyan-500/40 text-white px-4 py-3 rounded-xl shadow-2xl text-sm font-medium flex items-center gap-2.5 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toast-msg">Berhasil disalin!</span>
+  </div>
+
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/90 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-md shadow-cyan-500/20">
+          <i class="fa-solid fa-database text-white text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-bold tracking-tight text-white">Praktikum Sistem Basis Data: Operator & Fungsi SQL</h1>
+            <span class="hidden md:inline-block px-2 py-0.5 text-[10px] font-mono font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 rounded-md">Modul 8 / 10</span>
+          </div>
+          <p class="text-xs text-slate-400">MySQL / MariaDB Interactive Reference, Code Breakdown & Live Query Simulator</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <button onclick="downloadMahasiswaSQL()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all" title="Unduh file mahasiswa.sql untuk diimpor ke phpMyAdmin">
+          <i class="fa-solid fa-download"></i>
+          <span class="hidden sm:inline">Unduh</span> mahasiswa.sql
+        </button>
+        <button onclick="switchTab('tab-playground')" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-500/30 transition-all">
+          <i class="fa-solid fa-terminal text-cyan-400"></i>
+          <span>SQL Playground</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+    <!-- Sidebar Navigation -->
+    <aside class="lg:col-span-3">
+      <nav class="sticky top-24 bg-slate-800/80 border border-slate-700/70 rounded-2xl p-3 shadow-xl space-y-1 text-xs sm:text-sm">
+        <div class="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Persiapan & Skema</div>
+        <button onclick="switchTab('tab-schema')" id="btn-tab-schema" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-table w-4 text-center text-cyan-400"></i> 0. Tabel mahasiswa.sql</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900/70">PERT_07</span>
+        </button>
+
+        <div class="pt-2 px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 border-t border-slate-700/60">Materi & Pembahasan Latihan</div>
+
+        <button onclick="switchTab('tab-operators')" id="btn-tab-operators" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-sliders w-4 text-center text-sky-400"></i> 1. SQL Operators</span>
+          <span class="text-[10px] font-mono text-slate-400">Lat a-e</span>
+        </button>
+
+        <button onclick="switchTab('tab-string')" id="btn-tab-string" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-font w-4 text-center text-purple-400"></i> 2. String Functions</span>
+          <span class="text-[10px] font-mono text-slate-400">Lat a-f</span>
+        </button>
+
+        <button onclick="switchTab('tab-numeric')" id="btn-tab-numeric" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-calculator w-4 text-center text-amber-400"></i> 3. Numeric Functions</span>
+          <span class="text-[10px] font-mono text-slate-400">Lat a-b</span>
+        </button>
+
+        <button onclick="switchTab('tab-date')" id="btn-tab-date" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-calendar-days w-4 text-center text-emerald-400"></i> 4. Date & Time Functions</span>
+          <span class="text-[10px] font-mono text-slate-400">Lat a-e</span>
+        </button>
+
+        <button onclick="switchTab('tab-cast')" id="btn-tab-cast" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-right-left w-4 text-center text-pink-400"></i> 5. Cast Functions</span>
+          <span class="text-[10px] font-mono text-slate-400">Lat a</span>
+        </button>
+
+        <button onclick="switchTab('tab-control')" id="btn-tab-control" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-code-branch w-4 text-center text-indigo-400"></i> 6. Control-Flow Functions</span>
+          <span class="text-[10px] font-mono text-slate-400">Lat a-c</span>
+        </button>
+
+        <div class="pt-2 px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 border-t border-slate-700/60">Evaluasi & Praktik</div>
+
+        <button onclick="switchTab('tab-playground')" id="btn-tab-playground" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-terminal w-4 text-center text-cyan-400"></i> 7. Live SQL Playground</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">19 Query</span>
+        </button>
+
+        <button onclick="switchTab('tab-quiz')" id="btn-tab-quiz" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50">
+          <span class="flex items-center gap-2.5"><i class="fa-solid fa-award w-4 text-center text-yellow-400"></i> 8. Kuis Posttest</span>
+          <span class="text-[10px] font-mono text-slate-400">6 Soal</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content Column -->
+    <main class="lg:col-span-9 space-y-8">
+
+      <!-- ===================================================================== -->
+      <!-- TAB 0: SKEMA & DATASET MAHASISWA.SQL (PHPMYADMIN SIMULATOR)           -->
+      <!-- ===================================================================== -->
+      <section id="tab-schema" class="tab-panel space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span class="text-xs font-mono uppercase tracking-wider px-2.5 py-1 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+              <i class="fa-solid fa-server mr-1"></i> Database: PERT_07 &bull; Tabel: mahasiswa
+            </span>
+            <span class="text-xs text-slate-400">Alokasi Waktu Praktikum: 170 Menit</span>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Persiapan Tabel Sampel & Struktur `mahasiswa.sql`</h2>
+          <p class="mt-2 text-sm text-slate-300 leading-relaxed">
+            Pada praktikum ini kita mempelajari berbagai macam <strong>Operator</strong> dan <strong>Fungsi Built-in SQL</strong> (String, Numeric, Date/Time, Cast, dan Control-Flow) untuk men-<em>tuning</em> statemen query agar lebih efektif dan efisien dalam menyaring informasi dari tabel <code>mahasiswa</code>.
+          </p>
+
+          <!-- Tujuan & Pembagian Waktu -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+            <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-700/70 space-y-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-bullseye"></i> Tujuan Praktikum
+              </h3>
+              <ul class="text-xs text-slate-300 space-y-1.5 list-decimal list-inside leading-relaxed">
+                <li>Menjelaskan operator-operator yang dapat diterapkan dalam statemen query SQL.</li>
+                <li>Menjelaskan fungsi pengolahan data <em>string</em>, <em>numeric</em>, <em>date</em>, <em>cast</em>, dan <em>control-flow</em>.</li>
+                <li>Menerapkan operator dan fungsi yang tepat sesuai kebutuhan informasi basis data.</li>
+              </ul>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-700/70 space-y-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                <i class="fa-regular fa-clock"></i> Pembagian Waktu (Total 170 Menit)
+              </h3>
+              <div class="grid grid-cols-2 gap-1.5 text-xs text-slate-300">
+                <div class="flex justify-between bg-slate-800/80 px-2.5 py-1 rounded"><span>1. Pretest</span><span class="font-mono text-cyan-300">15m</span></div>
+                <div class="flex justify-between bg-slate-800/80 px-2.5 py-1 rounded"><span>2. Operator</span><span class="font-mono text-cyan-300">20m</span></div>
+                <div class="flex justify-between bg-slate-800/80 px-2.5 py-1 rounded"><span>3. String Func</span><span class="font-mono text-cyan-300">20m</span></div>
+                <div class="flex justify-between bg-slate-800/80 px-2.5 py-1 rounded"><span>4. Numeric Func</span><span class="font-mono text-cyan-300">15m</span></div>
+                <div class="flex justify-between bg-slate-800/80 px-2.5 py-1 rounded"><span>5. Date Func</span><span class="font-mono text-cyan-300">15m</span></div>
+                <div class="flex justify-between bg-slate-800/80 px-2.5 py-1 rounded"><span>6. Cast Func</span><span class="font-mono text-cyan-300">10m</span></div>
+                <div class="flex justify-between bg-slate-800/80 px-2.5 py-1 rounded"><span>7. Control Flow</span><span class="font-mono text-cyan-300">15m</span></div>
+                <div class="flex justify-between bg-slate-800/80 px-2.5 py-1 rounded"><span>8. Posttest</span><span class="font-mono text-amber-300">60m</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive phpMyAdmin Simulator -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
+          <!-- phpMyAdmin Top Bar -->
+          <div class="bg-slate-950 px-4 py-3 border-b border-slate-700 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-xs font-mono">
+              <span class="text-amber-400 font-bold"><i class="fa-solid fa-server mr-1"></i>127.0.0.1</span>
+              <span class="text-slate-500">&raquo;</span>
+              <span class="text-cyan-400"><i class="fa-solid fa-database mr-1"></i>PERT_07</span>
+              <span class="text-slate-500">&raquo;</span>
+              <span class="text-emerald-400"><i class="fa-solid fa-table mr-1"></i>mahasiswa</span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button onclick="setPhpMyAdminView('browse')" id="pma-btn-browse" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-table-list"></i> Browse (Jelajahi)
+              </button>
+              <button onclick="setPhpMyAdminView('structure')" id="pma-btn-structure" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-sitemap"></i> Structure (DESC mahasiswa)
+              </button>
+              <button onclick="setPhpMyAdminView('sql')" id="pma-btn-sql" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-file-code"></i> Dump SQL
+              </button>
+              <button onclick="resetMahasiswaData()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25" title="Reset perubahan UPDATE email ke kondisi awal">
+                <i class="fa-solid fa-rotate-left"></i> Reset Data
+              </button>
+            </div>
+          </div>
+
+          <!-- View 1: Browse (SELECT * FROM mahasiswa) -->
+          <div id="pma-view-browse" class="p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs bg-slate-900/90 px-3.5 py-2 rounded-xl border border-slate-800 font-mono">
+              <span><span class="kw">SELECT</span> * <span class="kw">FROM</span> `mahasiswa`; <span class="text-emerald-400 ml-2">// Menampilkan <span id="mhs-row-count">14</span> baris</span></span>
+              <span class="text-slate-400">Kolom <code class="text-amber-300">no_telp</code> bernilai <code class="text-rose-400">NULL</code> pada beberapa baris untuk uji fungsi IFNULL</span>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-900 text-slate-300 font-mono border-b border-slate-700">
+                  <tr>
+                    <th class="p-2.5">nim (PK)</th>
+                    <th class="p-2.5">nama_depan</th>
+                    <th class="p-2.5">nama_belakang</th>
+                    <th class="p-2.5 min-w-[220px]">alamat</th>
+                    <th class="p-2.5">ipk</th>
+                    <th class="p-2.5">ips</th>
+                    <th class="p-2.5">sks</th>
+                    <th class="p-2.5">tgl_lahir</th>
+                    <th class="p-2.5">no_telp</th>
+                    <th class="p-2.5">email</th>
+                    <th class="p-2.5">sex</th>
+                  </tr>
+                </thead>
+                <tbody id="pma-browse-tbody" class="divide-y divide-slate-700/60 font-mono text-[11px]">
+                  <!-- Diisi oleh JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- View 2: Structure (DESC mahasiswa) -->
+          <div id="pma-view-structure" class="p-4 space-y-3 hidden">
+            <div class="text-xs bg-slate-900/90 px-3.5 py-2 rounded-xl border border-slate-800 font-mono">
+              <span class="kw">DESC</span> `mahasiswa`; <span class="text-slate-400 ml-2">-- Struktur 11 kolom sesuai Gambar 1 pada Modul Praktikum</span>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+              <table class="w-full text-left text-xs border-collapse font-mono">
+                <thead class="bg-slate-900 text-slate-300 border-b border-slate-700">
+                  <tr>
+                    <th class="p-2.5">#</th>
+                    <th class="p-2.5">Name (Field)</th>
+                    <th class="p-2.5">Type</th>
+                    <th class="p-2.5">Collation</th>
+                    <th class="p-2.5">Null</th>
+                    <th class="p-2.5">Key</th>
+                    <th class="p-2.5">Default</th>
+                    <th class="p-2.5">Keterangan Penggunaan di Modul</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/60 text-slate-200">
+                  <tr><td class="p-2.5">1</td><td class="p-2.5 font-bold text-amber-300">nim <i class="fa-solid fa-key text-amber-400 ml-1"></i></td><td class="p-2.5 text-cyan-300">varchar(8)</td><td class="p-2.5 text-slate-400">utf16_bin</td><td class="p-2.5">No</td><td class="p-2.5">PRI</td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">2 digit awal = Kode Prodi (71=TI, 72=SI), digit 3-4 = Angkatan (16-19)</td></tr>
+                  <tr><td class="p-2.5">2</td><td class="p-2.5 font-bold">nama_depan</td><td class="p-2.5 text-cyan-300">varchar(50)</td><td class="p-2.5 text-slate-400">utf16_bin</td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">Uji pola LIKE 'Mi%', CONCAT, LOWER, dan komparasi nama</td></tr>
+                  <tr><td class="p-2.5">3</td><td class="p-2.5 font-bold">nama_belakang</td><td class="p-2.5 text-cyan-300">varchar(50)</td><td class="p-2.5 text-slate-400">utf16_bin</td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">Uji pola LIKE '%ya', CONCAT nama_lengkap & pembuatan email</td></tr>
+                  <tr><td class="p-2.5">4</td><td class="p-2.5 font-bold">alamat</td><td class="p-2.5 text-cyan-300">varchar(150)</td><td class="p-2.5 text-slate-400">utf16_bin</td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">Format: 'Jalan, Kab/Kota, Provinsi' (untuk SUBSTRING_INDEX)</td></tr>
+                  <tr><td class="p-2.5">5</td><td class="p-2.5 font-bold">ipk</td><td class="p-2.5 text-emerald-300">float(3,2)</td><td class="p-2.5 text-slate-400"></td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">Indeks Prestasi Kumulatif (Uji BETWEEN 3.00 AND 3.50)</td></tr>
+                  <tr><td class="p-2.5">6</td><td class="p-2.5 font-bold">ips</td><td class="p-2.5 text-emerald-300">float(3,2)</td><td class="p-2.5 text-slate-400"></td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">Indeks Prestasi Semester</td></tr>
+                  <tr><td class="p-2.5">7</td><td class="p-2.5 font-bold">sks</td><td class="p-2.5 text-amber-300">int(3)</td><td class="p-2.5 text-slate-400"></td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">Jumlah SKS ditempuh (Uji >= 70 dan sisa SKS lulus 144 - sks)</td></tr>
+                  <tr><td class="p-2.5">8</td><td class="p-2.5 font-bold">tgl_lahir</td><td class="p-2.5 text-purple-300">date</td><td class="p-2.5 text-slate-400"></td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">Format YYYY-MM-DD (Uji YEAR, MONTH, DATE_FORMAT, usia)</td></tr>
+                  <tr><td class="p-2.5">9</td><td class="p-2.5 font-bold">no_telp</td><td class="p-2.5 text-cyan-300">varchar(15)</td><td class="p-2.5 text-slate-400">utf16_bin</td><td class="p-2.5 text-amber-300">Yes</td><td class="p-2.5"></td><td class="p-2.5">NULL</td><td class="p-2.5 font-sans text-slate-300">Mengizinkan NULL untuk latihan fungsi IFNULL() di Latihan 6c</td></tr>
+                  <tr><td class="p-2.5">10</td><td class="p-2.5 font-bold">email</td><td class="p-2.5 text-cyan-300">varchar(50)</td><td class="p-2.5 text-slate-400">utf16_bin</td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">Diisi dan dimodifikasi pada Latihan 2b (@gmail.ac.id) & 2c (@ukdw.ac.id)</td></tr>
+                  <tr><td class="p-2.5">11</td><td class="p-2.5 font-bold">sex</td><td class="p-2.5 text-pink-300">enum('M','F')</td><td class="p-2.5 text-slate-400">utf16_bin</td><td class="p-2.5">No</td><td class="p-2.5"></td><td class="p-2.5">None</td><td class="p-2.5 font-sans text-slate-300">'M' = Laki-laki (Male), 'F' = Perempuan (Female)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- View 3: SQL Dump -->
+          <div id="pma-view-sql" class="p-4 space-y-3 hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-300">Salin atau unduh skrip SQL berikut untuk diimpor ke database <code>PERT_07</code> di phpMyAdmin:</span>
+              <button onclick="copyTextById('raw-sql-dump')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-mono text-white flex items-center gap-1.5">
+                <i class="fa-regular fa-copy"></i> Salin SQL Dump
+              </button>
+            </div>
+            <pre id="raw-sql-dump" class="sql-code p-4 rounded-xl border border-slate-700 overflow-x-auto max-h-96 text-xs"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 1: SQL OPERATORS & LATIHAN 1 (a, b, c, d, e)                      -->
+      <!-- ===================================================================== -->
+      <section id="tab-operators" class="tab-panel hidden space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl">
+          <div class="text-xs font-mono text-sky-400 uppercase tracking-wider mb-1">Bagian 1 &bull; Alokasi Waktu: 20 Menit</div>
+          <h2 class="text-2xl font-bold text-white">1. Operator dalam SQL (Logika, Aritmatika, & Perbandingan)</h2>
+          <p class="mt-2 text-sm text-slate-300 leading-relaxed">
+            Operator digunakan pada klausa <code>SELECT</code> (untuk kalkulasi kolom turunan) maupun klausa <code>WHERE</code> (untuk menyaring baris data berdasarkan kondisi logika, rentang nilai, atau pencocokan pola karakter).
+          </p>
+
+          <!-- Tabel Referensi Operator -->
+          <div class="mt-5 overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-900 text-slate-300 border-b border-slate-700">
+                <tr>
+                  <th class="p-3 w-44">Operator</th>
+                  <th class="p-3 w-36">Kategori</th>
+                  <th class="p-3">Deskripsi Modul</th>
+                  <th class="p-3">Contoh Sintaks SQL</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                <tr><td class="p-2.5 font-mono font-bold text-sky-300">AND, &amp;&amp;</td><td class="p-2.5">Logika</td><td class="p-2.5">Logical AND (bernilai TRUE jika kedua kondisi benar)</td><td class="p-2.5 font-mono">sex = 'F' AND sks >= 70</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-sky-300">OR, ||</td><td class="p-2.5">Logika</td><td class="p-2.5">Logical OR (bernilai TRUE jika salah satu kondisi benar)</td><td class="p-2.5 font-mono">ipk > 3.5 OR sks > 120</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-sky-300">XOR</td><td class="p-2.5">Logika</td><td class="p-2.5">Logical XOR (eksklusif OR: benar jika tepat satu kondisi benar)</td><td class="p-2.5 font-mono">sex = 'F' XOR ipk > 3.5</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-sky-300">NOT, !</td><td class="p-2.5">Logika</td><td class="p-2.5">Menegasikan / membalikkan nilai kebenaran</td><td class="p-2.5 font-mono">NOT (sex = 'M')</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">BETWEEN ... AND ...</td><td class="p-2.5">Rentang</td><td class="p-2.5">Mengecek apakah suatu nilai berada pada range nilai (inklusif)</td><td class="p-2.5 font-mono">ipk BETWEEN 3.00 AND 3.50</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">NOT BETWEEN ... AND ...</td><td class="p-2.5">Rentang</td><td class="p-2.5">Mengecek apakah suatu nilai tidak berada pada range nilai</td><td class="p-2.5 font-mono">sks NOT BETWEEN 50 AND 100</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">=, !=, &lt;&gt;, &gt;, &gt;=, &lt;, &lt;=</td><td class="p-2.5">Perbandingan</td><td class="p-2.5">Penyamaan, tidak sama dengan, lebih besar/kecil sama dengan</td><td class="p-2.5 font-mono">sks >= 70</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-pink-300">IS NULL / IS NOT NULL</td><td class="p-2.5">Uji Null/Bool</td><td class="p-2.5">Menguji apakah nilai kolom kosong (NULL) atau terisi</td><td class="p-2.5 font-mono">no_telp IS NULL</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-pink-300">IS / IS NOT</td><td class="p-2.5">Uji Boolean</td><td class="p-2.5">Menguji suatu nilai terhadap suatu boolean (TRUE/FALSE/UNKNOWN)</td><td class="p-2.5 font-mono">(ipk > 3.0) IS TRUE</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">LIKE</td><td class="p-2.5">Pola String</td><td class="p-2.5">Pembandingan pola sederhana dengan wildcard <code>%</code> (0/lebih char) & <code>_</code> (1 char)</td><td class="p-2.5 font-mono">nama_depan LIKE 'Mi%'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">REGEXP</td><td class="p-2.5">Pola Regex</td><td class="p-2.5">Pencocokan pola menggunakan Regular Expressions</td><td class="p-2.5 font-mono">nama_depan REGEXP '^Mi'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-cyan-300">+, -, *, /, %, MOD</td><td class="p-2.5">Aritmatika</td><td class="p-2.5">Penjumlahan, pengurangan, perkalian, pembagian, sisa hasil bagi</td><td class="p-2.5 font-mono">144 - sks AS sisa_sks</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pembahasan Lengkap Latihan 1a - 1e -->
+        <div id="latihan-1-container" class="space-y-6"></div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 2: STRING FUNCTIONS & LATIHAN 2 (a, b, c, d, e, f)                -->
+      <!-- ===================================================================== -->
+      <section id="tab-string" class="tab-panel hidden space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-5">
+          <div>
+            <div class="text-xs font-mono text-purple-400 uppercase tracking-wider mb-1">Bagian 2 &bull; Alokasi Waktu: 20 Menit</div>
+            <h2 class="text-2xl font-bold text-white">2. Fungsi Pengolahan String (String Functions)</h2>
+            <p class="mt-2 text-sm text-slate-300 leading-relaxed">
+              Fungsi string digunakan untuk memformat teks pada klausa <code>SELECT</code>, memodifikasi kolom pada statemen <code>UPDATE</code>, maupun menyaring potongan karakter (seperti kode prodi dan tahun angkatan pada NIM) di klausa <code>WHERE</code> tanpa bergantung pada wildcard <code>LIKE</code>.
+            </p>
+          </div>
+
+          <!-- Interactive String Sandbox -->
+          <div class="p-5 rounded-2xl bg-slate-900/90 border border-purple-500/30 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-purple-300 flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Interactive MySQL String Function Sandbox
+              </h3>
+              <span class="text-[11px] font-mono text-slate-400">Catatan: Indeks karakter di SQL dimulai dari 1 (bukan 0!)</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">String Input (Uji NIM / Alamat / Nama):</label>
+                <input id="str-sb-input" type="text" value="Jl. Kaliurang Km 5, Sleman, Yogyakarta" oninput="updateStringSandbox()" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono focus:border-purple-400 outline-none">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Pilih Preset Uji Cepat:</label>
+                <select onchange="document.getElementById('str-sb-input').value=this.value; updateStringSandbox();" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono">
+                  <option value="Jl. Kaliurang Km 5, Sleman, Yogyakarta">Alamat: Jl. Kaliurang Km 5, Sleman, Yogyakarta</option>
+                  <option value="72170145">NIM SI 2017: 72170145</option>
+                  <option value="71180390">NIM TI 2018: 71180390</option>
+                  <option value="andika.rangga@gmail.ac.id">Email: andika.rangga@gmail.ac.id</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Posisi `pos` & Panjang `len` (untuk MID):</label>
+                <div class="flex gap-2">
+                  <input id="str-sb-pos" type="number" value="3" min="1" max="50" oninput="updateStringSandbox()" class="w-1/2 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono" title="pos (mulai dari 1)">
+                  <input id="str-sb-len" type="number" value="2" min="1" max="50" oninput="updateStringSandbox()" class="w-1/2 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono" title="len (jumlah karakter)">
+                </div>
+              </div>
+            </div>
+            <div id="str-sb-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 font-mono text-xs">
+              <!-- Diisi oleh JS -->
+            </div>
+          </div>
+
+          <!-- Tabel Referensi 21 Fungsi String -->
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-900 text-slate-300 border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5 w-60">Fungsi String</th>
+                  <th class="p-2.5">Deskripsi Lengkap</th>
+                  <th class="p-2.5">Contoh & Hasil</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">CHAR_LENGTH(str)</td><td class="p-2.5">Mengembalikan jumlah karakter dari string</td><td class="p-2.5 font-mono">CHAR_LENGTH('UKDW') &rarr; 4</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">CONCAT(str1, str2, ...)</td><td class="p-2.5">Menggabungkan dua atau lebih string menjadi satu</td><td class="p-2.5 font-mono">CONCAT('Andika',' ','Rangga')</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">INSERT(str, pos, len, newstr)</td><td class="p-2.5">Menyisipkan <code>newstr</code> pada posisi <code>pos</code> dengan mengganti sepanjang <code>len</code> karakter</td><td class="p-2.5 font-mono">INSERT('BasisData', 6, 4, 'SQL') &rarr; 'BasisSQL'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">LOWER(str), LCASE(str)</td><td class="p-2.5">Mengubah seluruh karakter string menjadi huruf kecil (lowercase)</td><td class="p-2.5 font-mono">LOWER('Andika') &rarr; 'andika'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">UPPER(str)</td><td class="p-2.5">Mengubah seluruh karakter string menjadi huruf kapital (uppercase)</td><td class="p-2.5 font-mono">UPPER('ukdw') &rarr; 'UKDW'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">LEFT(str, len)</td><td class="p-2.5">Mengembalikan sejumlah <code>len</code> karakter dari sisi kiri string</td><td class="p-2.5 font-mono">LEFT('72170145', 2) &rarr; '72'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">RIGHT(str, len)</td><td class="p-2.5">Mengembalikan sejumlah <code>len</code> karakter dari sisi kanan string</td><td class="p-2.5 font-mono">RIGHT('72170145', 4) &rarr; '0145'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">MID(str, pos, len), SUBSTR(str, pos, len)</td><td class="p-2.5">Mengembalikan substring sepanjang <code>len</code> dimulai dari posisi <code>pos</code> (indeks mulai 1)</td><td class="p-2.5 font-mono">MID('72170145', 3, 2) &rarr; '17'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">LOCATE(substr, str, [pos]) / POSITION(substr IN str)</td><td class="p-2.5">Mengembalikan indeks letak penemuan pertama <code>substr</code> di dalam <code>str</code></td><td class="p-2.5 font-mono">LOCATE('@', 'a@b.c') &rarr; 2</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">LPAD(str, len, padstr) / RPAD(str, len, padstr)</td><td class="p-2.5">Menempelkan <code>padstr</code> di sisi kiri (LPAD) atau kanan (RPAD) hingga total panjang menjadi <code>len</code></td><td class="p-2.5 font-mono">LPAD('7', 3, '0') &rarr; '007'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">LTRIM(str) / RTRIM(str) / TRIM(...)</td><td class="p-2.5">Menghapus spasi atau karakter tertentu dari sisi kiri (LEADING), kanan (TRAILING), atau keduanya (BOTH)</td><td class="p-2.5 font-mono">TRIM('  Yogyakarta ') &rarr; 'Yogyakarta'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">REPLACE(str, from_str, to_str)</td><td class="p-2.5">Mengganti seluruh kemunculan substring <code>from_str</code> menjadi <code>to_str</code></td><td class="p-2.5 font-mono">REPLACE(email, 'gmail', 'ukdw')</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">REPEAT(str, count) / SPACE(N) / REVERSE(str)</td><td class="p-2.5">Mengulangi string <code>count</code> kali / membuat spasi <code>N</code> kali / membalik urutan karakter</td><td class="p-2.5 font-mono">REVERSE('SQL') &rarr; 'LQS'</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">STRCMP(str1, str2)</td><td class="p-2.5">Membandingkan 2 string: menghasilkan <code>0</code> jika sama, <code>-1</code> jika str1 &lt; str2, <code>1</code> jika str1 &gt; str2</td><td class="p-2.5 font-mono">STRCMP('A', 'A') &rarr; 0</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-purple-300">SUBSTRING_INDEX(str, delim, count)</td><td class="p-2.5">Mengambil substring sebelum <code>count</code> kemunculan delimiter. Jika <code>count</code> negatif, dihitung dari kanan</td><td class="p-2.5 font-mono">SUBSTRING_INDEX('A, B, C', ',', -2) &rarr; ' B, C'</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pembahasan Lengkap Latihan 2a - 2f -->
+        <div id="latihan-2-container" class="space-y-6"></div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 3: NUMERIC FUNCTIONS & LATIHAN 3 (a, b)                           -->
+      <!-- ===================================================================== -->
+      <section id="tab-numeric" class="tab-panel hidden space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-5">
+          <div>
+            <div class="text-xs font-mono text-amber-400 uppercase tracking-wider mb-1">Bagian 3 &bull; Alokasi Waktu: 15 Menit</div>
+            <h2 class="text-2xl font-bold text-white">3. Fungsi Numerik & Matematika (Numeric Functions)</h2>
+            <p class="mt-2 text-sm text-slate-300 leading-relaxed">
+              Fungsi numerik mengelola perhitungan matematis, pembulatan desimal, eksponensial, hingga trigonometri. <strong>Poin Penting:</strong> Fungsi trigonometri MySQL seperti <code>SIN(x)</code> dan <code>COS(x)</code> menerima argumen sudut dalam satuan <strong>Radian</strong>, sehingga sudut dalam derajat wajib dikonversi terlebih dahulu menggunakan <code>RADIANS(derajat)</code>.
+            </p>
+          </div>
+
+          <!-- Interactive Numeric & Trigonometry Sandbox -->
+          <div class="p-5 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-4">
+            <h3 class="text-sm font-bold text-amber-300 flex items-center gap-2">
+              <i class="fa-solid fa-compass-drafting"></i> Kalkulator Interaktif SQL: Luas Lingkaran & Trigonometri
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="p-4 rounded-xl bg-slate-800/90 border border-slate-700 space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="font-semibold text-slate-200">Jari-Jari Lingkaran ($r$):</span>
+                  <span id="num-sb-r-val" class="font-mono font-bold text-amber-400 text-sm">5 cm</span>
+                </div>
+                <input id="num-sb-r" type="range" min="1" max="50" step="0.5" value="5" oninput="updateNumericSandbox()" class="w-full accent-amber-400">
+                <div id="num-sb-circle-sql" class="font-mono text-[11px] bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-slate-300"></div>
+              </div>
+
+              <div class="p-4 rounded-xl bg-slate-800/90 border border-slate-700 space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="font-semibold text-slate-200">Sudut Trigonometri ($\theta$ Derajat):</span>
+                  <span id="num-sb-deg-val" class="font-mono font-bold text-cyan-400 text-sm">120&deg;</span>
+                </div>
+                <input id="num-sb-deg" type="range" min="0" max="360" step="15" value="120" oninput="updateNumericSandbox()" class="w-full accent-cyan-400">
+                <div id="num-sb-trig-sql" class="font-mono text-[11px] bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-slate-300"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabel Referensi Fungsi Numerik -->
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-900 text-slate-300 border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5 w-52">Fungsi Numerik</th>
+                  <th class="p-2.5">Deskripsi</th>
+                  <th class="p-2.5">Contoh Penggunaan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">PI()</td><td class="p-2.5">Mengembalikan nilai konstanta $\pi$ (3.141593...)</td><td class="p-2.5 font-mono">SELECT PI(); &rarr; 3.141593</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">POWER(x, y) / SQRT(x)</td><td class="p-2.5">Mengembalikan nilai $x^y$ / akar kuadrat $\sqrt{x}$</td><td class="p-2.5 font-mono">POWER(5, 2) &rarr; 25</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">ROUND(x, d) / TRUNCATE(x, d)</td><td class="p-2.5">Membulatkan vs memotong desimal <code>x</code> hingga <code>d</code> angka di belakang koma</td><td class="p-2.5 font-mono">ROUND(78.5398, 2) &rarr; 78.54</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">CEILING(x) / FLOOR(x)</td><td class="p-2.5">Pembulatan ke bilangan bulat terdekat ke atas / ke bawah</td><td class="p-2.5 font-mono">CEILING(3.1) &rarr; 4, FLOOR(3.9) &rarr; 3</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">RADIANS(x) / DEGREES(x)</td><td class="p-2.5">Mengonversi sudut dari derajat ke radian / radian ke derajat</td><td class="p-2.5 font-mono">RADIANS(180) &rarr; 3.141593</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">SIN(x), COS(x), TAN(x), COT(x)</td><td class="p-2.5">Menghitung sinus, kosinus, tangen, kotangen (<code>x</code> wajib dalam radian)</td><td class="p-2.5 font-mono">COS(RADIANS(120)) &rarr; -0.5</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">ACOS(x), ASIN(x), ATAN(x)</td><td class="p-2.5">Mengembalikan arc cosinus, arc sinus, arc tangen (dalam radian)</td><td class="p-2.5 font-mono">DEGREES(ACOS(-0.5)) &rarr; 120</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">ABS(x) / SIGN(x)</td><td class="p-2.5">Nilai mutlak positif / tanda bilangan (-1, 0, atau 1)</td><td class="p-2.5 font-mono">ABS(-15) &rarr; 15</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">DIV / MOD(n, m)</td><td class="p-2.5">Pembagian bilangan bulat (integer) / sisa hasil bagi</td><td class="p-2.5 font-mono">10 DIV 3 &rarr; 3, MOD(10,3) &rarr; 1</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-amber-300">EXP(x), LN(x), LOG(b, x), RAND()</td><td class="p-2.5">Bilangan $e^x$, logaritma natural, logaritma basis $b$, dan angka acak 0..1</td><td class="p-2.5 font-mono">LOG(10, 100) &rarr; 2</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pembahasan Lengkap Latihan 3a - 3b -->
+        <div id="latihan-3-container" class="space-y-6"></div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 4: DATE & TIME FUNCTIONS & LATIHAN 4 (a, b, c, d, e)              -->
+      <!-- ===================================================================== -->
+      <section id="tab-date" class="tab-panel hidden space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-5">
+          <div>
+            <div class="text-xs font-mono text-emerald-400 uppercase tracking-wider mb-1">Bagian 4 &bull; Alokasi Waktu: 15 Menit</div>
+            <h2 class="text-2xl font-bold text-white">4. Fungsi Penanggalan & Waktu (Date & Time Functions)</h2>
+            <p class="mt-2 text-sm text-slate-300 leading-relaxed">
+              Fungsi penanggalan mengekstrak bagian tanggal (<code>YEAR</code>, <code>MONTH</code>, <code>DAYNAME</code>), memformat tampilan tanggal (<code>DATE_FORMAT</code>), serta menghitung selisih waktu seperti usia mahasiswa (<code>TIMESTAMPDIFF</code>).
+            </p>
+          </div>
+
+          <!-- Interactive DATE_FORMAT Specifier Builder -->
+          <div class="p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/30 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check"></i> Interactive `DATE_FORMAT(date, format)` Explorer
+              </h3>
+              <span class="text-xs font-mono text-slate-400">Klik tombol specifier di bawah untuk merakit format tanggal</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Tanggal Uji:</label>
+                <input id="df-date-input" type="date" value="1999-10-06" oninput="updateDateFormatSandbox()" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">String Format MySQL:</label>
+                <input id="df-format-input" type="text" value="%a, %e %M %Y" oninput="updateDateFormatSandbox()" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-emerald-300 font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Hasil Eksekusi Query:</label>
+                <div id="df-output" class="w-full px-3 py-2 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-200 font-mono font-bold">
+                  Wed, 6 October 1999
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5 text-[11px] font-mono">
+              <button onclick="setDateFormatPreset('%a, %e %M %Y')" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Preset Latihan 4b: %a, %e %M %Y</button>
+              <button onclick="setDateFormatPreset('%W, %d %M %Y')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">%W, %d %M %Y (Hari Lengkap)</button>
+              <button onclick="setDateFormatPreset('%d/%m/%Y')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">%d/%m/%Y (DD/MM/YYYY)</button>
+              <button onclick="setDateFormatPreset('%D %b %y')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">%D %b %y (6th Oct 99)</button>
+            </div>
+
+            <!-- Katalog Specifier Modul -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-[11px] font-mono pt-1">
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%a</span> : Hari singkat (Sun..Sat)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%W</span> : Nama hari (Sunday..Saturday)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%d</span> : Tanggal 2 digit (00..31)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%e</span> : Tanggal 1-2 digit (0..31)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%D</span> : Tanggal akhiran (1st, 2nd)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%b</span> : Bulan singkat (Jan..Dec)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%M</span> : Nama bulan (January..December)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%m / %c</span> : Bulan angka (01..12 / 1..12)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%Y</span> : Tahun 4 digit (1999)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%y</span> : Tahun 2 digit (99)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%H / %h</span> : Jam 24j (00..23) / 12j (01..12)</div>
+              <div class="p-2 rounded bg-slate-800/80"><span class="text-emerald-400 font-bold">%i / %s</span> : Menit (00..59) / Detik (00..59)</div>
+            </div>
+          </div>
+
+          <!-- Tabel Referensi Fungsi Tanggal -->
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-900 text-slate-300 border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5 w-64">Fungsi Date & Time</th>
+                  <th class="p-2.5">Deskripsi</th>
+                  <th class="p-2.5">Contoh Penggunaan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">CURDATE(), CURRENT_DATE(), NOW()</td><td class="p-2.5">Mengembalikan tanggal saat ini (YYYY-MM-DD) / timestamp lengkap saat ini</td><td class="p-2.5 font-mono">MONTH(NOW())</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">YEAR(d), MONTH(d), MONTHNAME(d), DAY(d)</td><td class="p-2.5">Mengekstrak tahun, bulan (1..12), nama bulan, atau tanggal (1..31)</td><td class="p-2.5 font-mono">YEAR(tgl_lahir) &lt; 2000</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">DAYOFWEEK(d) / WEEKDAY(d)</td><td class="p-2.5"><code>DAYOFWEEK</code>: 1=Minggu, 2=Senin..7=Sabtu. <code>WEEKDAY</code>: 0=Senin..6=Minggu</td><td class="p-2.5 font-mono">WEEKDAY(tgl_lahir) = 0</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">DATE_FORMAT(date, format)</td><td class="p-2.5">Memformat tanggal menjadi teks sesuai specifier format</td><td class="p-2.5 font-mono">DATE_FORMAT(tgl_lahir, '%W')</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">TIMESTAMPDIFF(unit, dt1, dt2)</td><td class="p-2.5">Menghitung selisih <code>dt2 - dt1</code> dalam satuan <code>YEAR</code>, <code>MONTH</code>, atau <code>DAY</code></td><td class="p-2.5 font-mono">TIMESTAMPDIFF(YEAR, tgl_lahir, CURDATE())</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">DATEDIFF(expr1, expr2)</td><td class="p-2.5">Menghitung selisih hari (<code>expr1 - expr2</code>)</td><td class="p-2.5 font-mono">DATEDIFF(CURDATE(), tgl_lahir)</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">ADDDATE(d, INTERVAL n unit) / SUBDATE(...)</td><td class="p-2.5">Menambah atau mengurangi tanggal sebesar <code>n</code> unit (DAY/MONTH/YEAR)</td><td class="p-2.5 font-mono">ADDDATE(CURDATE(), INTERVAL 7 DAY)</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-emerald-300">EXTRACT(unit FROM date) / LAST_DAY(d)</td><td class="p-2.5">Mengekstrak unit tertentu / mengambil tanggal terakhir pada bulan tersebut</td><td class="p-2.5 font-mono">EXTRACT(YEAR FROM tgl_lahir)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pembahasan Lengkap Latihan 4a - 4e -->
+        <div id="latihan-4-container" class="space-y-6"></div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 5: CAST FUNCTIONS & LATIHAN 5 (a)                                 -->
+      <!-- ===================================================================== -->
+      <section id="tab-cast" class="tab-panel hidden space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-5">
+          <div>
+            <div class="text-xs font-mono text-pink-400 uppercase tracking-wider mb-1">Bagian 5 &bull; Alokasi Waktu: 10 Menit</div>
+            <h2 class="text-2xl font-bold text-white">5. Fungsi Konversi Tipe Data (Cast Functions)</h2>
+            <p class="mt-2 text-sm text-slate-300 leading-relaxed">
+              Fungsi <code>CONVERT(expr, type)</code> atau <code>CAST(expr AS type)</code> digunakan untuk mengubah paksa tipe data suatu ekspresi atau kolom. Contoh klasiknya pada tabel <code>mahasiswa</code>: kolom <code>nim</code> bertipe teks <code>VARCHAR(8)</code>. Agar nilai terbesar <code>MAX(nim)</code> dapat ditambah <code>+ 1</code> secara aritmatika sebagai bilangan bulat untuk membuat NIM mahasiswa baru, kita mengonversinya ke <code>UNSIGNED INTEGER</code> atau <code>SIGNED INTEGER</code>.
+            </p>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-900 text-slate-300 border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5 w-52">Tipe Target CONVERT / CAST</th>
+                  <th class="p-2.5">Deskripsi Modul</th>
+                  <th class="p-2.5">Contoh Sintaks</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                <tr><td class="p-2.5 font-mono font-bold text-pink-300">UNSIGNED [INTEGER]</td><td class="p-2.5">Menghasilkan nilai bilangan bulat positif (tak bertanda)</td><td class="p-2.5 font-mono">CONVERT(MAX(nim), UNSIGNED) + 1</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-pink-300">SIGNED [INTEGER]</td><td class="p-2.5">Menghasilkan nilai bilangan bulat bertanda (bisa positif/negatif)</td><td class="p-2.5 font-mono">CONVERT('71190402', SIGNED)</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-pink-300">CHAR[(N)]</td><td class="p-2.5">Menghasilkan string dengan tipe data karakter</td><td class="p-2.5 font-mono">CONVERT(144, CHAR)</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-pink-300">DECIMAL(M, D)</td><td class="p-2.5">Menghasilkan nilai desimal presisi dengan total digit <code>M</code> dan <code>D</code> angka di belakang koma</td><td class="p-2.5 font-mono">CONVERT(ipk, DECIMAL(4,2))</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-pink-300">DATE / DATETIME / TIME</td><td class="p-2.5">Menghasilkan nilai bertipe tanggal, datetime, atau waktu</td><td class="p-2.5 font-mono">CONVERT('2026-10-29', DATE)</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-pink-300">BINARY[(N)] / JSON</td><td class="p-2.5">Menghasilkan byte string biner / tipe dokumen JSON</td><td class="p-2.5 font-mono">CONVERT('ukdw', BINARY)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pembahasan Lengkap Latihan 5a -->
+        <div id="latihan-5-container" class="space-y-6"></div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 6: CONTROL-FLOW FUNCTIONS & LATIHAN 6 (a, b, c)                   -->
+      <!-- ===================================================================== -->
+      <section id="tab-control" class="tab-panel hidden space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-5">
+          <div>
+            <div class="text-xs font-mono text-indigo-400 uppercase tracking-wider mb-1">Bagian 6 &bull; Alokasi Waktu: 15 Menit</div>
+            <h2 class="text-2xl font-bold text-white">6. Fungsi Kontrol Alur Logika (Control-Flow Functions)</h2>
+            <p class="mt-2 text-sm text-slate-300 leading-relaxed">
+              SQL menyediakan percabangan bersyarat langsung di dalam query menggunakan <code>CASE WHEN ... THEN ... ELSE ... END</code>, fungsi <code>IF()</code>, serta fungsi penanganan nilai kosong <code>IFNULL()</code> dan <code>NULLIF()</code>.
+            </p>
+          </div>
+
+          <!-- Catatan Penting Koreksi Salah Ketik Modul -->
+          <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs">
+            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base mt-0.5"></i>
+            <div class="space-y-1 text-slate-200 leading-relaxed">
+              <div class="font-bold text-amber-300">Catatan Koreksi Redaksi Modul pada Fungsi `IFNULL(expr1, expr2)`:</div>
+              <p>
+                Di halaman 7 modul tertulis: <em>"Jika expr1 tidak NULL, maka akan mengembalikan expr2. Jika NULL maka akan mengembalikan expr2."</em> (terdapat salah ketik).
+                <strong>Cara kerja sebenarnya di MySQL:</strong> Jika <code>expr1</code> <strong>TIDAK NULL</strong>, maka <code>IFNULL</code> mengembalikan nilai asli <strong><code>expr1</code></strong>; namun jika <code>expr1</code> bernilai <strong>NULL</strong>, barulah digantikan dengan nilai cadangan <strong><code>expr2</code></strong>.
+              </p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-900 text-slate-300 border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5 w-64">Fungsi Control-Flow</th>
+                  <th class="p-2.5">Cara Kerja yang Tepat</th>
+                  <th class="p-2.5">Contoh Penggunaan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                <tr><td class="p-2.5 font-mono font-bold text-indigo-300">CASE WHEN cond1 THEN res1 [ELSE resN] END</td><td class="p-2.5">Mengevaluasi beberapa kondisi secara berurutan dan mengembalikan hasil kondisi pertama yang bernilai TRUE</td><td class="p-2.5 font-mono">CASE WHEN LEFT(nim,2)='71' THEN 'Informatika' ELSE 'SI' END</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-indigo-300">IF(expr1, expr2, expr3)</td><td class="p-2.5">Jika kondisi <code>expr1</code> TRUE, kembalikan <code>expr2</code>; jika FALSE atau NULL, kembalikan <code>expr3</code></td><td class="p-2.5 font-mono">IF(sex='F', 'Perempuan', 'Laki-laki')</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-indigo-300">IFNULL(expr1, expr2)</td><td class="p-2.5">Jika <code>expr1</code> TIDAK NULL kembalikan <code>expr1</code>; jika <code>expr1</code> adalah NULL kembalikan <code>expr2</code></td><td class="p-2.5 font-mono">IFNULL(no_telp, 'No Telephone Tidak Tersedia')</td></tr>
+                <tr><td class="p-2.5 font-mono font-bold text-indigo-300">NULLIF(expr1, expr2)</td><td class="p-2.5">Mengembalikan <code>NULL</code> jika <code>expr1 = expr2</code> bernilai TRUE. Jika berbeda, mengembalikan <code>expr1</code></td><td class="p-2.5 font-mono">NULLIF(nama1, nama2)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pembahasan Lengkap Latihan 6a - 6c -->
+        <div id="latihan-6-container" class="space-y-6"></div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 7: LIVE SQL PLAYGROUND (19 PRESET LATIHAN)                        -->
+      <!-- ===================================================================== -->
+      <section id="tab-playground" class="tab-panel hidden space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-mono text-cyan-400 uppercase tracking-wider mb-1">Interactive Query Runner</div>
+              <h2 class="text-2xl font-bold text-white">Live SQL Playground (`PERT_07.mahasiswa`)</h2>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              <i class="fa-solid fa-bolt mr-1"></i> Mesin Eksekusi Siap
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-300">
+            Pilih salah satu dari <strong>19 Soal Latihan Modul</strong> di bawah ini untuk memuat statemen SQL-nya, melihat penjelasan setiap klausa, dan mengeksekusi hasilnya secara langsung terhadap tabel <code>mahasiswa</code>.
+          </p>
+
+          <!-- Tombol Preset 19 Soal Latihan -->
+          <div class="space-y-2">
+            <div class="text-xs font-mono text-slate-400">Klik Soal Latihan untuk Memuat & Menjalankan Query:</div>
+            <div id="playground-preset-buttons" class="flex flex-wrap gap-1.5">
+              <!-- Diisi oleh JS -->
+            </div>
+          </div>
+
+          <!-- Editor SQL -->
+          <div class="rounded-2xl border border-slate-700 overflow-hidden bg-slate-950">
+            <div class="px-4 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+              <span id="pg-active-title" class="text-cyan-300 font-semibold">Latihan 1a: Mahasiswa perempuan asal Yogyakarta</span>
+              <div class="flex items-center gap-2">
+                <button onclick="copyTextById('pg-sql-editor', true)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200">
+                  <i class="fa-regular fa-copy mr-1"></i> Salin Query
+                </button>
+                <button onclick="runPlaygroundSelected()" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
+                  <i class="fa-solid fa-play mr-1"></i> Jalankan Query
+                </button>
+              </div>
+            </div>
+            <textarea id="pg-sql-editor" rows="5" class="w-full p-4 bg-slate-950 text-emerald-300 font-mono text-xs sm:text-sm outline-none resize-y"></textarea>
+          </div>
+
+          <!-- Hasil Eksekusi & Penjelasan di Playground -->
+          <div id="pg-output-wrapper" class="space-y-4"></div>
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 8: KUIS POSTTEST INTERAKTIF                                       -->
+      <!-- ===================================================================== -->
+      <section id="tab-quiz" class="tab-panel hidden space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl">
+          <div class="text-xs font-mono text-yellow-400 uppercase tracking-wider mb-1">Evaluasi Pemahaman &bull; Persiapan Posttest</div>
+          <h2 class="text-2xl font-bold text-white">Kuis Posttest: Operator dan Fungsi SQL</h2>
+          <p class="mt-2 text-sm text-slate-300">
+            Jawablah 6 pertanyaan konseptual dan studi kasus query berikut untuk menguji kesiapan Anda menghadapi Posttest Praktikum Sistem Basis Data.
+          </p>
+        </div>
+
+        <div id="quiz-container" class="space-y-4"></div>
+
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+          <button onclick="gradeQuiz()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg">
+            <i class="fa-solid fa-check-double mr-1.5"></i> Periksa Jawaban & Lihat Pembahasan
+          </button>
+          <div id="quiz-score-banner" class="text-sm font-mono font-bold text-slate-300">
+            Belum dinilai
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-12 border-t border-slate-800 py-6 bg-slate-950 text-center text-xs text-slate-500">
+    Praktikum Sistem Basis Data &bull; Modul 10: Operator dan Fungsi SQL (MySQL / MariaDB) &bull; Interactive Learning Environment
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT ENGINE: DATA, EXERCISES, LINE-BY-LINE BREAKDOWN, & SIMULATORS  -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. DATASET AWAL TABEL MAHASISWA (14 Baris Lengkap Mencakup Seluruh Skenario Latihan Modul)
+    const INITIAL_MAHASISWA = [
+      { nim: '71160102', nama_depan: 'Andika',   nama_belakang: 'Rangga',    alamat: 'Jl. Kaliurang Km 5, Sleman, Yogyakarta',       ipk: 3.45, ips: 3.60, sks: 138, tgl_lahir: '1998-05-18', no_telp: '08123456701', email: 'andika@mail.com',    sex: 'M' },
+      { nim: '71170141', nama_depan: 'Michael',  nama_belakang: 'Wijaya',    alamat: 'Jl. Malioboro No 12, Kota Yogyakarta, DIY',    ipk: 3.25, ips: 3.40, sks: 112, tgl_lahir: '1999-10-06', no_telp: '08123456702', email: 'michael@mail.com',   sex: 'M' },
+      { nim: '71170215', nama_depan: 'Mila',     nama_belakang: 'Sari',      alamat: 'Jl. Parangtritis Km 4, Bantul, Yogyakarta',    ipk: 3.68, ips: 3.75, sks: 118, tgl_lahir: '1999-10-18', no_telp: null,          email: 'mila@mail.com',      sex: 'F' },
+      { nim: '71180390', nama_depan: 'Budi',     nama_belakang: 'Santoso',   alamat: 'Jl. Pemuda No 45, Kota Magelang, Jawa Tengah', ipk: 2.95, ips: 3.10, sks: 84,  tgl_lahir: '2000-03-13', no_telp: '08123456704', email: 'budi@mail.com',      sex: 'M' },
+      { nim: '71190401', nama_depan: 'Citra',    nama_belakang: 'Cahya',     alamat: 'Jl. Gejayan No 8, Sleman, Yogyakarta',         ipk: 3.50, ips: 3.55, sks: 64,  tgl_lahir: '2001-07-02', no_telp: '08123456705', email: 'citra@mail.com',     sex: 'F' },
+      { nim: '72160088', nama_depan: 'Dian',     nama_belakang: 'Pratama',   alamat: 'Jl. Solo Km 9, Sleman, Yogyakarta',            ipk: 3.10, ips: 3.20, sks: 140, tgl_lahir: '1998-11-09', no_telp: null,          email: 'dian@mail.com',      sex: 'F' },
+      { nim: '72170145', nama_depan: 'Mirna',    nama_belakang: 'Kusuma',    alamat: 'Jl. Wates Km 3, Kulon Progo, Yogyakarta',      ipk: 3.38, ips: 3.45, sks: 108, tgl_lahir: '1999-02-15', no_telp: '08123456707', email: 'mirna@mail.com',     sex: 'F' },
+      { nim: '72170299', nama_depan: 'Bagas',    nama_belakang: 'Arya',      alamat: 'Jl. Slamet Riyadi No 20, Kota Surakarta, Jateng', ipk: 2.85, ips: 3.00, sks: 102, tgl_lahir: '1999-08-22', no_telp: '08123456708', email: 'bagas@mail.com',     sex: 'M' },
+      { nim: '72180351', nama_depan: 'Rina',     nama_belakang: 'mulya',     alamat: 'Jl. Kusumanegara No 99, Kota Yogyakarta, DIY', ipk: 3.00, ips: 3.15, sks: 76,  tgl_lahir: '2000-10-02', no_telp: null,          email: 'rina@mail.com',      sex: 'F' },
+      { nim: '72180377', nama_depan: 'Dimas',    nama_belakang: 'Aditya',    alamat: 'Jl. Magelang Km 6, Sleman, Yogyakarta',        ipk: 3.72, ips: 3.80, sks: 80,  tgl_lahir: '2000-12-11', no_telp: '08123456710', email: 'dimas@mail.com',     sex: 'M' },
+      { nim: '72190412', nama_depan: 'Nadia',    nama_belakang: 'Putri',     alamat: 'Jl. Wonosari Km 7, Gunungkidul, Yogyakarta',   ipk: 3.42, ips: 3.50, sks: 48,  tgl_lahir: '2001-04-09', no_telp: '08123456711', email: 'nadia@mail.com',     sex: 'F' },
+      { nim: '71190425', nama_depan: 'Miko',     nama_belakang: 'Saputra',   alamat: 'Jl. Pahlawan No 10, Kota Semarang, Jawa Tengah', ipk: 3.18, ips: 3.25, sks: 70,  tgl_lahir: '2001-10-24', no_telp: null,          email: 'miko@mail.com',      sex: 'M' }
+    ];
+
+    let mahasiswaData = JSON.parse(JSON.stringify(INITIAL_MAHASISWA));
+
+    // Helper: Hitung nama hari bahasa Inggris & indeks weekday (0=Monday..6=Sunday)
+    const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    function parseDateParts(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      return {
+        year: y,
+        month: m,
+        day: d,
+        jsDay: dt.getDay(), // 0=Sun..6=Sat
+        mysqlWeekday: (dt.getDay() + 6) % 7, // 0=Mon..6=Sun
+        dayName: DAYS_EN[dt.getDay()],
+        dayShort: DAYS_SHORT[dt.getDay()],
+        monthName: MONTHS_EN[m - 1],
+        monthShort: MONTHS_SHORT[m - 1]
+      };
+    }
+
+    function formatMySQLDate(dateStr, formatStr) {
+      const p = parseDateParts(dateStr);
+      const ordinal = (n) => {
+        if (n > 3 && n < 21) return n + 'th';
+        switch (n % 10) {
+          case 1: return n + 'st';
+          case 2: return n + 'nd';
+          case 3: return n + 'rd';
+          default: return n + 'th';
+        }
+      };
+      return formatStr
+        .replace(/%W/g, p.dayName)
+        .replace(/%a/g, p.dayShort)
+        .replace(/%M/g, p.monthName)
+        .replace(/%b/g, p.monthShort)
+        .replace(/%Y/g, String(p.year))
+        .replace(/%y/g, String(p.year).slice(-2))
+        .replace(/%m/g, String(p.month).padStart(2, '0'))
+        .replace(/%c/g, String(p.month))
+        .replace(/%d/g, String(p.day).padStart(2, '0'))
+        .replace(/%e/g, String(p.day))
+        .replace(/%D/g, ordinal(p.day))
+        .replace(/%w/g, String(p.jsDay))
+        .replace(/%H/g, '00')
+        .replace(/%i/g, '00')
+        .replace(/%s/g, '00');
+    }
+
+    function calculateAge(dateStr) {
+      // Gunakan tanggal referensi 2026-10-29
+      const refY = 2026, refM = 10, refD = 29;
+      const [y, m, d] = dateStr.split('-').map(Number);
+      let age = refY - y;
+      if (refM < m || (refM === m && refD < d)) {
+        age--;
+      }
+      return age;
+    }
+
+    function extractKabupatenKota(alamat) {
+      // SUBSTRING_INDEX(SUBSTRING_INDEX(alamat, ',', 2), ',', -1)
+      const parts = alamat.split(',');
+      if (parts.length >= 2) {
+        return parts[1].trim();
+      }
+      return alamat;
+    }
+
+    // 2. KATALOG 19 LATIHAN MODUL BESERTA SOURCE CODE & PENJELASAN BARIS DEMI BARIS
+    const EXERCISES = [
+      // ==================== LATIHAN 1: OPERATORS ====================
+      {
+        id: '1a',
+        group: 1,
+        badge: 'Latihan 1a',
+        title: 'Menampilkan Mahasiswa Perempuan yang Berasal dari Yogyakarta',
+        task: 'Tampilkan mahasiswa perempuan yang berasal dari Yogyakarta.',
+        sql: `SELECT *\nFROM mahasiswa\nWHERE sex = 'F'\n  AND alamat LIKE '%Yogyakarta%';`,
+        altSql: `-- Alternatif jika menggunakan pencocokan Regular Expression:\nSELECT * FROM mahasiswa\nWHERE sex = 'F' AND alamat REGEXP 'Yogyakarta';`,
+        breakdown: [
+          { code: `SELECT * FROM mahasiswa`, desc: `Mengambil seluruh kolom (<code>*</code>) dari tabel <code>mahasiswa</code>.` },
+          { code: `WHERE sex = 'F'`, desc: `Menyaring baris yang memiliki nilai kolom <code>sex</code> sama dengan <code>'F'</code> (Female / Perempuan) menggunakan operator penyamaan (<code>=</code>).` },
+          { code: `AND alamat LIKE '%Yogyakarta%'`, desc: `Menggabungkan kondisi kedua dengan operator logika <code>AND</code> (kedua syarat wajib terpenuhi). Operator <code>LIKE '%Yogyakarta%'</code> mencari kata "Yogyakarta" di posisi mana pun di dalam kolom <code>alamat</code>.` }
+        ],
+        execute: (rows) => rows.filter(r => r.sex === 'F' && r.alamat.toLowerCase().includes('yogyakarta'))
+      },
+      {
+        id: '1b',
+        group: 1,
+        badge: 'Latihan 1b',
+        title: 'Menampilkan Mahasiswa dengan IPK antara 3.00 hingga 3.50',
+        task: 'Tampilkan mahasiswa yang memiliki IPK antara 3.00 hingga 3.50.',
+        sql: `SELECT nim, nama_depan, nama_belakang, ipk\nFROM mahasiswa\nWHERE ipk BETWEEN 3.00 AND 3.50;`,
+        altSql: `-- Ekuivalen dengan operator perbandingan >= dan <=:\nSELECT nim, nama_depan, nama_belakang, ipk\nFROM mahasiswa\nWHERE ipk >= 3.00 AND ipk <= 3.50;`,
+        breakdown: [
+          { code: `SELECT nim, nama_depan, nama_belakang, ipk`, desc: `Menampilkan kolom identitas mahasiswa beserta nilai <code>ipk</code> agar hasil lebih fokus dan mudah dibaca (bisa juga menggunakan <code>SELECT *</code>).` },
+          { code: `WHERE ipk BETWEEN 3.00 AND 3.50;`, desc: `Operator <code>BETWEEN batas_bawah AND batas_atas</code> bersifat <strong>inklusif</strong>, artinya mahasiswa dengan IPK tepat <code>3.00</code> (seperti Rina) maupun tepat <code>3.50</code> (seperti Citra) tetap ikut ditampilkan.` }
+        ],
+        execute: (rows) => rows.filter(r => r.ipk >= 3.00 && r.ipk <= 3.50).map(r => ({ nim: r.nim, nama_depan: r.nama_depan, nama_belakang: r.nama_belakang, ipk: r.ipk.toFixed(2) }))
+      },
+      {
+        id: '1c',
+        group: 1,
+        badge: 'Latihan 1c',
+        title: 'Menampilkan Mahasiswa yang Sudah Menyelesaikan SKS >= 70',
+        task: 'Tampilkan mahasiswa yang sudah menyelesaikan SKS lebih dari atau sama dengan 70.',
+        sql: `SELECT nim, nama_depan, nama_belakang, sks\nFROM mahasiswa\nWHERE sks >= 70;`,
+        breakdown: [
+          { code: `SELECT nim, nama_depan, nama_belakang, sks FROM mahasiswa`, desc: `Memilih atribut mahasiswa beserta jumlah <code>sks</code> yang telah ditempuh.` },
+          { code: `WHERE sks >= 70;`, desc: `Menggunakan operator relasional lebih besar atau sama dengan (<code>&gt;=</code>). Baris dengan <code>sks = 70</code> (seperti Miko) ikut terjaring.` }
+        ],
+        execute: (rows) => rows.filter(r => r.sks >= 70).map(r => ({ nim: r.nim, nama_depan: r.nama_depan, nama_belakang: r.nama_belakang, sks: r.sks }))
+      },
+      {
+        id: '1d',
+        group: 1,
+        badge: 'Latihan 1d',
+        title: 'Nama Depan Diawali "Mi.." ATAU Nama Belakang Berakhiran "..ya"',
+        task: 'Tampilkan mahasiswa yang memiliki nama depannya diawali "Mi.." atau nama belakangnya berakhiran "..ya".',
+        sql: `SELECT nim, nama_depan, nama_belakang\nFROM mahasiswa\nWHERE nama_depan LIKE 'Mi%'\n   OR nama_belakang LIKE '%ya';`,
+        altSql: `-- Alternatif menggunakan operator REGEXP (Regular Expression):\nSELECT nim, nama_depan, nama_belakang\nFROM mahasiswa\nWHERE nama_depan REGEXP '^Mi' OR nama_belakang REGEXP 'ya$';`,
+        breakdown: [
+          { code: `WHERE nama_depan LIKE 'Mi%'`, desc: `Wildcard <code>%</code> di belakang <code>'Mi'</code> mencocokkan semua nama depan yang berawalan huruf "Mi" diikuti karakter apa pun (contoh: <em>Michael, Mila, Mirna, Miko</em>).` },
+          { code: `OR nama_belakang LIKE '%ya';`, desc: `Operator logika <code>OR</code> membuat baris ditampilkan cukup jika salah satu syarat terpenuhi. Pola <code>'%ya'</code> mencocokkan nama belakang yang berakhiran "ya" (contoh: <em>Wijaya, Cahya, Arya, mulya</em>).` }
+        ],
+        execute: (rows) => rows.filter(r => r.nama_depan.toLowerCase().startsWith('mi') || r.nama_belakang.toLowerCase().endsWith('ya')).map(r => ({ nim: r.nim, nama_depan: r.nama_depan, nama_belakang: r.nama_belakang }))
+      },
+      {
+        id: '1e',
+        group: 1,
+        badge: 'Latihan 1e',
+        title: 'Menghitung Sisa SKS untuk Lulus (Target 144 SKS) & Mengurutkannya',
+        task: 'Tampilkan NIM, nama depan dan jumlah SKS yang harus ditempuh untuk lulus (mencapai 144 SKS), diurutkan dari yang paling mendekati kelulusan.',
+        sql: `SELECT nim,\n       nama_depan,\n       sks AS sks_ditempuh,\n       (144 - sks) AS sisa_sks_lulus\nFROM mahasiswa\nORDER BY sisa_sks_lulus ASC;`,
+        breakdown: [
+          { code: `(144 - sks) AS sisa_sks_lulus`, desc: `Menggunakan operator aritmatika pengurangan (<code>-</code>) pada klausa <code>SELECT</code> untuk menghitung selisih syarat kelulusan 144 SKS dikurangi SKS saat ini, lalu diberi nama alias <code>sisa_sks_lulus</code>.` },
+          { code: `ORDER BY sisa_sks_lulus ASC;`, desc: `Mengurutkan hasil dari mahasiswa yang <strong>paling mendekati kelulusan</strong>, artinya nilai <code>sisa_sks_lulus</code> paling kecil ke paling besar (<em>Ascending</em> / <code>ASC</code>), atau ekuivalen dengan <code>ORDER BY sks DESC</code>.` }
+        ],
+        execute: (rows) => [...rows].sort((a, b) => (144 - a.sks) - (144 - b.sks)).map(r => ({ nim: r.nim, nama_depan: r.nama_depan, sks_ditempuh: r.sks, sisa_sks_lulus: 144 - r.sks }))
+      },
+
+      // ==================== LATIHAN 2: STRING FUNCTIONS ====================
+      {
+        id: '2a',
+        group: 2,
+        badge: 'Latihan 2a',
+        title: 'Menggabungkan Nama Depan & Nama Belakang Menjadi Nama Lengkap',
+        task: 'Tampilkan NIM dan gabungan nama depan dan nama belakang sebagai nama lengkap dari mahasiswa diurutkan NIM.',
+        sql: `SELECT nim,\n       CONCAT(nama_depan, ' ', nama_belakang) AS nama_lengkap\nFROM mahasiswa\nORDER BY nim ASC;`,
+        altSql: `-- Alternatif menggunakan CONCAT_WS (Concat With Separator):\nSELECT nim, CONCAT_WS(' ', nama_depan, nama_belakang) AS nama_lengkap\nFROM mahasiswa ORDER BY nim ASC;`,
+        breakdown: [
+          { code: `CONCAT(nama_depan, ' ', nama_belakang) AS nama_lengkap`, desc: `Fungsi <code>CONCAT()</code> merangkai string <code>nama_depan</code>, karakter spasi <code>' '</code>, dan <code>nama_belakang</code> menjadi satu kolom tampilan utuh bernama <code>nama_lengkap</code>.` },
+          { code: `ORDER BY nim ASC;`, desc: `Mengurutkan daftar mahasiswa berdasarkan kolom <code>nim</code> secara menaik.` }
+        ],
+        execute: (rows) => [...rows].sort((a, b) => a.nim.localeCompare(b.nim)).map(r => ({ nim: r.nim, nama_lengkap: `${r.nama_depan} ${r.nama_belakang}` }))
+      },
+      {
+        id: '2b',
+        group: 2,
+        badge: 'Latihan 2b',
+        title: 'Membuat / Mengupdate Email Format nama_depan.nama_belakang@gmail.ac.id (Lowercase)',
+        task: 'Tambahkan data email di column email dengan ketentuan "nama depan" + "." + "nama belakang" + "@gmail.ac.id", contoh andika.rangga@gmail.ac.id. Semua lowercase.',
+        sql: `-- 1. Statemen DML (UPDATE) untuk menyimpan perubahan ke kolom email:\nUPDATE mahasiswa\nSET email = LOWER(CONCAT(nama_depan, '.', nama_belakang, '@gmail.ac.id'));\n\n-- 2. Statemen DQL (SELECT) untuk memeriksa hasilnya:\nSELECT nim, nama_depan, nama_belakang, email FROM mahasiswa;`,
+        hasDmlAction: 'apply2b',
+        breakdown: [
+          { code: `UPDATE mahasiswa SET email = ...`, desc: `Karena instruksi meminta menambahkan/mengisi data di kolom <code>email</code> pada tabel yang sudah berisi baris mahasiswa, kita menggunakan perintah DML <code>UPDATE</code>.` },
+          { code: `CONCAT(nama_depan, '.', nama_belakang, '@gmail.ac.id')`, desc: `Merangkai <code>nama_depan</code>, tanda titik <code>'.'</code>, <code>nama_belakang</code>, dan domain <code>'@gmail.ac.id'</code>.` },
+          { code: `LOWER(...)`, desc: `Membungkus hasil <code>CONCAT</code> dengan fungsi <code>LOWER()</code> (atau <code>LCASE()</code>) agar seluruh huruf kapital pada nama otomatis berubah menjadi huruf kecil semua.` }
+        ],
+        execute: (rows) => rows.map(r => ({
+          nim: r.nim,
+          nama_depan: r.nama_depan,
+          nama_belakang: r.nama_belakang,
+          email_hasil: `${r.nama_depan}.${r.nama_belakang}@gmail.ac.id`.toLowerCase()
+        }))
+      },
+      {
+        id: '2c',
+        group: 2,
+        badge: 'Latihan 2c',
+        title: 'Mengganti Substring "gmail" Menjadi "ukdw" pada Kolom Email',
+        task: 'Ubahlah data email dengan mengganti kata "gmail" menjadi "ukdw", contoh: andika.rangga@ukdw.ac.id.',
+        sql: `-- 1. Statemen UPDATE menggunakan fungsi REPLACE:\nUPDATE mahasiswa\nSET email = REPLACE(email, 'gmail', 'ukdw');\n\n-- 2. Lihat hasil perubahannya:\nSELECT nim, nama_depan, email FROM mahasiswa;`,
+        hasDmlAction: 'apply2c',
+        breakdown: [
+          { code: `REPLACE(email, 'gmail', 'ukdw')`, desc: `Fungsi <code>REPLACE(str, from_str, to_str)</code> mencari substring <code>'gmail'</code> di dalam nilai <code>email</code> dan menggantinya menjadi <code>'ukdw'</code> tanpa merusak bagian nama di depannya maupun akhiran <code>.ac.id</code>.` },
+          { code: `SET email = ...`, desc: `Menyimpan string baru hasil substitusi kembali ke dalam kolom <code>email</code>.` }
+        ],
+        execute: (rows) => rows.map(r => {
+          const baseEmail = r.email.includes('gmail') || r.email.includes('ukdw')
+            ? r.email
+            : `${r.nama_depan}.${r.nama_belakang}@gmail.ac.id`.toLowerCase();
+          return {
+            nim: r.nim,
+            nama_depan: r.nama_depan,
+            email_sebelum: baseEmail,
+            email_sesudah_replace: baseEmail.replace(/gmail/g, 'ukdw')
+          };
+        })
+      },
+      {
+        id: '2d',
+        group: 2,
+        badge: 'Latihan 2d',
+        title: 'Filter Mahasiswa Prodi SI (72...) Tanpa Wildcard % Maupun _',
+        task: 'Tampilkan mahasiswa yang merupakan mahasiswa prodi SI (72...), dengan menggunakan column NIM tanpa menggunakan wildcard % maupun _.',
+        sql: `SELECT nim, nama_depan, nama_belakang\nFROM mahasiswa\nWHERE LEFT(nim, 2) = '72';`,
+        altSql: `-- Alternatif menggunakan SUBSTR / MID / LOCATE:\nSELECT nim, nama_depan, nama_belakang\nFROM mahasiswa\nWHERE SUBSTR(nim, 1, 2) = '72';`,
+        breakdown: [
+          { code: `WHERE LEFT(nim, 2) = '72'`, desc: `Karena dilarang memakai operator <code>LIKE '72%'</code> atau <code>'72______'</code>, kita gunakan fungsi string <code>LEFT(nim, 2)</code> yang mengambil tepat <strong>2 karakter paling kiri</strong> dari kolom <code>nim</code>, lalu dibandingkan dengan <code>'72'</code> (Kode Prodi Sistem Informasi).` },
+          { code: `SUBSTR(nim, 1, 2) = '72'`, desc: `Alternatif yang sama-sama valid: mengambil substring mulai dari indeks ke-1 sepanjang 2 karakter.` }
+        ],
+        execute: (rows) => rows.filter(r => r.nim.slice(0, 2) === '72').map(r => ({ nim: r.nim, kode_prodi: r.nim.slice(0, 2), nama_depan: r.nama_depan, nama_belakang: r.nama_belakang }))
+      },
+      {
+        id: '2e',
+        group: 2,
+        badge: 'Latihan 2e',
+        title: 'Filter Mahasiswa Angkatan 2017 dari NIM Tanpa Wildcard % Maupun _',
+        task: 'Tampilkan mahasiswa yang merupakan mahasiswa angkatan 2017 dengan menggunakan column NIM tanpa menggunakan wildcard % maupun _.',
+        sql: `SELECT nim, nama_depan, nama_belakang\nFROM mahasiswa\nWHERE MID(nim, 3, 2) = '17';`,
+        altSql: `-- Alternatif menggunakan SUBSTR(nim, 3, 2) atau kombinasi RIGHT(LEFT(nim, 4), 2):\nSELECT nim, nama_depan, nama_belakang\nFROM mahasiswa\nWHERE SUBSTR(nim, 3, 2) = '17';`,
+        breakdown: [
+          { code: `Struktur NIM (contoh: 71170141)`, desc: `Pada struktur NIM 8 digit kampus (misal <code>71170141</code>), digit 1-2 (<code>71</code>) adalah kode prodi, sedangkan <strong>digit ke-3 dan ke-4 (<code>17</code>)</strong> adalah 2 digit tahun angkatan (2017).` },
+          { code: `WHERE MID(nim, 3, 2) = '17'`, desc: `Fungsi <code>MID(str, pos, len)</code> (sinonim dari <code>SUBSTR</code>) mengekstrak karakter mulai dari posisi ke-<code>3</code> sepanjang <code>2</code> karakter. Jika bernilai <code>'17'</code>, maka mahasiswa tersebut adalah angkatan 2017.` }
+        ],
+        execute: (rows) => rows.filter(r => r.nim.slice(2, 4) === '17').map(r => ({ nim: r.nim, digit_angkatan: r.nim.slice(2, 4), nama_depan: r.nama_depan, nama_belakang: r.nama_belakang }))
+      },
+      {
+        id: '2f',
+        group: 2,
+        badge: 'Latihan 2f',
+        title: 'Mengekstrak Hanya Nama Kabupaten/Kota dari Kolom Alamat',
+        task: 'Tampilkan NIM dan hanya nama kabupaten/kota saja dari kolom alamat.',
+        sql: `SELECT nim,\n       alamat AS alamat_lengkap,\n       TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(alamat, ',', 2), ',', -1)) AS kab_kota\nFROM mahasiswa;`,
+        breakdown: [
+          { code: `SUBSTRING_INDEX(alamat, ',', 2)`, desc: `Pada format alamat <code>'Jl. Kaliurang Km 5, Sleman, Yogyakarta'</code>, pemanggilan dalam ini mengambil teks dari kiri sebelum tanda koma ke-2, menghasilkan: <code>'Jl. Kaliurang Km 5, Sleman'</code>.` },
+          { code: `SUBSTRING_INDEX(..., ',', -1)`, desc: `Pemanggilan luar dengan argumen negatif <code>-1</code> mengambil potongan paling kanan setelah tanda koma terakhir dari hasil pertama, sehingga menyisakan tepat bagian tengah: <code>' Sleman'</code>.` },
+          { code: `TRIM(...)`, desc: `Menghapus spasi di awal string hasil pemotongan koma sehingga diperoleh nama Kabupaten/Kota yang bersih (contoh: <code>'Sleman'</code>, <code>'Kota Yogyakarta'</code>, <code>'Bantul'</code>).` }
+        ],
+        execute: (rows) => rows.map(r => ({ nim: r.nim, alamat_lengkap: r.alamat, kab_kota: extractKabupatenKota(r.alamat) }))
+      },
+
+      // ==================== LATIHAN 3: NUMERIC FUNCTIONS ====================
+      {
+        id: '3a',
+        group: 3,
+        badge: 'Latihan 3a',
+        title: 'Menghitung Luas Lingkaran (r = 5 cm) dengan Pembulatan 2 Desimal & Satuan',
+        task: 'Hitung luas lingkaran dengan jari-jari 5 cm. Hasil harus menuliskan satuan cm dan dibulatkan dua angka di belakang koma.',
+        sql: `SELECT CONCAT(ROUND(PI() * POWER(5, 2), 2), ' cm') AS luas_lingkaran;`,
+        altSql: `-- Jika menggunakan satuan luas ' cm2' atau perkalian 5 * 5:\nSELECT CONCAT(ROUND(PI() * 5 * 5, 2), ' cm2') AS luas_lingkaran;`,
+        breakdown: [
+          { code: `PI() * POWER(5, 2)`, desc: `Rumus luas lingkaran adalah $L = \\pi \\times r^2$. Fungsi <code>PI()</code> menghasilkan nilai $\\pi$ ($3.14159265...$) dan <code>POWER(5, 2)</code> menghitung $5^2 = 25$, sehingga diperoleh $78.539816...$` },
+          { code: `ROUND(..., 2)`, desc: `Membulatkan hasil perkalian hingga 2 angka di belakang koma menjadi <code>78.54</code>.` },
+          { code: `CONCAT(..., ' cm')`, desc: `Menggabungkan angka hasil pembulatan dengan string satuan <code>' cm'</code> sesuai instruksi soal.` }
+        ],
+        execute: () => [{ jari_jari: '5 cm', rumus: 'PI() * POWER(5, 2)', luas_lingkaran: (Math.PI * 25).toFixed(2) + ' cm' }]
+      },
+      {
+        id: '3b',
+        group: 3,
+        badge: 'Latihan 3b',
+        title: 'Menghitung Nilai Sinus dan Kosinus dari Sudut 120 Derajat',
+        task: 'Hitung nilai sinus dan kosinus dari sudut 120°.',
+        sql: `SELECT SIN(RADIANS(120)) AS sin_120,\n       COS(RADIANS(120)) AS cos_120,\n       ROUND(SIN(RADIANS(120)), 4) AS sin_120_bulat,\n       ROUND(COS(RADIANS(120)), 4) AS cos_120_bulat;`,
+        breakdown: [
+          { code: `RADIANS(120)`, desc: `<strong>Sangat Penting:</strong> Fungsi <code>SIN()</code> dan <code>COS()</code> di MySQL menerima input dalam satuan <em>Radian</em>, bukan Derajat! Oleh karena itu, angka <code>120</code> wajib dikonversi ke radian terlebih dahulu dengan <code>RADIANS(120)</code> ($2\\pi/3 \\approx 2.094395\\text{ rad}$).` },
+          { code: `SIN(RADIANS(120)) & COS(RADIANS(120))`, desc: `Menghitung nilai $\\sin(120^\\circ) = \\frac{1}{2}\\sqrt{3} \\approx 0.866025$ dan $\\cos(120^\\circ) = -0.5$.` }
+        ],
+        execute: () => {
+          const rad = (120 * Math.PI) / 180;
+          return [{
+            sudut_derajat: '120°',
+            radian: rad.toFixed(6),
+            sin_120: Math.sin(rad).toFixed(6),
+            cos_120: Math.cos(rad).toFixed(6)
+          }];
+        }
+      },
+
+      // ==================== LATIHAN 4: DATE & TIME FUNCTIONS ====================
+      {
+        id: '4a',
+        group: 4,
+        badge: 'Latihan 4a',
+        title: 'Menampilkan Mahasiswa yang Lahir Sebelum Tahun 2000',
+        task: 'Tampilkan mahasiswa yang lahir sebelum tahun 2000.',
+        sql: `SELECT nim, nama_depan, nama_belakang, tgl_lahir\nFROM mahasiswa\nWHERE YEAR(tgl_lahir) < 2000;`,
+        altSql: `-- Alternatif menggunakan perbandingan langsung terhadap tanggal awal tahun 2000:\nSELECT nim, nama_depan, nama_belakang, tgl_lahir\nFROM mahasiswa\nWHERE tgl_lahir < '2000-01-01';`,
+        breakdown: [
+          { code: `YEAR(tgl_lahir)`, desc: `Mengekstrak komponen tahun 4 digit (integer) dari kolom <code>tgl_lahir</code>.` },
+          { code: `< 2000`, desc: `Menyaring hanya mahasiswa yang tahun kelahirannya kurang dari 2000 (yakni kelahiran 1999 ke bawah).` }
+        ],
+        execute: (rows) => rows.filter(r => parseDateParts(r.tgl_lahir).year < 2000).map(r => ({ nim: r.nim, nama_depan: r.nama_depan, nama_belakang: r.nama_belakang, tgl_lahir: r.tgl_lahir, tahun: parseDateParts(r.tgl_lahir).year }))
+      },
+      {
+        id: '4b',
+        group: 4,
+        badge: 'Latihan 4b',
+        title: 'Memformat Tanggal Lahir Menjadi "Sun, 6 October 1999"',
+        task: 'Tampilkan NIM, nama lengkap, tanggal lahir dengan format Sun, 6 October 1999.',
+        sql: `SELECT nim,\n       CONCAT(nama_depan, ' ', nama_belakang) AS nama_lengkap,\n       DATE_FORMAT(tgl_lahir, '%a, %e %M %Y') AS tgl_lahir_formatted\nFROM mahasiswa;`,
+        breakdown: [
+          { code: `%a`, desc: `Specifier untuk singkatan 3 huruf nama hari dalam bahasa Inggris (<code>Sun</code>, <code>Mon</code>, ..., <code>Sat</code>).` },
+          { code: `%e`, desc: `Specifier untuk tanggal numerik dalam bulan <strong>tanpa angka nol di depan</strong> (<code>1..31</code>, sehingga menghasilkan <code>6</code>, bukan <code>06</code>).` },
+          { code: `%M`, desc: `Specifier untuk nama bulan lengkap dalam bahasa Inggris (<code>January</code>..<code>December</code>, contoh: <code>October</code>).` },
+          { code: `%Y`, desc: `Specifier untuk tahun numerik 4 digit (contoh: <code>1999</code>).` }
+        ],
+        execute: (rows) => rows.map(r => ({
+          nim: r.nim,
+          nama_lengkap: `${r.nama_depan} ${r.nama_belakang}`,
+          tgl_lahir_asli: r.tgl_lahir,
+          tgl_lahir_formatted: formatMySQLDate(r.tgl_lahir, '%a, %e %M %Y')
+        }))
+      },
+      {
+        id: '4c',
+        group: 4,
+        badge: 'Latihan 4c',
+        title: 'Menampilkan Mahasiswa yang Lahir di Bulan Ini (Menggunakan NOW())',
+        task: 'Tampilkan mahasiswa yang lahir di bulan ini (gunakan NOW() atau yang ekuivalen).',
+        sql: `SELECT nim, nama_depan, nama_belakang, tgl_lahir\nFROM mahasiswa\nWHERE MONTH(tgl_lahir) = MONTH(NOW());`,
+        altSql: `-- Alternatif menggunakan CURDATE() atau EXTRACT:\nSELECT nim, nama_depan, nama_belakang, tgl_lahir\nFROM mahasiswa\nWHERE EXTRACT(MONTH FROM tgl_lahir) = EXTRACT(MONTH FROM CURDATE());`,
+        breakdown: [
+          { code: `MONTH(tgl_lahir)`, desc: `Mengambil angka bulan kelahiran mahasiswa (1 untuk Januari s.d. 12 untuk Desember).` },
+          { code: `= MONTH(NOW())`, desc: `Membandingkannya dengan angka bulan saat statemen dijalankan oleh server MySQL (diambil dari fungsi <code>NOW()</code> atau <code>CURDATE()</code>).` }
+        ],
+        execute: (rows) => {
+          const currentMonth = 10; // Oktober (sesuai waktu sistem)
+          return rows.filter(r => parseDateParts(r.tgl_lahir).month === currentMonth).map(r => ({
+            nim: r.nim,
+            nama_depan: r.nama_depan,
+            nama_belakang: r.nama_belakang,
+            tgl_lahir: r.tgl_lahir,
+            bulan_lahir: parseDateParts(r.tgl_lahir).monthName
+          }));
+        }
+      },
+      {
+        id: '4d',
+        group: 4,
+        badge: 'Latihan 4d',
+        title: 'Menampilkan Mahasiswa yang Lahir di Hari Senin (Monday)',
+        task: 'Tampilkan data mahasiswa yang lahir di hari Senin.',
+        sql: `SELECT nim,\n       nama_depan,\n       nama_belakang,\n       tgl_lahir,\n       DATE_FORMAT(tgl_lahir, '%W') AS hari_lahir\nFROM mahasiswa\nWHERE WEEKDAY(tgl_lahir) = 0;`,
+        altSql: `-- Alternatif menggunakan DAYOFWEEK(tgl_lahir) = 2 atau DATE_FORMAT(tgl_lahir, '%W') = 'Monday':\nSELECT * FROM mahasiswa\nWHERE DATE_FORMAT(tgl_lahir, '%W') = 'Monday';`,
+        breakdown: [
+          { code: `WHERE WEEKDAY(tgl_lahir) = 0`, desc: `Fungsi <code>WEEKDAY(date)</code> di MySQL mengembalikan indeks hari dengan ketentuan <strong><code>0 = Monday (Senin)</code></strong>, <code>1 = Tuesday</code>, ..., hingga <code>6 = Sunday</code>.` },
+          { code: `Alternatif: DAYOFWEEK(tgl_lahir) = 2`, desc: `Jika menggunakan <code>DAYOFWEEK(date)</code>, indeks dimulai dari <code>1 = Sunday (Minggu)</code>, sehingga hari Senin bernilai <code>2</code>.` },
+          { code: `Alternatif: DATE_FORMAT(tgl_lahir, '%W') = 'Monday'`, desc: `Mengekstrak nama hari lengkap menggunakan specifier <code>%W</code> lalu mencocokkannya dengan string <code>'Monday'</code>.` }
+        ],
+        execute: (rows) => rows.filter(r => parseDateParts(r.tgl_lahir).mysqlWeekday === 0).map(r => ({
+          nim: r.nim,
+          nama_depan: r.nama_depan,
+          nama_belakang: r.nama_belakang,
+          tgl_lahir: r.tgl_lahir,
+          hari_lahir: parseDateParts(r.tgl_lahir).dayName
+        }))
+      },
+      {
+        id: '4e',
+        group: 4,
+        badge: 'Latihan 4e',
+        title: 'Menghitung Usia Setiap Mahasiswa dengan TIMESTAMPDIFF',
+        task: 'Tampilkan NIM, nama_depan, nama_belakang, serta usia setiap mahasiswa.',
+        sql: `SELECT nim,\n       nama_depan,\n       nama_belakang,\n       tgl_lahir,\n       TIMESTAMPDIFF(YEAR, tgl_lahir, CURDATE()) AS usia\nFROM mahasiswa;`,
+        altSql: `-- Alternatif pendekatan selisih tahun saja:\nSELECT nim, nama_depan, nama_belakang, (YEAR(CURDATE()) - YEAR(tgl_lahir)) AS usia\nFROM mahasiswa;`,
+        breakdown: [
+          { code: `TIMESTAMPDIFF(YEAR, tgl_lahir, CURDATE()) AS usia`, desc: `Fungsi <code>TIMESTAMPDIFF(unit, datetime_awal, datetime_akhir)</code> menghitung selisih waktu penuh dalam satuan <code>YEAR</code> antara <code>tgl_lahir</code> hingga tanggal hari ini (<code>CURDATE()</code>). Metode ini paling akurat karena memperhitungkan apakah mahasiswa sudah berulang tahun atau belum di tahun berjalan.` }
+        ],
+        execute: (rows) => rows.map(r => ({
+          nim: r.nim,
+          nama_depan: r.nama_depan,
+          nama_belakang: r.nama_belakang,
+          tgl_lahir: r.tgl_lahir,
+          usia: calculateAge(r.tgl_lahir) + ' tahun'
+        }))
+      },
+
+      // ==================== LATIHAN 5: CAST FUNCTIONS ====================
+      {
+        id: '5a',
+        group: 5,
+        badge: 'Latihan 5a',
+        title: 'Increment Nilai NIM Terbesar Prodi Informatika (71) untuk Mahasiswa Baru',
+        task: 'Ambil nilai terbesar dari NIM dari prodi Informatika, lalu lakukan increment nilai tersebut sebanyak 1 untuk menciptakan NIM mahasiswa yang baru saja mendaftar.',
+        sql: `SELECT MAX(nim) AS nim_terbesar_ti,\n       CONVERT(MAX(nim), UNSIGNED INTEGER) + 1 AS nim_mahasiswa_baru\nFROM mahasiswa\nWHERE LEFT(nim, 2) = '71';`,
+        altSql: `-- Alternatif menggunakan sintaks standar ANSI SQL CAST(... AS UNSIGNED):\nSELECT CAST(MAX(nim) AS UNSIGNED) + 1 AS nim_mahasiswa_baru\nFROM mahasiswa WHERE nim LIKE '71%';`,
+        breakdown: [
+          { code: `WHERE LEFT(nim, 2) = '71'`, desc: `Menyaring hanya mahasiswa dari Program Studi Informatika yang memiliki awalan kode NIM <code>'71'</code>.` },
+          { code: `MAX(nim)`, desc: `Mengambil nilai NIM tertinggi dari kelompok mahasiswa Informatika (pada dataset kita: <code>'71190425'</code>).` },
+          { code: `CONVERT(MAX(nim), UNSIGNED INTEGER) + 1`, desc: `Mengonversi tipe data <code>VARCHAR(8)</code> dari <code>MAX(nim)</code> menjadi bilangan bulat positif (<code>UNSIGNED INTEGER</code>), kemudian melakukan operasi penjumlahan <code>+ 1</code> sehingga diperoleh NIM baru <code>71190426</code>.` }
+        ],
+        execute: (rows) => {
+          const tiNims = rows.filter(r => r.nim.startsWith('71')).map(r => Number(r.nim));
+          const maxNim = Math.max(...tiNims);
+          return [{
+            prodi: 'Informatika (71)',
+            nim_terbesar_ti: String(maxNim),
+            nim_mahasiswa_baru: maxNim + 1
+          }];
+        }
+      },
+
+      // ==================== LATIHAN 6: CONTROL-FLOW FUNCTIONS ====================
+      {
+        id: '6a',
+        group: 6,
+        badge: 'Latihan 6a',
+        title: 'Menentukan Nama Prodi ("Informatika" / "Sistem Informasi") Berdasarkan Awalan NIM',
+        task: 'Tampilkan NIM, nama lengkap, dan prodi. Jika dia memiliki NIM berawalkan "71" maka prodinya "Informatika", jika NIM berawalkan "72" maka prodinya "Sistem Informasi".',
+        sql: `SELECT nim,\n       CONCAT(nama_depan, ' ', nama_belakang) AS nama_lengkap,\n       CASE\n           WHEN LEFT(nim, 2) = '71' THEN 'Informatika'\n           WHEN LEFT(nim, 2) = '72' THEN 'Sistem Informasi'\n           ELSE 'Prodi Lainnya'\n       END AS prodi\nFROM mahasiswa;`,
+        altSql: `-- Alternatif ringkas menggunakan fungsi IF(expr1, expr2, expr3):\nSELECT nim,\n       CONCAT(nama_depan, ' ', nama_belakang) AS nama_lengkap,\n       IF(LEFT(nim, 2) = '71', 'Informatika', 'Sistem Informasi') AS prodi\nFROM mahasiswa;`,
+        breakdown: [
+          { code: `CASE WHEN LEFT(nim, 2) = '71' THEN 'Informatika'`, desc: `Mengevaluasi 2 digit awal <code>nim</code>. Jika bernilai <code>'71'</code>, maka cabang pertama mengembalikan string <code>'Informatika'</code>.` },
+          { code: `WHEN LEFT(nim, 2) = '72' THEN 'Sistem Informasi'`, desc: `Jika 2 digit awal bernilai <code>'72'</code>, maka cabang kedua mengembalikan <code>'Sistem Informasi'</code>.` },
+          { code: `END AS prodi`, desc: `Menutup blok evaluasi <code>CASE</code> dan memberi nama kolom keluaran sebagai <code>prodi</code>.` }
+        ],
+        execute: (rows) => rows.map(r => ({
+          nim: r.nim,
+          nama_lengkap: `${r.nama_depan} ${r.nama_belakang}`,
+          prodi: r.nim.startsWith('71') ? 'Informatika' : (r.nim.startsWith('72') ? 'Sistem Informasi' : 'Prodi Lainnya')
+        }))
+      },
+      {
+        id: '6b',
+        group: 6,
+        badge: 'Latihan 6b',
+        title: 'Memeriksa Kesamaan Nama Depan Mahasiswa NIM 72180351 dengan 71180390',
+        task: 'Periksalah apakah nama depan dari mahasiswa dengan NIM 72180351 dengan 71180390 sama, jika benar munculkan pesan "Nama depan sama", jika beda "Nama depan beda".',
+        sql: `SELECT\n  (SELECT nama_depan FROM mahasiswa WHERE nim = '72180351') AS nama_72180351,\n  (SELECT nama_depan FROM mahasiswa WHERE nim = '71180390') AS nama_71180390,\n  IF(\n    (SELECT nama_depan FROM mahasiswa WHERE nim = '72180351') =\n    (SELECT nama_depan FROM mahasiswa WHERE nim = '71180390'),\n    'Nama depan sama',\n    'Nama depan beda'\n  ) AS hasil_perbandingan;`,
+        altSql: `-- Alternatif menggunakan Self-Join & fungsi NULLIF:\nSELECT m1.nama_depan AS nama_1, m2.nama_depan AS nama_2,\n       IF(NULLIF(m1.nama_depan, m2.nama_depan) IS NULL, 'Nama depan sama', 'Nama depan beda') AS status\nFROM mahasiswa m1, mahasiswa m2\nWHERE m1.nim = '72180351' AND m2.nim = '71180390';`,
+        breakdown: [
+          { code: `(SELECT nama_depan FROM mahasiswa WHERE nim = '72180351')`, desc: `Subquery skalar pertama mengambil nilai <code>nama_depan</code> milik mahasiswa ber-NIM <code>72180351</code> (Rina).` },
+          { code: `(SELECT nama_depan FROM mahasiswa WHERE nim = '71180390')`, desc: `Subquery skalar kedua mengambil nilai <code>nama_depan</code> milik mahasiswa ber-NIM <code>71180390</code> (Budi).` },
+          { code: `IF(subquery1 = subquery2, 'Nama depan sama', 'Nama depan beda')`, desc: `Fungsi <code>IF(kondisi, nilai_true, nilai_false)</code> membandingkan kedua nama depan tersebut. Jika identik, tampilkan <code>'Nama depan sama'</code>; jika tidak sama, tampilkan <code>'Nama depan beda'</code>.` }
+        ],
+        execute: (rows) => {
+          const m1 = rows.find(r => r.nim === '72180351');
+          const m2 = rows.find(r => r.nim === '71180390');
+          const n1 = m1 ? m1.nama_depan : null;
+          const n2 = m2 ? m2.nama_depan : null;
+          return [{
+            nama_72180351: n1,
+            nama_71180390: n2,
+            hasil_perbandingan: (n1 && n2 && n1.toLowerCase() === n2.toLowerCase()) ? 'Nama depan sama' : 'Nama depan beda'
+          }];
+        }
+      },
+      {
+        id: '6c',
+        group: 6,
+        badge: 'Latihan 6c',
+        title: 'Mengganti Nilai NULL pada Kolom Nomor Telepon dengan IFNULL()',
+        task: 'Tampilkan data NIM, nama depan, nama belakang, dan nomor telephone, tapi jika nomor telepon NULL gantilah dengan kata-kata "No Telephone Tidak Tersedia".',
+        sql: `SELECT nim,\n       nama_depan,\n       nama_belakang,\n       IFNULL(no_telp, 'No Telephone Tidak Tersedia') AS no_telephone\nFROM mahasiswa;`,
+        altSql: `-- Alternatif menggunakan COALESCE atau IF(no_telp IS NULL, ...):\nSELECT nim, nama_depan, nama_belakang,\n       COALESCE(no_telp, 'No Telephone Tidak Tersedia') AS no_telephone\nFROM mahasiswa;`,
+        breakdown: [
+          { code: `IFNULL(no_telp, 'No Telephone Tidak Tersedia') AS no_telephone`, desc: `Fungsi <code>IFNULL(expr1, expr2)</code> memeriksa nilai kolom <code>no_telp</code> pada setiap baris. Apabila <code>no_telp</code> berisi nomor telepon (tidak <code>NULL</code>), maka nomor telepon asli ditampilkan. Apabila <code>no_telp</code> bernilai <code>NULL</code>, maka otomatis digantikan dengan teks <code>'No Telephone Tidak Tersedia'</code>.` }
+        ],
+        execute: (rows) => rows.map(r => ({
+          nim: r.nim,
+          nama_depan: r.nama_depan,
+          nama_belakang: r.nama_belakang,
+          no_telephone: r.no_telp !== null ? r.no_telp : 'No Telephone Tidak Tersedia'
+        }))
+      }
+    ];
+
+    // 3. HIGHLIGHT SQL SYNTAX HELPER
+    function highlightSQL(sql) {
+      let escaped = sql
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      return escaped.split('\n').map((line, idx) => {
+        if (line.trim().startsWith('--')) {
+          return `<span class="ln">${idx + 1}</span><span class="cm">${line}</span>`;
+        }
+        // Highlight strings first using placeholders
+        const strings = [];
+        let processed = line.replace(/'([^']*)'/g, (match) => {
+          strings.push(match);
+          return `___STR_${strings.length - 1}___`;
+        });
+
+        // Keywords
+        processed = processed.replace(/\b(SELECT|FROM|WHERE|AND|OR|XOR|NOT|BETWEEN|LIKE|REGEXP|ORDER|BY|ASC|DESC|AS|UPDATE|SET|CASE|WHEN|THEN|ELSE|END|IS|NULL|UNSIGNED|SIGNED|INTEGER|INTERVAL)\b/g, '<span class="kw">$1</span>');
+        // Functions
+        processed = processed.replace(/\b(CONCAT|CONCAT_WS|LOWER|LCASE|UPPER|LEFT|RIGHT|MID|SUBSTR|SUBSTRING_INDEX|TRIM|LTRIM|RTRIM|REPLACE|LOCATE|POSITION|LPAD|RPAD|CHAR_LENGTH|PI|POWER|SQRT|ROUND|TRUNCATE|CEILING|FLOOR|SIN|COS|TAN|RADIANS|DEGREES|YEAR|MONTH|DAY|MONTHNAME|DAYNAME|NOW|CURDATE|CURRENT_DATE|DATE_FORMAT|WEEKDAY|DAYOFWEEK|TIMESTAMPDIFF|DATEDIFF|EXTRACT|MAX|MIN|CONVERT|CAST|IF|IFNULL|NULLIF|COALESCE)\b/g, '<span class="fn">$1</span>');
+        // Numbers
+        processed = processed.replace(/\b(\d+(\.\d+)?)\b/g, '<span class="nm">$1</span>');
+
+        // Restore strings
+        processed = processed.replace(/___STR_(\d+)___/g, (_, i) => `<span class="st">${strings[Number(i)]}</span>`);
+
+        return `<span class="ln">${idx + 1}</span>${processed}`;
+      }).join('\n');
+    }
+
+    // 4. RENDER TABLE FROM OBJECT ARRAY
+    function renderResultTable(rows) {
+      if (!rows || rows.length === 0) {
+        return `<div class="p-4 text-xs font-mono text-amber-300 bg-slate-900/60 rounded-xl border border-slate-800">Empty set (0 rows returned)</div>`;
+      }
+      const cols = Object.keys(rows[0]);
+      let html = `
+        <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+          <table class="w-full text-left text-xs border-collapse font-mono">
+            <thead class="bg-slate-900 text-cyan-300 border-b border-slate-700">
+              <tr>
+                <th class="p-2.5 w-10 text-center text-slate-500">#</th>
+                ${cols.map(c => `<th class="p-2.5">${c}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 bg-slate-950/60 text-slate-200">
+              ${rows.map((r, i) => `
+                <tr class="hover:bg-slate-800/60 transition-colors">
+                  <td class="p-2.5 text-center text-slate-500">${i + 1}</td>
+                  ${cols.map(c => {
+                    const val = r[c];
+                    if (val === null) return `<td class="p-2.5 text-rose-400 italic">NULL</td>`;
+                    return `<td class="p-2.5">${val}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+      return html;
+    }
+
+    // 5. RENDER EXERCISE CARDS FOR GROUPS 1 TO 6
+    function renderAllExerciseSections() {
+      for (let g = 1; g <= 6; g++) {
+        const container = document.getElementById(`latihan-${g}-container`);
+        if (!container) continue;
+        const groupExercises = EXERCISES.filter(ex => ex.group === g);
+
+        container.innerHTML = groupExercises.map(ex => {
+          const outputRows = ex.execute(mahasiswaData);
+          return `
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
+              <!-- Card Header -->
+              <div class="px-6 py-4 bg-slate-900/90 border-b border-slate-700/80 flex flex-wrap items-center justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${ex.badge}</span>
+                    <h3 class="text-base sm:text-lg font-bold text-white">${ex.title}</h3>
+                  </div>
+                  <p class="text-xs text-slate-300"><strong class="text-amber-300">Soal Modul:</strong> "${ex.task}"</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  ${ex.hasDmlAction === 'apply2b' ? `
+                    <button onclick="applyUpdate2b()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all">
+                      <i class="fa-solid fa-database mr-1"></i> Terapkan UPDATE ke Tabel
+                    </button>
+                  ` : ''}
+                  ${ex.hasDmlAction === 'apply2c' ? `
+                    <button onclick="applyUpdate2c()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-all">
+                      <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Terapkan REPLACE ke Tabel
+                    </button>
+                  ` : ''}
+                  <button onclick="openInPlayground('${ex.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 transition-all">
+                    <i class="fa-solid fa-terminal mr-1"></i> Buka di Playground
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card Body -->
+              <div class="p-6 space-y-5">
+                <!-- Source Code SQL Block -->
+                <div class="rounded-xl border border-slate-700 overflow-hidden bg-[#090d16]">
+                  <div class="px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+                    <span class="text-slate-300"><i class="fa-solid fa-code text-cyan-400 mr-1.5"></i>Source Code Query SQL (${ex.badge})</span>
+                    <button onclick="copyRawString(\`${ex.sql.replace(/`/g, '\\`')}\`)" class="text-slate-300 hover:text-white px-2.5 py-1 rounded bg-slate-800 border border-slate-700">
+                      <i class="fa-regular fa-copy mr-1"></i> Salin Kode
+                    </button>
+                  </div>
+                  <pre class="p-4 sql-code overflow-x-auto"><code>${highlightSQL(ex.sql)}</code></pre>
+                  ${ex.altSql ? `
+                    <div class="px-4 py-2 bg-slate-900/60 border-t border-slate-800">
+                      <pre class="sql-code overflow-x-auto text-xs"><code>${highlightSQL(ex.altSql)}</code></pre>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- Penjelasan Tiap Bagian Kode (Clause-by-Clause Breakdown) -->
+                <div class="space-y-2.5">
+                  <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> Penjelasan Tiap Bagian Kode (Clause-by-Clause Breakdown)
+                  </h4>
+                  <div class="grid grid-cols-1 gap-2.5">
+                    ${ex.breakdown.map((b, idx) => `
+                      <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 flex flex-col sm:flex-row sm:items-start gap-3 text-xs">
+                        <div class="sm:w-72 shrink-0">
+                          <span class="inline-block px-2 py-1 rounded bg-slate-950 text-cyan-300 font-mono text-[11px] border border-slate-800 break-all">
+                            ${idx + 1}. ${b.code}
+                          </span>
+                        </div>
+                        <div class="text-slate-300 leading-relaxed flex-1">
+                          ${b.desc}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <!-- Live Output Table -->
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between text-xs font-mono">
+                    <span class="text-emerald-400 font-bold"><i class="fa-solid fa-table-cells mr-1.5"></i>Hasil Eksekusi Query (${outputRows.length} baris):</span>
+                    <span class="text-slate-400">Dieksekusi secara live dari dataset mahasiswa</span>
+                  </div>
+                  ${renderResultTable(outputRows)}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // 6. RENDER PHPMYADMIN TABLE & SQL DUMP
+    function renderPhpMyAdmin() {
+      const tbody = document.getElementById('pma-browse-tbody');
+      document.getElementById('mhs-row-count').textContent = mahasiswaData.length;
+      tbody.innerHTML = mahasiswaData.map(r => `
+        <tr class="hover:bg-slate-800/70 transition-colors">
+          <td class="p-2.5 font-bold text-amber-300">${r.nim}</td>
+          <td class="p-2.5 text-white">${r.nama_depan}</td>
+          <td class="p-2.5 text-white">${r.nama_belakang}</td>
+          <td class="p-2.5 text-slate-300">${r.alamat}</td>
+          <td class="p-2.5 text-emerald-300">${r.ipk.toFixed(2)}</td>
+          <td class="p-2.5 text-cyan-300">${r.ips.toFixed(2)}</td>
+          <td class="p-2.5 text-amber-200">${r.sks}</td>
+          <td class="p-2.5 text-purple-300">${r.tgl_lahir}</td>
+          <td class="p-2.5">${r.no_telp !== null ? r.no_telp : '<span class="text-rose-400 italic">NULL</span>'}</td>
+          <td class="p-2.5 text-sky-300">${r.email}</td>
+          <td class="p-2.5"><span class="px-1.5 py-0.5 rounded text-[10px] ${r.sex === 'F' ? 'bg-pink-500/20 text-pink-300' : 'bg-blue-500/20 text-blue-300'}">${r.sex}</span></td>
+        </tr>
+      `).join('');
+
+      document.getElementById('raw-sql-dump').textContent = generateSQLDumpString();
+    }
+
+    function generateSQLDumpString() {
+      const values = INITIAL_MAHASISWA.map(r => {
+        const telp = r.no_telp === null ? 'NULL' : `'${r.no_telp}'`;
+        return `('${r.nim}', '${r.nama_depan}', '${r.nama_belakang}', '${r.alamat}', ${r.ipk.toFixed(2)}, ${r.ips.toFixed(2)}, ${r.sks}, '${r.tgl_lahir}', ${telp}, '${r.email}', '${r.sex}')`;
+      }).join(',\n');
+
+      return `-- ====================================================================
+-- DUMP SQL PRAKTIKUM SISTEM BASIS DATA - MODUL 10: OPERATOR & FUNGSI SQL
+-- Database: PERT_07 | Tabel: mahasiswa
+-- ====================================================================
+
+CREATE DATABASE IF NOT EXISTS PERT_07;
+USE PERT_07;
+
+DROP TABLE IF EXISTS mahasiswa;
+
+CREATE TABLE mahasiswa (
+  nim varchar(8) NOT NULL,
+  nama_depan varchar(50) NOT NULL,
+  nama_belakang varchar(50) NOT NULL,
+  alamat varchar(150) NOT NULL,
+  ipk float(3,2) NOT NULL,
+  ips float(3,2) NOT NULL,
+  sks int(3) NOT NULL,
+  tgl_lahir date NOT NULL,
+  no_telp varchar(15) DEFAULT NULL,
+  email varchar(50) NOT NULL,
+  sex enum('M','F') NOT NULL,
+  PRIMARY KEY (nim)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO mahasiswa (nim, nama_depan, nama_belakang, alamat, ipk, ips, sks, tgl_lahir, no_telp, email, sex) VALUES
+${values};`;
+    }
+
+    function downloadMahasiswaSQL() {
+      const sqlContent = generateSQLDumpString();
+      const blob = new Blob([sqlContent], { type: 'application/sql;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mahasiswa.sql';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('File mahasiswa.sql berhasil diunduh!');
+    }
+
+    function setPhpMyAdminView(view) {
+      ['browse', 'structure', 'sql'].forEach(v => {
+        document.getElementById(`pma-view-${v}`).classList.toggle('hidden', v !== view);
+        const btn = document.getElementById(`pma-btn-${v}`);
+        if (v === view) {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 flex items-center gap-1.5';
+        }
+      });
+    }
+
+    function applyUpdate2b() {
+      mahasiswaData.forEach(r => {
+        r.email = `${r.nama_depan}.${r.nama_belakang}@gmail.ac.id`.toLowerCase();
+      });
+      renderPhpMyAdmin();
+      renderAllExerciseSections();
+      showToast('UPDATE Latihan 2b diterapkan! Semua email kini berformat @gmail.ac.id');
+    }
+
+    function applyUpdate2c() {
+      mahasiswaData.forEach(r => {
+        if (!r.email.includes('gmail') && !r.email.includes('ukdw')) {
+          r.email = `${r.nama_depan}.${r.nama_belakang}@gmail.ac.id`.toLowerCase();
+        }
+        r.email = r.email.replace(/gmail/g, 'ukdw');
+      });
+      renderPhpMyAdmin();
+      renderAllExerciseSections();
+      showToast('UPDATE Latihan 2c diterapkan! Kata "gmail" diubah menjadi "ukdw"');
+    }
+
+    function resetMahasiswaData() {
+      mahasiswaData = JSON.parse(JSON.stringify(INITIAL_MAHASISWA));
+      renderPhpMyAdmin();
+      renderAllExerciseSections();
+      showToast('Data tabel mahasiswa di-reset ke kondisi awal.');
+    }
+
+    // 7. SANDBOX UPDATERS (STRING, NUMERIC, DATE_FORMAT)
+    function updateStringSandbox() {
+      const str = document.getElementById('str-sb-input').value;
+      const pos = Math.max(1, parseInt(document.getElementById('str-sb-pos').value) || 1);
+      const len = Math.max(1, parseInt(document.getElementById('str-sb-len').value) || 1);
+
+      const left2 = str.slice(0, 2);
+      const midVal = str.slice(pos - 1, pos - 1 + len);
+      const kabKota = extractKabupatenKota(str);
+      const replaced = str.replace(/gmail/gi, 'ukdw');
+
+      const items = [
+        { expr: `CHAR_LENGTH('${str.slice(0,18)}...')`, val: str.length },
+        { expr: `LEFT(str, 2)`, val: `'${left2}'` },
+        { expr: `MID(str, ${pos}, ${len})`, val: `'${midVal}'` },
+        { expr: `LOWER(str)`, val: `'${str.toLowerCase().slice(0, 24)}'` },
+        { expr: `REPLACE(str, 'gmail', 'ukdw')`, val: `'${replaced.slice(0, 26)}'` },
+        { expr: `SUBSTRING_INDEX(SUBSTRING_INDEX(str,',',2),',',-1)`, val: `'${kabKota}'` }
+      ];
+
+      document.getElementById('str-sb-results').innerHTML = items.map(it => `
+        <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/80">
+          <div class="text-[10px] text-purple-300 truncate">${it.expr}</div>
+          <div class="text-xs font-bold text-emerald-300 mt-1 truncate">${it.val}</div>
+        </div>
+      `).join('');
+    }
+
+    function updateNumericSandbox() {
+      const r = parseFloat(document.getElementById('num-sb-r').value) || 5;
+      const deg = parseFloat(document.getElementById('num-sb-deg').value) || 120;
+
+      document.getElementById('num-sb-r-val').textContent = `${r} cm`;
+      document.getElementById('num-sb-deg-val').textContent = `${deg}°`;
+
+      const area = (Math.PI * Math.pow(r, 2)).toFixed(2);
+      document.getElementById('num-sb-circle-sql').innerHTML = `
+        <div><span class="kw">SELECT</span> <span class="fn">CONCAT</span>(<span class="fn">ROUND</span>(<span class="fn">PI</span>() * <span class="fn">POWER</span>(${r}, 2), 2), <span class="st">' cm'</span>);</div>
+        <div class="mt-1 text-emerald-400 font-bold">&rarr; Hasil: '${area} cm'</div>
+      `;
+
+      const rad = (deg * Math.PI) / 180;
+      const sinVal = Math.sin(rad).toFixed(4);
+      const cosVal = Math.cos(rad).toFixed(4);
+      document.getElementById('num-sb-trig-sql').innerHTML = `
+        <div><span class="kw">SELECT</span> <span class="fn">SIN</span>(<span class="fn">RADIANS</span>(${deg})), <span class="fn">COS</span>(<span class="fn">RADIANS</span>(${deg}));</div>
+        <div class="mt-1 text-cyan-300 font-bold">&rarr; SIN = ${sinVal} | COS = ${cosVal}</div>
+      `;
+    }
+
+    function updateDateFormatSandbox() {
+      const dateVal = document.getElementById('df-date-input').value || '1999-10-06';
+      const fmtVal = document.getElementById('df-format-input').value || '%a, %e %M %Y';
+      document.getElementById('df-output').textContent = formatMySQLDate(dateVal, fmtVal);
+    }
+
+    function setDateFormatPreset(fmt) {
+      document.getElementById('df-format-input').value = fmt;
+      updateDateFormatSandbox();
+    }
+
+    // 8. LIVE SQL PLAYGROUND ENGINE
+    let currentPlaygroundId = '1a';
+
+    function initPlayground() {
+      const btnContainer = document.getElementById('playground-preset-buttons');
+      btnContainer.innerHTML = EXERCISES.map(ex => `
+        <button onclick="selectPlaygroundExercise('${ex.id}')" id="pg-btn-${ex.id}" class="pg-preset-btn px-2.5 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all bg-slate-900 text-slate-300 border-slate-700 hover:border-cyan-400">
+          ${ex.badge}
+        </button>
+      `).join('');
+      selectPlaygroundExercise('1a');
+    }
+
+    function selectPlaygroundExercise(id) {
+      currentPlaygroundId = id;
+      const ex = EXERCISES.find(e => e.id === id);
+      if (!ex) return;
+
+      document.querySelectorAll('.pg-preset-btn').forEach(b => {
+        b.className = 'pg-preset-btn px-2.5 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all bg-slate-900 text-slate-300 border-slate-700 hover:border-cyan-400';
+      });
+      const activeBtn = document.getElementById(`pg-btn-${id}`);
+      if (activeBtn) {
+        activeBtn.className = 'pg-preset-btn px-2.5 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-all bg-cyan-500/20 text-cyan-300 border-cyan-400';
+      }
+
+      document.getElementById('pg-active-title').textContent = `${ex.badge}: ${ex.title}`;
+      document.getElementById('pg-sql-editor').value = ex.sql;
+      runPlaygroundSelected();
+    }
+
+    function runPlaygroundSelected() {
+      const ex = EXERCISES.find(e => e.id === currentPlaygroundId);
+      if (!ex) return;
+      const rows = ex.execute(mahasiswaData);
+      const wrapper = document.getElementById('pg-output-wrapper');
+      wrapper.innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700 space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-emerald-400 font-mono"><i class="fa-solid fa-circle-check mr-1.5"></i>Query Executed Successfully (${rows.length} rows in 0.0012 sec)</span>
+            <span class="text-slate-400">${ex.badge}</span>
+          </div>
+          ${renderResultTable(rows)}
+        </div>
+      `;
+    }
+
+    function openInPlayground(id) {
+      switchTab('tab-playground');
+      selectPlaygroundExercise(id);
+    }
+
+    // 9. POSTTEST QUIZ ENGINE
+    const QUIZ_QUESTIONS = [
+      {
+        q: '1. Manakah query yang tepat untuk menampilkan mahasiswa Prodi Sistem Informasi (kode awalan NIM "72") TANPA menggunakan wildcard % maupun _?',
+        options: [
+          `SELECT * FROM mahasiswa WHERE nim LIKE '72%';`,
+          `SELECT * FROM mahasiswa WHERE LEFT(nim, 2) = '72';`,
+          `SELECT * FROM mahasiswa WHERE RIGHT(nim, 2) = '72';`,
+          `SELECT * FROM mahasiswa WHERE MID(nim, 2, 2) = '72';`
+        ],
+        correct: 1,
+        explanation: `Fungsi <code>LEFT(nim, 2) = '72'</code> (atau <code>SUBSTR(nim, 1, 2) = '72'</code>) mengambil 2 karakter paling kiri dari kolom NIM tanpa memerlukan wildcard <code>%</code> maupun <code>_</code>.`
+      },
+      {
+        q: '2. Mengapa query SELECT SIN(120), COS(120); tidak menghasilkan nilai trigonometri sudut 120 derajat yang benar di MySQL?',
+        options: [
+          'Karena MySQL tidak mendukung sudut di atas 90 derajat.',
+          'Karena fungsi SIN() dan COS() di MySQL menerima input dalam satuan Radian, sehingga harus ditulis SIN(RADIANS(120)).',
+          'Karena hasil SIN() harus dikonversi dengan DEGREES() terlebih dahulu.',
+          'Karena argumen SIN() harus bertipe VARCHAR.'
+        ],
+        correct: 1,
+        explanation: `Di MySQL, seluruh fungsi trigonometri (<code>SIN</code>, <code>COS</code>, <code>TAN</code>, <code>COT</code>) membaca parameter sudut dalam satuan <strong>Radian</strong>. Gunakan <code>RADIANS(120)</code> untuk mengubah derajat menjadi radian.`
+      },
+      {
+        q: '3. Specifier format manakah pada DATE_FORMAT(tgl_lahir, ...) yang menghasilkan format tanggal seperti "Sun, 6 October 1999"?',
+        options: [
+          `'%W, %d %b %y'`,
+          `'%a, %e %M %Y'`,
+          `'%a, %d %m %Y'`,
+          `'%D, %e %M %Y'`
+        ],
+        correct: 1,
+        explanation: `<code>%a</code> = nama hari 3 huruf (Sun), <code>%e</code> = tanggal tanpa nol di depan (6), <code>%M</code> = nama bulan lengkap (October), dan <code>%Y</code> = tahun 4 digit (1999).`
+      },
+      {
+        q: '4. Bagaimana cara mengekstrak hanya nama Kabupaten/Kota dari kolom alamat berformat "Jl. Kaliurang Km 5, Sleman, Yogyakarta"?',
+        options: [
+          `SUBSTRING_INDEX(alamat, ',', 1)`,
+          `SUBSTRING_INDEX(alamat, ',', -1)`,
+          `TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(alamat, ',', 2), ',', -1))`,
+          `MID(alamat, 1, 10)`
+        ],
+        correct: 2,
+        explanation: `<code>SUBSTRING_INDEX(alamat, ',', 2)</code> mengambil bagian sebelum koma ke-2 (<code>'Jl. Kaliurang Km 5, Sleman'</code>), lalu <code>SUBSTRING_INDEX(..., ',', -1)</code> mengambil teks setelah koma terakhir (<code>' Sleman'</code>).`
+      },
+      {
+        q: '5. Pada Latihan 5a, mengapa MAX(nim) perlu dikonversi menggunakan CONVERT(MAX(nim), UNSIGNED) + 1?',
+        options: [
+          'Karena kolom nim bertipe VARCHAR(8), sehingga konversi eksplisit ke UNSIGNED INTEGER memastikan operasi penambahan + 1 berjalan sebagai bilangan bulat.',
+          'Karena fungsi MAX() hanya boleh digunakan pada tipe data DATE.',
+          'Karena UNSIGNED mengubah angka menjadi huruf kapital.',
+          'Karena tanpa CONVERT query pasti menghasilkan nilai NULL.'
+        ],
+        correct: 0,
+        explanation: `Kolom <code>nim</code> didefinisikan sebagai <code>VARCHAR(8)</code>. Mengonversinya dengan <code>CONVERT(MAX(nim), UNSIGNED)</code> mengubah teks NIM menjadi integer positif agar dapat di-increment <code>+ 1</code> dengan aman.`
+      },
+      {
+        q: '6. Fungsi manakah yang paling tepat untuk menampilkan kolom no_telp, tetapi menggantinya dengan teks "No Telephone Tidak Tersedia" apabila bernilai NULL?',
+        options: [
+          `NULLIF(no_telp, 'No Telephone Tidak Tersedia')`,
+          `IFNULL(no_telp, 'No Telephone Tidak Tersedia')`,
+          `ISNULL(no_telp, 'No Telephone Tidak Tersedia')`,
+          `REPLACE(no_telp, NULL, 'No Telephone Tidak Tersedia')`
+        ],
+        correct: 1,
+        explanation: `<code>IFNULL(expr1, expr2)</code> mengembalikan <code>expr1</code> jika tidak NULL, dan mengembalikan nilai cadangan <code>expr2</code> apabila <code>expr1</code> bernilai NULL.`
+      }
+    ];
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = QUIZ_QUESTIONS.map((item, qIdx) => `
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-5 space-y-3">
+          <div class="font-bold text-sm text-white">${item.q}</div>
+          <div class="space-y-2 text-xs font-mono">
+            ${item.options.map((opt, oIdx) => `
+              <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-cyan-500/50 transition-colors">
+                <input type="radio" name="quiz-q-${qIdx}" value="${oIdx}" class="accent-cyan-400">
+                <span class="text-slate-200">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="quiz-exp-${qIdx}" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+        </div>
+      `).join('');
+    }
+
+    function gradeQuiz() {
+      let correctCount = 0;
+      QUIZ_QUESTIONS.forEach((item, qIdx) => {
+        const selected = document.querySelector(`input[name="quiz-q-${qIdx}"]:checked`);
+        const expBox = document.getElementById(`quiz-exp-${qIdx}`);
+        expBox.classList.remove('hidden');
+
+        if (selected && parseInt(selected.value) === item.correct) {
+          correctCount++;
+          expBox.className = 'p-3.5 rounded-xl text-xs leading-relaxed bg-emerald-950/60 border border-emerald-500/40 text-emerald-200';
+          expBox.innerHTML = `<strong class="text-emerald-400"><i class="fa-solid fa-check mr-1"></i>Benar!</strong> ${item.explanation}`;
+        } else {
+          expBox.className = 'p-3.5 rounded-xl text-xs leading-relaxed bg-rose-950/60 border border-rose-500/40 text-rose-200';
+          expBox.innerHTML = `<strong class="text-rose-400"><i class="fa-solid fa-xmark mr-1"></i>Kurang Tepat.</strong> Jawaban yang benar adalah: <code class="text-amber-300">${item.options[item.correct]}</code>.<br>${item.explanation}`;
+        }
+      });
+
+      const score = Math.round((correctCount / QUIZ_QUESTIONS.length) * 100);
+      const banner = document.getElementById('quiz-score-banner');
+      banner.innerHTML = `Skor Anda: <span class="${score >= 80 ? 'text-emerald-400' : 'text-amber-400'} text-base">${score} / 100</span> (${correctCount} dari ${QUIZ_QUESTIONS.length} benar)`;
+      showToast(`Kuis dinilai! Skor Anda: ${score}/100`);
+    }
+
+    // 10. TAB SWITCHING & CLIPBOARD UTILITIES
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      const target = document.getElementById(tabId);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.className = 'nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all text-slate-300 hover:bg-slate-700/50';
+      });
+      const activeBtn = document.getElementById(`btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = 'nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-left transition-all bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function copyRawString(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Query SQL berhasil disalin ke clipboard!');
+    }
+
+    function copyTextById(id, isInput = false) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const text = isInput ? el.value : el.textContent;
+      copyRawString(text);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 2600);
+    }
+
+    // INITIALIZE EVERYTHING ON LOAD
+    window.addEventListener('DOMContentLoaded', () => {
+      renderPhpMyAdmin();
+      renderAllExerciseSections();
+      updateStringSandbox();
+      updateNumericSandbox();
+      updateDateFormatSandbox();
+      initPlayground();
+      renderQuiz();
+    });
+  </script>
+</body>
+</html>
