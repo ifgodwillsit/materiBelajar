@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Platform Edukasi & Solver: Linear Programming (LP) & Integer Programming (Gomory)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --tx: #0f172a;
+  --mu: #64748b;
+  --bd: #e2e8f0;
+  --ac: #2563eb;
+  --ac-soft: #eff6ff;
+  --ip: #7c3aed;
+  --ip-soft: #f5f3ff;
+  --col: #dbeafe;
+  --row: #fef3c7;
+  --pv: #f59e0b;
+  --cut: #f3e8ff;
+  --ok: #16a34a;
+  --ok-soft: #f0fdf4;
+  --er: #dc2626;
+  --er-soft: #fef2f2;
+}
+:root[data-theme="dark"] {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --tx: #f1f5f9;
+  --mu: #94a3b8;
+  --bd: #334155;
+  --ac: #3b82f6;
+  --ac-soft: #1e3a8a;
+  --ip: #8b5cf6;
+  --ip-soft: #2e1065;
+  --col: #1e3a5f;
+  --row: #453012;
+  --pv: #d97706;
+  --cut: #3b1c5e;
+  --ok: #22c55e;
+  --ok-soft: #14532d;
+  --er: #ef4444;
+  --er-soft: #450a0a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.scroll { overflow-x: auto; margin: 12px 0; border-radius: 8px; }
+table.simplex {
+  border-collapse: collapse;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  width: 100%;
+  font-size: 0.92rem;
+}
+table.simplex th, table.simplex td {
+  border: 1px solid var(--bd);
+  padding: 8px 11px;
+  white-space: nowrap;
+}
+table.simplex th {
+  background: var(--bg);
+  font-weight: 600;
+  color: var(--tx);
+}
+table.simplex td.b {
+  font-weight: 600;
+  background: var(--bg);
+}
+table.in td, table.in th { border: 0; padding: 4px 5px; }
+.c { background: var(--col) !important; }
+.r { background: var(--row) !important; }
+.cut-row td { background: var(--cut); font-weight: 600; }
+td.p {
+  background: var(--pv) !important;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.18);
+}
+tr.nw td { font-weight: 700; background: var(--bg); }
+.note {
+  border-left: 4px solid var(--ac);
+  background: var(--bg);
+  padding: 12px 16px;
+  border-radius: 0 10px 10px 0;
+  margin: 12px 0;
+  font-size: 0.93rem;
+}
+.note.ip-note { border-left-color: var(--ip); }
+.note.ok { border-left-color: var(--ok); background: var(--ok-soft); }
+.note.er { border-left-color: var(--er); background: var(--er-soft); }
+.legend {
+  font-size: 0.82rem;
+  color: var(--mu);
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.legend i {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  vertical-align: -2px;
+  margin-right: 5px;
+  border: 1px solid var(--bd);
+}
+input, select {
+  font: inherit;
+  background: var(--bg);
+  color: var(--tx);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+input[type=number] { width: 78px; text-align: center; }
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 9px;
+  border: 1px solid var(--bd);
+  background: var(--card);
+  color: var(--tx);
+  padding: 7px 14px;
+  transition: all 0.15s ease;
+  font-weight: 500;
+}
+button:hover:not(:disabled) { filter: brightness(0.96); transform: translateY(-1px); }
+button.pri {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #fff;
+  padding: 9px 20px;
+  font-weight: 600;
+}
+button.pri-ip {
+  background: var(--ip);
+  border-color: var(--ip);
+  color: #fff;
+  padding: 9px 20px;
+  font-weight: 600;
+}
+button:disabled { opacity: 0.35; cursor: default; transform: none; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.pills button { border-radius: 999px; padding: 6px 13px; font-size: 0.84rem; }
+.pills button.on { background: var(--ac); border-color: var(--ac); color: #fff; }
+.pills.ip-pills button.on { background: var(--ip); border-color: var(--ip); color: #fff; }
+details {
+  margin: 12px 0;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--bg);
+}
+summary { cursor: pointer; font-weight: 600; color: var(--ac); }
+sub { font-size: 0.75em; }
+.badge-frac {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+</style>
+</head>
+<body>
+
+<!-- Top Navigation Header -->
+<header class="border-b sticky top-0 z-30 backdrop-blur-md bg-opacity-90" style="background:var(--card);border-color:var(--bd)">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm" style="background:linear-gradient(135deg, var(--ac), var(--ip))">
+        Σ
+      </div>
+      <div>
+        <h1 class="font-bold text-base sm:text-lg leading-tight">Riset Operasi: Metode Simpleks &amp; Gomory</h1>
+        <p class="text-xs" style="color:var(--mu)">Panduan Belajar Step-by-Step &amp; Kalkulator Tabel Iterasi Otomatis</p>
+      </div>
+    </div>
+
+    <!-- Main Category Switcher + Dark Mode -->
+    <div class="flex items-center gap-2">
+      <div class="inline-flex rounded-xl p-1 border" style="background:var(--bg);border-color:var(--bd)">
+        <button id="cat-lp" onclick="switchCategory('lp')" class="border-0 text-xs sm:text-sm px-3 py-1.5 rounded-lg font-semibold">
+          1. Linear Programming (LP)
+        </button>
+        <button id="cat-ip" onclick="switchCategory('ip')" class="border-0 text-xs sm:text-sm px-3 py-1.5 rounded-lg font-semibold">
+          2. Integer Programming (IP)
+        </button>
+      </div>
+      <button id="theme-btn" onclick="toggleTheme()" title="Ubah Tema Terang/Gelap" class="p-2 rounded-lg text-sm">
+        🌓
+      </button>
+    </div>
+  </div>
+
+  <!-- Sub-page Navigation Bar -->
+  <div class="border-t" style="border-color:var(--bd);background:var(--bg)">
+    <div class="max-w-5xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+      <!-- LP Sub-nav -->
+      <div id="subnav-lp" class="flex flex-wrap gap-2">
+        <button id="sub-lp-bigm" onclick="switchLPSub('big')" class="text-xs sm:text-sm px-3.5 py-1.5 rounded-lg font-medium">
+          Metode Big-M (Penalti M)
+        </button>
+        <button id="sub-lp-two" onclick="switchLPSub('two')" class="text-xs sm:text-sm px-3.5 py-1.5 rounded-lg font-medium">
+          Metode Simpleks Dua Fase
+        </button>
+      </div>
+
+      <!-- IP Sub-nav -->
+      <div id="subnav-ip" class="hidden flex-wrap gap-2">
+        <button id="sub-ip-materi" onclick="switchIPSub('materi')" class="text-xs sm:text-sm px-3.5 py-1.5 rounded-lg font-medium">
+          📖 Materi &amp; Konsep Metode Gomory
+        </button>
+        <button id="sub-ip-contoh" onclick="switchIPSub('contoh')" class="text-xs sm:text-sm px-3.5 py-1.5 rounded-lg font-medium">
+          📝 Soal &amp; Pembahasan Runtut (PDF)
+        </button>
+        <button id="sub-ip-solver" onclick="switchIPSub('solver')" class="text-xs sm:text-sm px-3.5 py-1.5 rounded-lg font-medium">
+          🧮 Solver Interaktif Gomory (Cutting Plane)
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-6 pb-16">
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 1: LINEAR PROGRAMMING (BIG-M & SIMPLEKS DUA FASE)             -->
+  <!-- ===================================================================== -->
+  <section id="sec-lp">
+    <!-- Banner Penjelasan Metode Aktif -->
+    <div class="card" id="lp-banner">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+        <div>
+          <span id="lp-badge" class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:var(--ac-soft);color:var(--ac)">Linear Programming</span>
+          <h2 id="lp-title" class="text-xl font-bold mt-1">Metode Big-M (Penalti M)</h2>
+        </div>
+        <div class="text-xs sm:text-right" style="color:var(--mu)">
+          Variabel kontinu non-negatif (x<sub>j</sub> ≥ 0)<br>Mendukung kendala ≤, ≥, dan =
+        </div>
+      </div>
+      <p id="lp-desc" class="text-sm m-0" style="color:var(--mu)">
+        Metode Big-M menyelesaikan kendala ≥ dan = dengan menambahkan <b>variabel buatan (artificial variable)</b> yang diberi penalti sangat besar (<b>M</b>) pada fungsi tujuan, lalu mengeliminasi koefisien M dari baris Z awal sebelum memulai iterasi simpleks.
+      </p>
+
+      <!-- Alur Langkah Visual LP -->
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 mt-4 text-xs">
+        <div class="p-2.5 rounded-lg border" style="background:var(--bg);border-color:var(--bd)">
+          <div class="font-bold mb-0.5" style="color:var(--ac)">Langkah 1 · Bentuk Standar</div>
+          Ubah RHS ≥ 0, tambah slack (+s), surplus (−s), atau artificial (+A).
+        </div>
+        <div class="p-2.5 rounded-lg border" style="background:var(--bg);border-color:var(--bd)">
+          <div class="font-bold mb-0.5" style="color:var(--ac)">Langkah 2 · Tabel Awal</div>
+          Susun basis awal dan pastikan koefisien basis bernilai 0 pada baris tujuan.
+        </div>
+        <div class="p-2.5 rounded-lg border" style="background:var(--bg);border-color:var(--bd)">
+          <div class="font-bold mb-0.5" style="color:var(--ac)">Langkah 3 · Uji &amp; Rasio</div>
+          Pilih kolom masuk (entering) dan baris keluar (leaving) dengan rasio positif terkecil.
+        </div>
+        <div class="p-2.5 rounded-lg border" style="background:var(--bg);border-color:var(--bd)">
+          <div class="font-bold mb-0.5" style="color:var(--ac)">Langkah 4 · OBE &amp; Optimal</div>
+          Lakukan Operasi Baris Elementer (OBE) hingga kondisi optimal tercapai.
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Card LP -->
+    <div class="card">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h3 class="font-bold text-base m-0">Input Model Pemrograman Linear</h3>
+        <div class="flex flex-wrap gap-1.5">
+          <button id="e3" class="text-xs py-1 px-2.5">Contoh Materi (3 Variabel)</button>
+          <button id="e4" class="text-xs py-1 px-2.5">Latihan Klambiku</button>
+          <button id="e1" class="text-xs py-1 px-2.5">Contoh 4 Kendala</button>
+          <button id="e2" class="text-xs py-1 px-2.5">Contoh 2 Kendala</button>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3 items-center mb-4 pb-3 border-b" style="border-color:var(--bd)">
+        <label class="text-sm font-medium">Tujuan:
+          <select id="mm" class="ml-1">
+            <option value="min">Minimumkan</option>
+            <option value="max">Maksimumkan</option>
+          </select>
+        </label>
+        <label class="text-sm font-medium">Metode:
+          <select id="mt" class="ml-1" onchange="switchLPSub(this.value)">
+            <option value="big">Metode Big-M</option>
+            <option value="two">Simpleks Dua Fase</option>
+          </select>
+        </label>
+        <label class="text-sm font-medium">Jumlah Variabel:
+          <input type="number" id="nn" min="1" max="5" value="3" class="ml-1">
+        </label>
+        <label class="text-sm font-medium">Jumlah Kendala:
+          <input type="number" id="mc" min="1" max="6" value="3" class="ml-1">
+        </label>
+      </div>
+
+      <div class="scroll" id="form"></div>
+      <div class="mt-3 flex items-center gap-3">
+        <button class="pri" id="go">Selesaikan dengan Langkah Runtut</button>
+        <span class="text-xs" style="color:var(--mu)">Klik tombol di atas untuk melihat setiap tabel iterasi beserta rumus barisnya.</span>
+      </div>
+    </div>
+
+    <!-- Output Card LP -->
+    <div class="card" id="out" hidden>
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <span class="text-xs font-semibold uppercase tracking-wider" style="color:var(--mu)">Navigasi Tahapan Iterasi Simpleks</span>
+        <span id="lp-step-counter" class="text-xs font-semibold px-2.5 py-0.5 rounded-full" style="background:var(--ac-soft);color:var(--ac)"></span>
+      </div>
+      <div class="pills" id="tabs"></div>
+      <div id="view"></div>
+      <div class="flex justify-between items-center mt-5 pt-3 border-t" style="border-color:var(--bd)">
+        <button id="prev">← Langkah Sebelumnya</button>
+        <button id="next" class="pri">Langkah Berikutnya →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION 2: INTEGER PROGRAMMING — METODE GOMORY                        -->
+  <!-- ===================================================================== -->
+  <section id="sec-ip" class="hidden">
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- SUB-PAGE IP 1: MATERI & KONSEP METODE GOMORY                        -->
+    <!-- ------------------------------------------------------------------- -->
+    <div id="ip-sub-materi">
+      <div class="card">
+        <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:var(--ip-soft);color:var(--ip)">Materi Integer Programming · Cutting Plane Algorithm</span>
+        <h2 class="text-xl sm:text-2xl font-bold mt-2 mb-2">Metode Gomory (Algoritma Bidang Potong)</h2>
+        <p class="text-sm" style="color:var(--mu)">
+          <b>Integer Programming (IP)</b> adalah masalah pemrograman linear di mana seluruh atau sebagian variabel keputusan harus bernilai <b>bilangan bulat (integer)</b>. Membulatkan begitu saja solusi pecahan dari metode simpleks biasa sering kali menghasilkan titik yang <i>tidak layak (melanggar kendala)</i> atau <i>bukan solusi optimal yang sebenarnya</i>. Oleh karena itu, Ralph E. Gomory (1958) memperkenalkan <b>Metode Bidang Potong (Cutting Plane Algorithm)</b> yang memangkas ruang solusi pecahan secara sistematis tanpa membuang satu pun titik integer yang layak.
+        </p>
+
+        <!-- 3 Langkah Utama Metode Gomory -->
+        <h3 class="font-bold text-base mt-5 mb-3">3 Langkah Utama Algoritma Gomory</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="p-4 rounded-xl border" style="background:var(--bg);border-color:var(--bd)">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-white text-sm mb-2" style="background:var(--ip)">1</div>
+            <div class="font-bold text-sm mb-1">Relaksasi Simpleks Biasa</div>
+            <p class="text-xs m-0" style="color:var(--mu)">
+              Selesaikan masalah Integer Programming dengan mengabaikan syarat bulat terlebih dahulu menggunakan <b>Metode Simpleks biasa</b> hingga diperoleh tabel optimal kontinu.
+            </p>
+          </div>
+          <div class="p-4 rounded-xl border" style="background:var(--bg);border-color:var(--bd)">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-white text-sm mb-2" style="background:var(--ip)">2</div>
+            <div class="font-bold text-sm mb-1">Uji Kebulatan Solusi</div>
+            <p class="text-xs m-0" style="color:var(--mu)">
+              Amati nilai variabel basis pada kolom Solusi (RHS). Jika <b>semua variabel basis sudah bernilai bulat (integer)</b>, maka solusi optimal integer telah diperoleh dan proses selesai. Jika masih ada yang pecahan, lanjut ke Langkah 3.
+            </p>
+          </div>
+          <div class="p-4 rounded-xl border" style="background:var(--bg);border-color:var(--bd)">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-white text-sm mb-2" style="background:var(--ip)">3</div>
+            <div class="font-bold text-sm mb-1">Potongan Gomory &amp; Dual Simpleks</div>
+            <p class="text-xs m-0" style="color:var(--mu)">
+              Buat suatu <b>kendala potongan Gomory (Gomory Cut)</b> dari baris yang memiliki bagian pecahan terbesar, tambahkan ke bagian bawah tabel simpleks, dan cari solusi optimal baru dengan <b>Operasi Baris Elementer (Dual Simpleks)</b>. Kembali ke Langkah 2.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Konstruksi Matematis Tabel & Dekomposisi Pecahan -->
+      <div class="card">
+        <h3 class="font-bold text-lg mb-2">Konstruksi Matematis Kendala Gomory</h3>
+        <p class="text-sm" style="color:var(--mu)">
+          Misalkan tabel akhir optimal dari metode simpleks biasa berbentuk seperti di bawah ini, di mana <b>x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>m</sub></b> adalah variabel basis dan <b>s<sub>j</sub> (j = 1, 2, ..., n)</b> adalah variabel non-basis:
+        </p>
+
+        <div class="scroll">
+          <table class="simplex">
+            <tr>
+              <th>Basis</th><th>x<sub>1</sub></th><th>x<sub>2</sub></th><th>x<sub>3</sub></th><th>...</th><th>x<sub>m</sub></th>
+              <th>s<sub>1</sub></th><th>s<sub>2</sub></th><th>...</th><th>s<sub>n</sub></th><th>Solusi (RHS)</th>
+            </tr>
+            <tr>
+              <td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>...</td><td>0</td>
+              <td>c<sub>1</sub></td><td>c<sub>2</sub></td><td>...</td><td>c<sub>n</sub></td><td><b>b<sub>0</sub></b></td>
+            </tr>
+            <tr>
+              <td class="b">x<sub>1</sub></td><td>1</td><td>0</td><td>0</td><td>...</td><td>0</td>
+              <td>a<sub>11</sub></td><td>a<sub>12</sub></td><td>...</td><td>a<sub>1n</sub></td><td><b>b<sub>1</sub></b></td>
+            </tr>
+            <tr>
+              <td class="b">x<sub>2</sub></td><td>0</td><td>1</td><td>0</td><td>...</td><td>0</td>
+              <td>a<sub>21</sub></td><td>a<sub>22</sub></td><td>...</td><td>a<sub>2n</sub></td><td><b>b<sub>2</sub></b></td>
+            </tr>
+            <tr>
+              <td class="b">...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td>
+              <td>...</td><td>...</td><td>...</td><td>...</td><td>...</td>
+            </tr>
+            <tr>
+              <td class="b">x<sub>m</sub></td><td>0</td><td>0</td><td>0</td><td>...</td><td>1</td>
+              <td>a<sub>m1</sub></td><td>a<sub>m2</sub></td><td>...</td><td>a<sub>mn</sub></td><td><b>b<sub>m</sub></b></td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="note ip-note">
+          <b>1. Persamaan Baris Sumber (Baris ke-i):</b><br>
+          Pandang persamaan ke-<i>i</i> di mana variabel basis <b>x<sub>i</sub></b> bernilai non-integer (biasanya dipilih baris yang memiliki bagian pecahan <b>f<sub>i</sub> maksimum</b>):
+          <div class="mono font-semibold text-base my-1.5">
+            x<sub>i</sub> + Σ<sub>j</sub> a<sub>ij</sub> s<sub>j</sub> = b<sub>i</sub> &nbsp;⇔&nbsp; x<sub>i</sub> = b<sub>i</sub> − Σ<sub>j</sub> a<sub>ij</sub> s<sub>j</sub>
+          </div>
+          <b>2. Pemisahan Bagian Bulat dan Pecahan Non-Negatif (Sangat Penting!):</b><br>
+          Pisahkan konstanta sisi kanan <b>b<sub>i</sub></b> dan setiap koefisien <b>a<sub>ij</sub></b> menjadi bagian bulat bawah (<i>floor</i>) dan bagian pecahan <b>non-negatif</b>:
+          <div class="mono font-semibold my-1.5">
+            b<sub>i</sub> = b<sub>i</sub><sup>−</sup> + f<sub>i</sub> &nbsp;&nbsp;dengan&nbsp;&nbsp; 0 ≤ f<sub>i</sub> &lt; 1<br>
+            a<sub>ij</sub> = a<sub>ij</sub><sup>−</sup> + f<sub>ij</sub> &nbsp;&nbsp;dengan&nbsp;&nbsp; 0 ≤ f<sub>ij</sub> &lt; 1
+          </div>
+          <b>3. Bentuk Akhir Persamaan Kendala Gomory:</b><br>
+          Agar x<sub>i</sub> bernilai bulat, jumlah komponen pecahan non-basis harus memenuhi pertidaksamaan <b>Σ<sub>j</sub> f<sub>ij</sub> s<sub>j</sub> ≥ f<sub>i</sub></b>. Dengan menambahkan variabel slack Gomory <b>s<sub>g</sub> ≥ 0</b>, diperoleh persamaan baris baru:
+          <div class="mono font-bold text-base mt-1.5 p-2 rounded border inline-block" style="background:var(--card);border-color:var(--ip);color:var(--ip)">
+            s<sub>g</sub> − Σ<sub>j</sub> f<sub>ij</sub> s<sub>j</sub> = −f<sub>i</sub> &nbsp;&nbsp;atau&nbsp;&nbsp; −f<sub>i1</sub>s<sub>1</sub> − f<sub>i2</sub>s<sub>2</sub> − ... − f<sub>in</sub>s<sub>n</sub> + s<sub>g</sub> = −f<sub>i</sub>
+          </div>
+        </div>
+
+        <!-- Tabel Contoh Pemisahan Bulat & Pecahan Non-Negatif dari PDF -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div class="p-4 rounded-xl border" style="background:var(--bg);border-color:var(--bd)">
+            <h4 class="font-bold text-sm mb-2">Contoh Pemisahan Nilai Positif (b<sub>i</sub> = b<sub>i</sub><sup>−</sup> + f<sub>i</sub>)</h4>
+            <table class="simplex">
+              <tr><th>Nilai (b<sub>i</sub>)</th><th>Bagian Bulat (b<sub>i</sub><sup>−</sup>)</th><th>Pecahan Non-Negatif (f<sub>i</sub>)</th></tr>
+              <tr><td class="mono">3/2 (1.5)</td><td class="mono">1</td><td class="mono font-bold" style="color:var(--ip)">1/2</td></tr>
+              <tr><td class="mono">7/8 (0.875)</td><td class="mono">0</td><td class="mono font-bold" style="color:var(--ip)">7/8</td></tr>
+              <tr><td class="mono">7/3 (2.333)</td><td class="mono">2</td><td class="mono font-bold" style="color:var(--ip)">1/3</td></tr>
+            </table>
+          </div>
+
+          <div class="p-4 rounded-xl border" style="background:var(--bg);border-color:var(--bd)">
+            <h4 class="font-bold text-sm mb-2">Contoh Pemisahan Nilai Negatif (a<sub>ij</sub> = a<sub>ij</sub><sup>−</sup> + f<sub>ij</sub>)</h4>
+            <table class="simplex">
+              <tr><th>Nilai (a<sub>ij</sub>)</th><th>Bagian Bulat (a<sub>ij</sub><sup>−</sup>)</th><th>Pecahan Positif (0 ≤ f<sub>ij</sub> &lt; 1)</th></tr>
+              <tr><td class="mono">−7/3 (−2.333)</td><td class="mono">−3</td><td class="mono font-bold" style="color:var(--ip)">2/3 &nbsp;(karena −3 + 2/3 = −7/3)</td></tr>
+              <tr><td class="mono">−1</td><td class="mono">−1</td><td class="mono font-bold" style="color:var(--ip)">0 &nbsp;(karena −1 + 0 = −1)</td></tr>
+              <tr><td class="mono">−2/5 (−0.4)</td><td class="mono">−1</td><td class="mono font-bold" style="color:var(--ip)">3/5 &nbsp;(karena −1 + 3/5 = −2/5)</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Kalkulator Interaktif Uji Dekomposisi Pecahan Gomory -->
+        <div class="mt-5 p-4 rounded-xl border" style="background:var(--ip-soft);border-color:var(--ip)">
+          <div class="font-bold text-sm mb-1" style="color:var(--ip)">🧪 Kalkulator Mini: Uji Dekomposisi Pecahan Non-Negatif Gomory</div>
+          <p class="text-xs mb-3" style="color:var(--mu)">
+            Ketik sembarang pecahan (misal <code>-7/3</code>, <code>-3/11</code>, <code>51/11</code>, atau <code>-1/22</code>) untuk melihat bagaimana angka tersebut dipecah menjadi bilangan bulat bawah dan pecahan positif 0 ≤ f &lt; 1:
+          </p>
+          <div class="flex flex-wrap items-center gap-3">
+            <input type="text" id="frac-input" value="-7/3" class="mono font-semibold" style="width:130px" oninput="updateFracTester()">
+            <div id="frac-output" class="mono text-sm font-semibold px-3 py-1.5 rounded-lg border" style="background:var(--card);border-color:var(--bd)"></div>
+            <div class="flex gap-1.5 text-xs">
+              <button onclick="setFracTest('-7/3')" class="py-1 px-2">−7/3</button>
+              <button onclick="setFracTest('-2/5')" class="py-1 px-2">−2/5</button>
+              <button onclick="setFracTest('-1/22')" class="py-1 px-2">−1/22</button>
+              <button onclick="setFracTest('-3/11')" class="py-1 px-2">−3/11</button>
+              <button onclick="setFracTest('39/8')" class="py-1 px-2">39/8</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabel setelah penambahan sg & Aturan Dual Simpleks -->
+        <h4 class="font-bold text-base mt-5 mb-2">Tabel Simpleks Setelah Penambahan Kendala Gomory (s<sub>g</sub>) &amp; Cara Pivot Dual Simpleks</h4>
+        <p class="text-sm" style="color:var(--mu)">
+          Setelah baris <b>s<sub>g</sub></b> ditambahkan ke baris paling bawah, nilai sisi kanan pada baris <b>s<sub>g</sub></b> bernilai negatif (<b>−f<sub>i</sub></b>). Untuk mengembalikan kelayakan tanpa merusak optimalitas, kita menerapkan satu langkah <b>Metode Dual Simpleks</b>:
+        </p>
+        <div class="scroll">
+          <table class="simplex">
+            <tr>
+              <th>Basis</th><th>x<sub>1</sub></th><th>x<sub>2</sub></th><th>...</th><th>x<sub>m</sub></th>
+              <th>s<sub>1</sub></th><th>s<sub>2</sub></th><th>...</th><th>s<sub>n</sub></th><th>s<sub>g</sub></th><th>Solusi</th>
+            </tr>
+            <tr>
+              <td class="b">Z</td><td>0</td><td>0</td><td>...</td><td>0</td>
+              <td>c<sub>1</sub></td><td>c<sub>2</sub></td><td>...</td><td>c<sub>n</sub></td><td>0</td><td>b<sub>0</sub></td>
+            </tr>
+            <tr>
+              <td class="b">x<sub>1</sub> .. x<sub>m</sub></td><td>I</td><td>...</td><td>...</td><td>I</td>
+              <td>a<sub>i1</sub></td><td>a<sub>i2</sub></td><td>...</td><td>a<sub>in</sub></td><td>0</td><td>b<sub>i</sub></td>
+            </tr>
+            <tr class="cut-row">
+              <td class="b">s<sub>g</sub> (Keluar)</td><td>0</td><td>0</td><td>...</td><td>0</td>
+              <td>−f<sub>i1</sub></td><td>−f<sub>i2</sub></td><td>...</td><td>−f<sub>in</sub></td><td>1</td><td>−f<sub>i</sub></td>
+            </tr>
+          </table>
+        </div>
+        <div class="note">
+          <b>Aturan Pemilihan Pivot &amp; Operasi Baris Elementer (OBE) pada Metode Dual Simpleks:</b>
+          <ul class="list-disc pl-5 my-1 space-y-1.5">
+            <li><b>1. Baris Keluar / Baris Kunci (Leaving Row):</b> Baris kendala Gomory <b>s<sub>g</sub></b> yang baru ditambahkan (karena memiliki Solusi/RHS negatif yaitu <b>−f<sub>i</sub></b>).</li>
+            <li><b>2. Kolom Masuk / Kolom Kunci (Entering Column):</b> Bandingkan rasio antara koefisien baris Z (<b>c<sub>j</sub></b>) dengan elemen negatif pada baris s<sub>g</sub> (<b>−f<sub>ij</sub> &lt; 0</b>):
+              <span class="mono font-bold">Rasio Dual = |c<sub>j</sub> / −f<sub>ij</sub>| = c<sub>j</sub> / f<sub>ij</sub></span>. Pilih kolom dengan <b>rasio positif terkecil</b> sebagai kolom pivot!</li>
+            <li><b>3. Langkah A OBE — Normalisasi Baris Pivot (Mengubah Elemen Pivot Menjadi 1):</b><br>
+              Bagi seluruh angka pada baris keluar (<b>s<sub>g</sub></b>) dengan nilai elemen pivot (<b>p = −f<sub>ik</sub></b>):<br>
+              <span class="mono font-semibold" style="color:var(--ip)">R<sub>pivot(baru)</sub> = R<sub>pivot(lama)</sub> ÷ p</span>
+            </li>
+            <li><b>4. Langkah B OBE — Eliminasi Baris Lainnya Termasuk Baris Z (Mengubah Kolom Pivot Menjadi 0):</b><br>
+              Untuk setiap baris lain (<b>R<sub>i</sub></b> dan baris <b>Z</b>) yang memiliki angka pada kolom pivot sebesar <b>k ≠ 0</b>, kurangkan dengan <b>k × R<sub>pivot(baru)</sub></b>:<br>
+              <span class="mono font-semibold" style="color:var(--ip)">R<sub>i(baru)</sub> = R<sub>i(lama)</sub> − (k × R<sub>pivot(baru)</sub>)</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- SUB-PAGE IP 2: CONTOH SOAL & PEMBAHASAN RUNTUT (DARI KEDUA PDF)     -->
+    <!-- ------------------------------------------------------------------- -->
+    <div id="ip-sub-contoh" class="hidden">
+      <div class="card">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:var(--ip-soft);color:var(--ip)">Pembahasan Runtut Step-by-Step</span>
+            <h2 class="text-xl font-bold mt-1">Contoh Soal &amp; Jawaban Metode Gomory</h2>
+          </div>
+          <!-- Pemilih Kasus Soal dari PDF -->
+          <div class="flex flex-wrap gap-2">
+            <button id="btn-case-1" onclick="selectWalkthroughCase(1)" class="text-xs sm:text-sm font-semibold">
+              Kasus 1: Materi Gomory (Z = 7x₁ + 9x₂)
+            </button>
+            <button id="btn-case-2" onclick="selectWalkthroughCase(2)" class="text-xs sm:text-sm font-semibold">
+              Kasus 2: Soal Jawab PDF (Z = 3x₁ + 4x₂)
+            </button>
+            <button id="btn-case-3" onclick="selectWalkthroughCase(3)" class="text-xs sm:text-sm font-semibold">
+              Kasus 3: Soal Latihan 3 Variabel (Z = 3x₁ + 2x₂ + x₃)
+            </button>
+          </div>
+        </div>
+
+        <!-- Ringkasan Soal Aktif -->
+        <div id="wt-problem-box" class="p-4 rounded-xl border mb-4" style="background:var(--bg);border-color:var(--bd)"></div>
+
+        <!-- Navigasi Stepper Kasus -->
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color:var(--mu)">Tahapan Penyelesaian Runtut:</span>
+          <span id="wt-step-indicator" class="text-xs font-bold px-2.5 py-0.5 rounded-full" style="background:var(--ip-soft);color:var(--ip)"></span>
+        </div>
+        <div class="pills ip-pills" id="wt-pills"></div>
+
+        <!-- Area Konten Langkah -->
+        <div id="wt-content"></div>
+
+        <!-- Tombol Navigasi Bawah -->
+        <div class="flex justify-between items-center mt-5 pt-3 border-t" style="border-color:var(--bd)">
+          <button id="wt-prev" onclick="moveWalkthrough(-1)">← Langkah Sebelumnya</button>
+          <button onclick="openCaseInGomorySolver()" class="text-xs sm:text-sm font-semibold" style="color:var(--ip);border-color:var(--ip)">
+            ⚡ Buka &amp; Uji Soal Ini di Kalkulator Solver Gomory
+          </button>
+          <button id="wt-next" class="pri-ip" onclick="moveWalkthrough(1)">Langkah Berikutnya →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- SUB-PAGE IP 3: SOLVER INTERAKTIF METODE GOMORY                      -->
+    <!-- ------------------------------------------------------------------- -->
+    <div id="ip-sub-solver" class="hidden">
+      <div class="card">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:var(--ip-soft);color:var(--ip)">Interactive Cutting Plane Solver</span>
+            <h2 class="text-xl font-bold mt-1">Solver Interaktif Integer Programming (Metode Gomory)</h2>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="loadGomoryPreset('pdf1')" class="text-xs py-1 px-2.5">Preset 1: Materi Gomory (7x₁ + 9x₂)</button>
+            <button onclick="loadGomoryPreset('pdf2')" class="text-xs py-1 px-2.5">Preset 2: Soal Jawab PDF (3x₁ + 4x₂)</button>
+            <button onclick="loadGomoryPreset('pdf3')" class="text-xs py-1 px-2.5">Preset 3: Latihan 3 Variabel (3x₁ + 2x₂ + x₃)</button>
+          </div>
+        </div>
+        <p class="text-xs sm:text-sm mb-4" style="color:var(--mu)">
+          Masukkan fungsi tujuan dan kendala di bawah ini. Solver akan mengerjakan <b>Langkah 1 (Relaksasi Simpleks Biasa)</b> hingga optimal kontinu, lalu secara otomatis membuat <b>Potongan Gomory (s<sub>g1</sub>, s<sub>g2</sub>, ...)</b> beserta dekomposisi pecahan 0 ≤ f &lt; 1 dan rasio <b>Dual Simpleks</b> sampai seluruh variabel bernilai bulat.
+        </p>
+
+        <div class="flex flex-wrap gap-3 items-center mb-4 pb-3 border-b" style="border-color:var(--bd)">
+          <label class="text-sm font-medium">Tujuan:
+            <select id="ip-mm" class="ml-1" onchange="ipSt.min=(this.value==='min')">
+              <option value="max">Maksimumkan</option>
+              <option value="min">Minimumkan</option>
+            </select>
+          </label>
+          <label class="text-sm font-medium">Variabel (x<sub>j</sub> bulat):
+            <input type="number" id="ip-nn" min="1" max="5" value="2" class="ml-1" onchange="changeIPDim()">
+          </label>
+          <label class="text-sm font-medium">Jumlah Kendala:
+            <input type="number" id="ip-mc" min="1" max="6" value="2" class="ml-1" onchange="changeIPDim()">
+          </label>
+          <label class="text-sm font-medium">Aturan Pilih Baris Cut:
+            <select id="ip-cut-rule" class="ml-1">
+              <option value="maxf">Pecahan fᵢ Terbesar (Jika seri: baris teratas)</option>
+              <option value="firstvar">Prioritaskan Variabel Keputusan (x₁ lalu x₂)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="scroll" id="ip-form"></div>
+        <div class="mt-3 flex items-center gap-3">
+          <button class="pri-ip" onclick="runGomorySolver()">Selesaikan dengan Metode Gomory</button>
+          <span class="text-xs" style="color:var(--mu)">Menampilkan relaksasi simpleks, cara pemisahan pecahan, penambahan s<sub>g</sub>, dan OBE Dual Simpleks.</span>
+        </div>
+      </div>
+
+      <!-- Output Card Solver Gomory -->
+      <div class="card" id="ip-out" hidden>
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider" style="color:var(--mu)">Tahapan Relaksasi Simpleks &amp; Potongan Gomory</span>
+          <span id="ip-step-counter" class="text-xs font-semibold px-2.5 py-0.5 rounded-full" style="background:var(--ip-soft);color:var(--ip)"></span>
+        </div>
+        <div class="pills ip-pills" id="ip-tabs"></div>
+        <div id="ip-view"></div>
+        <div class="flex justify-between items-center mt-5 pt-3 border-t" style="border-color:var(--bd)">
+          <button id="ip-prev" onclick="moveIPStep(-1)">← Langkah Sebelumnya</button>
+          <button id="ip-next" class="pri-ip" onclick="moveIPStep(1)">Langkah Berikutnya →</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id), E = 1e-9;
+const sb = k => String(k).split('').map(d => "₀₁₂₃₄₅₆₇₈₉"[d] || d).join('');
+
+/* ========================================================================= */
+/* NAVIGASI KATEGORI & TEMA                                                  */
+/* ========================================================================= */
+let activeCategory = 'ip';
+let activeLPSub = 'big';
+let activeIPSub = 'contoh';
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const cur = root.getAttribute('data-theme');
+  root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+}
+
+function switchCategory(cat) {
+  activeCategory = cat;
+  $('sec-lp').classList.toggle('hidden', cat !== 'lp');
+  $('sec-ip').classList.toggle('hidden', cat !== 'ip');
+  $('subnav-lp').classList.toggle('hidden', cat !== 'lp');
+  $('subnav-lp').classList.toggle('flex', cat === 'lp');
+  $('subnav-ip').classList.toggle('hidden', cat !== 'ip');
+  $('subnav-ip').classList.toggle('flex', cat === 'ip');
+
+  const btnLP = $('cat-lp'), btnIP = $('cat-ip');
+  if (cat === 'lp') {
+    btnLP.style.background = 'var(--ac)';
+    btnLP.style.color = '#fff';
+    btnIP.style.background = 'transparent';
+    btnIP.style.color = 'var(--tx)';
+    switchLPSub(activeLPSub);
+  } else {
+    btnIP.style.background = 'var(--ip)';
+    btnIP.style.color = '#fff';
+    btnLP.style.background = 'transparent';
+    btnLP.style.color = 'var(--tx)';
+    switchIPSub(activeIPSub);
+  }
+}
+
+function switchLPSub(sub) {
+  activeLPSub = sub;
+  $('mt').value = sub;
+  const bBig = $('sub-lp-bigm'), bTwo = $('sub-lp-two');
+  if (sub === 'big') {
+    bBig.style.background = 'var(--ac)';
+    bBig.style.color = '#fff';
+    bBig.style.borderColor = 'var(--ac)';
+    bTwo.style.background = 'var(--card)';
+    bTwo.style.color = 'var(--tx)';
+    bTwo.style.borderColor = 'var(--bd)';
+    $('lp-title').textContent = 'Metode Big-M (Penalti M)';
+    $('lp-desc').innerHTML = 'Metode Big-M menyelesaikan kendala ≥ dan = dengan menambahkan <b>variabel buatan (artificial variable)</b> yang diberi penalti sangat besar (<b>M</b>) pada fungsi tujuan, lalu mengeliminasi koefisien M dari baris Z awal sebelum memulai iterasi simpleks.';
+  } else {
+    bTwo.style.background = 'var(--ac)';
+    bTwo.style.color = '#fff';
+    bTwo.style.borderColor = 'var(--ac)';
+    bBig.style.background = 'var(--card)';
+    bBig.style.color = 'var(--tx)';
+    bBig.style.borderColor = 'var(--bd)';
+    $('lp-title').textContent = 'Metode Simpleks Dua Fase (Two-Phase Simplex)';
+    $('lp-desc').innerHTML = 'Metode Dua Fase tidak menggunakan konstanta M. <b>Fase 1</b> meminimumkan jumlah variabel buatan (atau memaksimumkan −ΣA) hingga bernilai 0 untuk menguji kelayakan, lalu <b>Fase 2</b> membuang kolom variabel buatan dan mengoptimalkan fungsi tujuan asli.';
+  }
+  if (!$('out').hidden) $('go').click();
+}
+
+function switchIPSub(sub) {
+  activeIPSub = sub;
+  ['materi', 'contoh', 'solver'].forEach(k => {
+    $('ip-sub-' + k).classList.toggle('hidden', k !== sub);
+    const btn = $('sub-ip-' + k);
+    if (k === sub) {
+      btn.style.background = 'var(--ip)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'var(--ip)';
+    } else {
+      btn.style.background = 'var(--card)';
+      btn.style.color = 'var(--tx)';
+      btn.style.borderColor = 'var(--bd)';
+    }
+  });
+}
+
+/* ========================================================================= */
+/* UTILITAS PECAHAN & DEKOMPOSISI GOMORY                                     */
+/* ========================================================================= */
+function fr(x) {
+  if (Math.abs(x) < E) return "0";
+  const s = x < 0 ? "−" : "";
+  x = Math.abs(x);
+  let h1 = 1, h0 = 0, k1 = 0, k0 = 1, b = x;
+  for (let i = 0; i < 25; i++) {
+    const a = Math.floor(b + 1e-12), h2 = a * h1 + h0, k2 = a * k1 + k0;
+    h0 = h1; h1 = h2; k0 = k1; k1 = k2;
+    if (Math.abs(x - h1 / k1) < 1e-9 || k1 > 1000) break;
+    b = 1 / (b - a);
+  }
+  return s + (k1 === 1 ? h1 : h1 + "/" + k1);
+}
+
+// Memecah angka x menjadi floor bulat bawah (intPart) dan pecahan non-negatif 0 <= fracPart < 1
+function gomoryDecomp(x) {
+  const nearestInt = Math.round(x);
+  if (Math.abs(x - nearestInt) < 1e-7) {
+    return { intPart: nearestInt, fracPart: 0 };
+  }
+  const intPart = Math.floor(x + 1e-9);
+  const fracPart = x - intPart;
+  return { intPart, fracPart };
+}
+
+function setFracTest(val) {
+  $('frac-input').value = val;
+  updateFracTester();
+}
+
+function updateFracTester() {
+  const raw = $('frac-input').value.trim().replace('−', '-');
+  let val = NaN;
+  if (raw.includes('/')) {
+    const parts = raw.split('/');
+    if (parts.length === 2 && !isNaN(parseFloat(parts[0])) && !isNaN(parseFloat(parts[1])) && parseFloat(parts[1]) !== 0) {
+      val = parseFloat(parts[0]) / parseFloat(parts[1]);
+    }
+  } else {
+    val = parseFloat(raw);
+  }
+  const box = $('frac-output');
+  if (isNaN(val)) {
+    box.innerHTML = `<span style="color:var(--er)">Masukkan angka atau pecahan valid (contoh: -7/3)</span>`;
+    return;
+  }
+  const { intPart, fracPart } = gomoryDecomp(val);
+  box.innerHTML = `${fr(val)} = <b>${intPart}</b> + <span style="color:var(--ip);font-weight:700">${fr(fracPart)}</span> &nbsp;⇒&nbsp; Bagian bulat = <b>${intPart}</b>, Pecahan non-negatif (f) = <b style="color:var(--ip)">${fr(fracPart)}</b>`;
+}
+
+/* ========================================================================= */
+/* BAGIAN 1: SOLVER LINEAR PROGRAMMING (BIG-M & SIMPLEKS DUA FASE)           */
+/* ========================================================================= */
+let st = { n: 3, m: 3, min: true, c: [-3, 1, -2], rows: [] };
+const EX = {
+  e1: { min: true, n: 2, c: [3, 2], rows: [[[1, 1], "≥", 6], [[1, 0], "≤", 4], [[0, 1], "≤", 5], [[1, 2], "≥", 8]] },
+  e2: { min: true, n: 2, c: [2, 3], rows: [[[1, 1], "≥", 4], [[1, 3], "≥", 6]] },
+  e3: { min: true, n: 3, c: [-3, 1, -2], rows: [[[1, 3, 1], "≤", 5], [[2, -1, 1], "≥", 2], [[4, 3, -2], "=", 5]] },
+  e4: { min: false, n: 2, c: [80000, 120000], rows: [[[20, 60], "≤", 60000], [[70, 60], "≤", 84000], [[12, 4], "≤", 12000]] }
+};
+
+function load(x) {
+  st = { min: x.min, n: x.n, m: x.rows.length, c: x.c.slice(), rows: x.rows.map(r => ({ a: r[0].slice(), sg: r[1], b: r[2] })) };
+  sync();
+}
+function sync() {
+  $('mm').value = st.min ? 'min' : 'max';
+  $('nn').value = st.n;
+  $('mc').value = st.m;
+  draw();
+}
+function fit() {
+  while (st.c.length < st.n) st.c.push(0);
+  st.c.length = st.n;
+  while (st.rows.length < st.m) st.rows.push({ a: [], sg: "≤", b: 0 });
+  st.rows.length = st.m;
+  st.rows.forEach(r => {
+    while (r.a.length < st.n) r.a.push(0);
+    r.a.length = st.n;
+  });
+}
+function draw() {
+  fit();
+  let h = '<table class="in"><tr><th></th>' + st.c.map((_, j) => `<th>x${sb(j + 1)}</th>`).join('') + '<th>Tanda</th><th>RHS</th></tr>';
+  h += '<tr><td class="font-semibold pr-2">Z =</td>' + st.c.map((v, j) => `<td><input type="number" step="any" value="${v}" data-c="${j}"></td>`).join('') + '<td></td><td></td></tr>';
+  st.rows.forEach((r, i) => {
+    h += `<tr><td class="font-semibold pr-2">K${i + 1}</td>` + r.a.map((v, j) => `<td><input type="number" step="any" value="${v}" data-a="${i},${j}"></td>`).join('') +
+      `<td><select data-s="${i}">${["≤", "≥", "="].map(s => `<option${s === r.sg ? ' selected' : ''}>${s}</option>`).join('')}</select></td><td><input type="number" step="any" value="${r.b}" data-b="${i}"></td></tr>`;
+  });
+  $('form').innerHTML = h + '</table>';
+}
+
+$('form').addEventListener('input', e => {
+  const d = e.target.dataset, v = e.target.value;
+  if (d.c !== undefined) st.c[+d.c] = +v || 0;
+  else if (d.a) { const [i, j] = d.a.split(','); st.rows[i].a[j] = +v || 0; }
+  else if (d.b !== undefined) st.rows[+d.b].b = +v || 0;
+  else if (d.s !== undefined) st.rows[+d.s].sg = v;
+});
+$('mm').onchange = e => st.min = e.target.value === 'min';
+$('nn').onchange = e => { st.n = Math.max(1, Math.min(5, +e.target.value || 1)); sync(); };
+$('mc').onchange = e => { st.m = Math.max(1, Math.min(6, +e.target.value || 1)); sync(); };
+$('e1').onclick = () => load(EX.e1);
+$('e2').onclick = () => load(EX.e2);
+$('e3').onclick = () => load(EX.e3);
+$('e4').onclick = () => load(EX.e4);
+
+function eq(co, nm, rhs) {
+  let s = "";
+  co.forEach((v, j) => {
+    if (Math.abs(v) < E) return;
+    const a = Math.abs(v), t = (a === 1 ? "" : fr(a)) + nm[j];
+    s += s ? (v < 0 ? " − " : " + ") + t : (v < 0 ? "−" : "") + t;
+  });
+  return (s || "0") + " = " + rhs;
+}
+
+const LEG = "<div class='legend'><span><i style='background:var(--col)'></i>Kolom Pivot (Entering)</span><span><i style='background:var(--row)'></i>Baris Pivot (Leaving)</span><span><i style='background:var(--pv)'></i>Elemen Pivot</span></div>";
+
+function solveTwoPhase() {
+  const n = st.n, m = st.m, steps = [], push = (t, h) => steps.push({ t, h });
+  const c = st.c.map(v => st.min ? -v : v);
+  const cons = st.rows.map(r => {
+    let a = r.a.slice(), sg = r.sg, b = r.b;
+    if (b < 0) { a = a.map(v => -v); b = -b; sg = sg === "≤" ? "≥" : sg === "≥" ? "≤" : "="; }
+    return { a, sg, b };
+  });
+  const nm = [], art = [], cols = [], oc = [];
+  for (let j = 0; j < n; j++) { nm.push("x" + sb(j + 1)); art.push(false); oc.push(c[j]); cols.push(cons.map(r => r.a[j])); }
+  const bs = []; let si = 0, ai = 0;
+  const add = (name, i, v, isA) => { const col = Array(m).fill(0); col[i] = v; nm.push(name); art.push(isA); oc.push(0); cols.push(col); return nm.length - 1; };
+  cons.forEach((r, i) => {
+    if (r.sg === "≤") bs[i] = add("s" + sb(++si), i, 1, false);
+    else { if (r.sg === "≥") add("s" + sb(++si), i, -1, false); bs[i] = add("A" + sb(++ai), i, 1, true); }
+  });
+  const N = nm.length, dead = Array(N).fill(false);
+  const T = cons.map((r, i) => cols.map(col => col[i]).concat([r.b]));
+  let ph = art.some(Boolean) ? 1 : 2, cv = ph === 1 ? art.map(a => a ? -1 : 0) : oc;
+
+  const eqs = cons.map((r, i) => `K${i + 1}: ` + eq(cols.map(col => col[i]), nm, fr(r.b)));
+  const zs = eq(oc.slice(0, n), nm, '').replace(/ = $/, '') || '0';
+  const aN = nm.filter((_, j) => art[j]);
+  push('Bentuk Standar',
+    `<p>${st.min ? `Soal minimisasi diubah menjadi maksimisasi dengan mengalikan fungsi tujuan dengan −1: <b>Maximize z = ${zs}</b> (Z minimum = −z maksimum).` : `Soal sudah maksimisasi: <b>Maximize z = ${zs}</b>.`}</p>
+    <p>Kendala dengan RHS ≥ 0, ditambah slack (+s), surplus (−s), dan artificial variable (+A):</p><div class='note'>${eqs.join('<br>')}</div>` +
+    (ph === 1 ? `<p><b>Fase 1:</b> fungsi tujuan hanya berisi artificial variables: <b>Maximize z = −${aN.join(' − ')}</b>.</p>`
+      : `<p>Tidak ada artificial variable (semua kendala ≤), sehingga <b>Fase 1 tidak diperlukan</b> dan langsung masuk Fase 2.</p>`) +
+    `<p>Solusi basis awal yang layak: ${bs.map((b, i) => `<b>${nm[b]} = ${fr(T[i][N])}</b>`).join(', ')}; variabel lainnya = 0.</p>`);
+
+  let zj, zc;
+  const calc = () => {
+    zj = []; zc = [];
+    for (let j = 0; j <= N; j++) {
+      let s = 0;
+      for (let i = 0; i < m; i++) s += cv[bs[i]] * T[i][j];
+      zj[j] = s; zc[j] = j < N ? s - cv[j] : s;
+    }
+  };
+  const vis = () => [...Array(N).keys()].filter(j => !dead[j]);
+
+  const tab = (pc, pr, rt) => {
+    const v = vis(), hr = !!rt;
+    let h = `<div class='scroll'><table class='simplex'><tr><th>c<sub>j</sub></th><th></th>${v.map(j => `<th>${fr(cv[j])}</th>`).join('')}<th></th>${hr ? '<th></th>' : ''}</tr>` +
+      `<tr><th>c<sub>B</sub></th><th>Basis</th>${v.map(j => `<th>${nm[j]}</th>`).join('')}<th>b (=X<sub>B</sub>)</th>${hr ? '<th>Rasio</th>' : ''}</tr>`;
+    const cl = (i, j) => i === pr && j === pc ? 'p' : i === pr ? 'r' : j === pc ? 'c' : '';
+    bs.forEach((b, i) => {
+      h += `<tr><td>${fr(cv[b])}</td><td class='b'>${nm[b]}</td>${v.map(j => `<td class='${cl(i, j)}'>${fr(T[i][j])}</td>`).join('')}<td><b>${fr(T[i][N])}</b></td>${hr ? `<td>${rt[i] === undefined ? '—' : fr(rt[i])}</td>` : ''}</tr>`;
+    });
+    h += `<tr><td class='b' colspan='2'>z<sub>j</sub></td>${v.map(j => `<td class='${j === pc ? 'c' : ''}'>${fr(zj[j])}</td>`).join('')}<td><b>${fr(zj[N])}</b></td>${hr ? '<td></td>' : ''}</tr>`;
+    h += `<tr><td class='b' colspan='2'>z<sub>j</sub> − c<sub>j</sub></td>${v.map(j => `<td class='${j === pc ? 'c' : ''}'>${fr(zc[j])}</td>`).join('')}<td></td>${hr ? '<td></td>' : ''}</tr></table></div>`;
+    return h + (pc >= 0 ? LEG : '');
+  };
+
+  const pivot = (pr, pc) => {
+    const v = vis(), p = T[pr][pc], old = T[pr].slice(), nw = old.map(x => x / p);
+    const row = (lab, arr, cls) => `<tr class='${cls || ''}'><td class='b text-left'>${lab}</td>${v.map(j => `<td>${fr(arr[j])}</td>`).join('')}<td>${fr(arr[N])}</td></tr>`;
+    let h = `<div class='scroll'><table class='simplex'><tr><th>Operasi Baris Elementer (OBE)</th>${v.map(j => `<th>${nm[j]}</th>`).join('')}<th>b</th></tr>`;
+    h += row(`R${pr + 1}-lama`, old) + row(`R${pr + 1}-baru = R${pr + 1}-lama ÷ ${fr(p)}`, nw, 'nw');
+    const nt = T.map(r => r.slice()), same = []; nt[pr] = nw;
+    T.forEach((r, i) => {
+      if (i === pr) return;
+      const f = r[pc];
+      if (Math.abs(f) < E) { same.push('R' + (i + 1)); return; }
+      const k = Math.abs(f); nt[i] = r.map((x, j) => x - f * nw[j]);
+      h += row(`R${i + 1}-lama`, r) + row(`${fr(k)} × R${pr + 1}-baru`, nw.map(x => k * x)) + row(`R${i + 1}-baru = R${i + 1}-lama ${f > 0 ? '−' : '+'} (${fr(k)} × R${pr + 1}-baru)`, nt[i], 'nw');
+    });
+    h += '</table></div>' + (same.length ? `<p class="text-sm">${same.join(', ')} tidak berubah karena elemen kolom pivot sudah bernilai 0.</p>` : '');
+    nt.forEach((r, i) => T[i] = r);
+    return h;
+  };
+
+  const pp = x => x < 0 ? `(${fr(x)})` : fr(x);
+  const why = (pc, rt) => {
+    const v = vis();
+    let h = `<details open><summary>🔍 Dari mana angka-angka di tabel ini?</summary>
+    <div class="text-sm mt-2 space-y-1.5">
+    <p><b>c<sub>j</sub></b> = koefisien variabel di fungsi tujuan. ${ph === 1 ? 'Fase 1 (Maximize z = −' + aN.join(' − ') + '): artificial variable = −1, variabel lain = 0.' : 'Fase 2 (Maximize z = ' + zs + '): koefisien variabel asli dari soal, slack/surplus = 0.'}</p>
+    <p><b>c<sub>B</sub></b> = nilai c<sub>j</sub> milik variabel yang sedang menjadi basis di tiap baris: ${bs.map(b => `${nm[b]} → ${fr(cv[b])}`).join(', ')}.</p>
+    <p><b>z<sub>j</sub></b> = jumlah dari (c<sub>B</sub> × angka di kolom j), dan <b>z<sub>j</sub> − c<sub>j</sub></b> = z<sub>j</sub> dikurangi c<sub>j</sub> kolom tersebut:</p>
+    </div>
+    <div class='scroll'><table class='simplex'><tr><th>Kolom</th><th>c<sub>j</sub></th><th>z<sub>j</sub> = Σ (c<sub>B</sub> × kolom)</th><th>z<sub>j</sub> − c<sub>j</sub></th></tr>`;
+    const sum = j => bs.map((b, i) => `${pp(cv[b])}·${pp(T[i][j])}`).join(' + ');
+    v.forEach(j => { h += `<tr><td class='b'>${nm[j]}</td><td>${fr(cv[j])}</td><td style='text-align:left'>${sum(j)} = <b>${fr(zj[j])}</b></td><td>${fr(zj[j])} − ${pp(cv[j])} = <b>${fr(zc[j])}</b></td></tr>`; });
+    h += `<tr><td class='b'>b (RHS)</td><td>—</td><td style='text-align:left'>z = ${sum(N)} = <b>${fr(zj[N])}</b></td><td>—</td></tr></table></div>`;
+    if (pc >= 0 && rt) h += `<p class="text-sm"><b>Rasio</b> = b ÷ angka di kolom pivot (${nm[pc]}), hanya dihitung bila pembaginya &gt; 0:</p><div class='note'>${bs.map((b, i) => T[i][pc] > E ? `${nm[b]}: ${fr(T[i][N])} ÷ ${fr(T[i][pc])} = <b>${fr(rt[i])}</b>` : `${nm[b]}: angka kolom pivot ${fr(T[i][pc])} ≤ 0 (dilewati)`).join('<br>')}</div>`;
+    return h + '</details>';
+  };
+
+  let k = 0, newph = false;
+  for (let it = 0; it < 100; it++) {
+    calc(); let pc = -1;
+    for (const j of vis()) if (zc[j] < -E && (pc < 0 || zc[j] < zc[pc] - E)) pc = j;
+    const title = `Tabel ${++k} · Fase ${ph}`;
+    const intro = newph ? `<p><b>Awal Fase 2:</b> dilanjutkan dari tabel akhir Fase 1. Kolom variabel buatan (A) dibuang, baris c<sub>j</sub> diganti dengan fungsi tujuan semula, lalu z<sub>j</sub> dan z<sub>j</sub> − c<sub>j</sub> dihitung ulang.</p>` : '';
+    newph = false;
+    if (pc < 0) {
+      if (ph === 1) {
+        if (zj[N] < -E) {
+          push(title + ' (Akhir)', tab(-1, -1) + `<div class='note er'><b>Tidak Layak (Infeasible).</b> Semua z<sub>j</sub> − c<sub>j</sub> ≥ 0 tetapi z = ${fr(zj[N])} &lt; 0, artinya variabel buatan masih bernilai positif.</div>`);
+          break;
+        }
+        const tbl = tab(-1, -1) + why(-1); let note = '', ops = '';
+        bs.forEach((b, i) => {
+          if (!art[b]) return;
+          let q = -1;
+          for (const j of vis()) if (!art[j] && Math.abs(T[i][j]) > E) { q = j; break; }
+          if (q < 0) { note += `<p>Baris ${i + 1} redundan: ${nm[b]} tetap di basis dengan nilai 0.</p>`; return; }
+          ops += pivot(i, q); dead[b] = true; bs[i] = q;
+          note += `<p>${nm[b]} masih di basis dengan nilai 0, sehingga dikeluarkan dengan pivot di kolom ${nm[q]}.</p>`;
+        });
+        push(title + ' (Akhir Fase 1)', tbl + `<div class='note ok'>Semua z<sub>j</sub> − c<sub>j</sub> ≥ 0 dan nilai z = 0, sehingga masalah memiliki solusi layak.</div>` + note + ops + `<p>Selanjutnya masuk ke <b>Fase 2</b> dengan metode Simpleks seperti biasa.</p>`);
+        art.forEach((a, j) => { if (a) dead[j] = true; });
+        ph = 2; cv = oc; newph = true; continue;
+      }
+      const vals = nm.slice(0, n).map((v, j) => { const i = bs.indexOf(j); return `${v} = ${i < 0 ? '0' : fr(T[i][N])}`; });
+      push(title + ' (Optimal)', tab(-1, -1) + why(-1) + intro + `<p>Seluruh nilai <b>z<sub>j</sub> − c<sub>j</sub> ≥ 0</b>, maka tabel sudah mencapai kondisi optimal.</p><div class='note ok'><b>Solusi Optimal: ${vals.join(', ')}</b><br>Maximize z = ${fr(zj[N])}${st.min ? `<br><b>Minimize Z = −(${fr(zj[N])}) = ${fr(-zj[N])}</b>` : ''}</div>`);
+      break;
+    }
+    const rt = []; let pr = -1, best = Infinity;
+    for (let i = 0; i < m; i++) if (T[i][pc] > E) { rt[i] = T[i][N] / T[i][pc]; if (rt[i] < best - E) { best = rt[i]; pr = i; } }
+    if (pr < 0) {
+      push(title, tab(pc, -1) + intro + `<div class='note er'><b>Solusi Tidak Terbatas (Unbounded).</b> Kolom ${nm[pc]} tidak memiliki elemen positif.</div>`);
+      break;
+    }
+    const lv = bs[pr], p = T[pr][pc];
+    push(title, tab(pc, pr, rt) + why(pc, rt) + intro +
+      `<div class="note"><b>Analisis Iterasi:</b><br>• Nilai z<sub>j</sub> − c<sub>j</sub> paling negatif adalah <b>${fr(zc[pc])}</b> pada kolom <b>${nm[pc]}</b> ⇒ <b>${nm[pc]}</b> masuk basis (entering variable).<br>• Rasio positif terkecil adalah <b>${fr(best)}</b> pada baris <b>${nm[lv]}</b> ⇒ <b>${nm[lv]}</b> keluar basis (leaving variable).<br>• Elemen Pivot = <b>${fr(p)}</b>.</div>`);
+    const ops = pivot(pr, pc);
+    push(`OBE Tabel ${k}`, `<p>Rincian Operasi Baris Elementer (OBE) untuk memasukkan <b>${nm[pc]}</b> dan mengeluarkan <b>${nm[lv]}</b>:</p>` + ops);
+    bs[pr] = pc; if (art[lv]) dead[lv] = true;
+  }
+  return steps;
+}
+
+/* ---------- Metode Big-M ---------- */
+function fm([m, k]) {
+  if (Math.abs(m) < E) return fr(k);
+  const f = fr(Math.abs(m));
+  let s = (f === "1" ? "" : f.includes("/") ? "(" + f + ")" : f) + "M";
+  if (m < 0) s = "−" + s;
+  return Math.abs(k) < E ? s : s + (k < 0 ? "−" : "+") + fr(Math.abs(k));
+}
+const pos = x => x[0] > E || (Math.abs(x[0]) <= E && x[1] > E);
+const cmp = (a, b) => Math.abs(a[0] - b[0]) > E ? a[0] - b[0] : a[1] - b[1];
+const mul = (f, x) => [f[0] * x[1], f[1] * x[1]], sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
+
+function solveBig() {
+  const n = st.n, m = st.m, steps = [];
+  const c = st.c.map(v => st.min ? v : -v);
+  const cons = st.rows.map(r => {
+    let a = r.a.slice(), sg = r.sg, b = r.b;
+    if (b < 0) { a = a.map(v => -v); b = -b; sg = sg === "≤" ? "≥" : sg === "≥" ? "≤" : "="; }
+    return { a, sg, b };
+  });
+  const nm = [], cost = [], art = [], cols = [];
+  for (let j = 0; j < n; j++) { nm.push("x" + sb(j + 1)); cost.push([0, c[j]]); art.push(false); cols.push(cons.map(r => r.a[j])); }
+  const bs = []; let si = 0, ai = 0;
+  const add = (name, cs, i, v, isA) => { const col = Array(m).fill(0); col[i] = v; nm.push(name); cost.push(cs); art.push(isA); cols.push(col); return nm.length - 1; };
+  cons.forEach((r, i) => {
+    if (r.sg === "≤") bs[i] = add("s" + sb(++si), [0, 0], i, 1, false);
+    else { if (r.sg === "≥") add("s" + sb(++si), [0, 0], i, -1, false); bs[i] = add("a" + sb(++ai), [1, 0], i, 1, true); }
+  });
+  const N = nm.length, dead = Array(N).fill(false);
+  const R = [[]];
+  for (let i = 0; i < m; i++) R.push([...Array(N).keys()].map(j => [0, cols[j][i]]).concat([[0, cons[i].b]]));
+  const zrow = () => {
+    for (let j = 0; j <= N; j++) {
+      let z = j < N ? [-cost[j][0], -cost[j][1]] : [0, 0];
+      for (let i = 0; i < m; i++) { const t = mul(cost[bs[i]], R[i + 1][j]); z = [z[0] + t[0], z[1] + t[1]]; }
+      R[0][j] = z;
+    }
+  };
+  zrow();
+
+  const eqs = cons.map((r, i) => {
+    const co = Array(N).fill(0); r.a.forEach((v, j) => co[j] = v);
+    for (let j = n; j < N; j++) co[j] = cols[j][i];
+    return `K${i + 1}: ` + eq(co, nm, fr(r.b));
+  });
+  const zt = c.map((v, j) => Math.abs(v) < E ? null : (v < 0 ? "−" : "") + (Math.abs(v) === 1 ? "" : fr(Math.abs(v))) + nm[j]).filter(Boolean).join(" + ").replace(/\+ −/g, "− ");
+  const aN = nm.filter((_, j) => art[j]).map(a => "M·" + a).join(" + ");
+  steps.push({
+    h: `<p>Kendala diubah ke bentuk standar (RHS ≥ 0). Tambahkan slack (+s) untuk ≤, surplus (−s) dan buatan (+a) untuk ≥, serta variabel buatan (+a) untuk kendala =:</p>
+    <div class="note">${eqs.join("<br>")}</div>
+    <p>${st.min ? "" : "Soal maksimisasi diubah menjadi minimisasi dengan mengalikan fungsi tujuan dengan −1 (Z minimum = −Z maksimum). "}Fungsi tujuan dengan penalti M:</p>
+    <div class="note"><b>Minimumkan Z = ${zt || "0"}${aN ? " + " + aN : ""}</b></div>
+    <p>Baris Z kemudian disesuaikan agar koefisien variabel buatan yang menjadi basis bernilai 0. Basis awal: <b>${bs.map(b => nm[b]).join(', ')}</b>.</p>`
+  });
+
+  {
+    const idx = [...Array(N + 1).keys()], hd = j => j < N ? nm[j] : 'RHS', q = x => x < 0 ? `(${fr(x)})` : fr(x);
+    const raw = idx.map(j => j < N ? [-cost[j][0], -cost[j][1]] : [0, 0]);
+    const aR = [...Array(m).keys()].filter(i => art[bs[i]]);
+    const rowH = (lab, arr, cls) => `<tr class='${cls || ''}'><td class='b text-left'>${lab}</td>${arr.map(x => `<td>${fm(x)}</td>`).join('')}</tr>`;
+    let h = `<p>Fungsi tujuan ditulis dalam bentuk <b>Z − c<sub>j</sub>x<sub>j</sub> = 0</b>, sehingga baris Z mentah berisi <b>−c<sub>j</sub></b> (artificial variable bernilai −M) dan RHS = 0.</p>`;
+    if (!aR.length) {
+      h += `<div class='scroll'><table class='simplex'><tr><th>Baris</th>${idx.map(j => `<th>${hd(j)}</th>`).join('')}</tr>${rowH('Z awal', raw, 'nw')}</table></div><p>Semua kendala bertanda ≤, sehingga basis awalnya adalah variabel slack (c = 0) dan tidak ada variabel buatan yang perlu dieliminasi.</p>`;
+    } else {
+      h += `<div class='scroll'><table class='simplex'><tr><th>Baris</th>${idx.map(j => `<th>${hd(j)}</th>`).join('')}</tr>` + rowH('Z mentah (−c<sub>j</sub>)', raw) + `</table></div>`;
+      h += `<p>Karena <b>${aR.map(i => nm[bs[i]]).join(', ')}</b> merupakan variabel basis awal, koefisiennya pada baris Z harus dibuat menjadi <b>0</b> dengan menambahkan <b>M × baris kendala</b> yang memuat variabel buatan tersebut:</p>`;
+      h += `<div class='scroll'><table class='simplex'><tr><th>Operasi Eliminasi M</th>${idx.map(j => `<th>${hd(j)}</th>`).join('')}</tr>` + rowH('Z mentah', raw);
+      aR.forEach(i => { h += rowH(`+ M × R${i + 1} (${nm[bs[i]]})`, R[i + 1].map(x => [x[1], 0])); });
+      h += rowH('Baris Z Awal = Z mentah' + aR.map(i => ` + M×R${i + 1}`).join(''), R[0], 'nw') + '</table></div>';
+      h += `<details><summary>Lihat rincian perhitungan per kolom baris Z awal</summary><div class='note mt-2'>` +
+        idx.map(j => `<b>${hd(j)}</b>: ${fm(raw[j])}${aR.map(i => ` + M·${q(R[i + 1][j][1])}`).join('')} = <b>${fm(R[0][j])}</b>`).join('<br>') + `</div></details>`;
+    }
+    steps.push({ t: 'Eliminasi Baris Z Awal', h });
+  }
+
+  const snap = (txt, pc, pr, rt) => {
+    const vis = [...Array(N).keys()].filter(j => !dead[j]);
+    const head = ["Basis", ...vis.map(j => nm[j]), "RHS"]; if (rt) head.push("Rasio");
+    const rows = R.map((r, i) => {
+      const x = [i ? nm[bs[i - 1]] : 'Z', ...vis.map(j => fm(r[j])), fm(r[N])];
+      if (rt) x.push(i && rt[i - 1] !== undefined ? fr(rt[i - 1]) : (i ? "—" : ""));
+      return x;
+    });
+    steps.push({ head, rows, pc: pc >= 0 ? 1 + vis.indexOf(pc) : undefined, pr: pr >= 0 ? pr + 1 : -1, h: txt });
+  };
+
+  for (let it = 0; it < 80; it++) {
+    let pc = -1;
+    for (let j = 0; j < N; j++) if (!dead[j] && pos(R[0][j]) && (pc < 0 || cmp(R[0][j], R[0][pc]) > 0)) pc = j;
+    if (pc < 0) {
+      const bad = bs.some((b, i) => art[b] && R[i + 1][N][1] > E);
+      const vals = nm.slice(0, n).map((v, j) => { const i = bs.indexOf(j); return `${v} = ${i < 0 ? 0 : fr(R[i + 1][N][1])}`; });
+      const z = st.min ? R[0][N][1] : -R[0][N][1];
+      snap(bad ? `<div class="note er"><b>Tidak Layak (Infeasible).</b> Semua koefisien baris Z sudah ≤ 0, tetapi masih ada variabel buatan bernilai positif di dalam basis.</div>`
+        : `<p>Seluruh koefisien pada baris Z sudah <b>≤ 0</b> dan tidak ada variabel buatan positif di basis ⇒ solusi optimal tercapai.</p><div class="note ok"><b>Solusi Optimal: ${vals.join(", ")}<br>Nilai Z ${st.min ? "Minimum" : "Maksimum"} = ${fr(z)}</b></div>`, -1, -1, null);
+      break;
+    }
+    let pr = -1, best = Infinity; const rt = [];
+    for (let i = 0; i < m; i++) {
+      const a = R[i + 1][pc][1];
+      if (a > E) { rt[i] = R[i + 1][N][1] / a; if (rt[i] < best - E) { best = rt[i]; pr = i; } }
+    }
+    if (pr < 0) {
+      snap(`<div class="note er"><b>Tidak Terbatas (Unbounded).</b> Kolom ${nm[pc]} tidak memiliki elemen positif.</div>`, pc, -1, null);
+      break;
+    }
+    const p = R[pr + 1][pc][1], lv = bs[pr];
+    snap(`<div class="note"><b>Analisis Pivot &amp; OBE:</b><br>• <b>Variabel Masuk (Entering):</b> ${nm[pc]} (koefisien baris Z paling positif: <b>${fm(R[0][pc])}</b>).<br>• <b>Variabel Keluar (Leaving):</b> ${nm[lv]} (rasio positif terkecil = <b>${fr(best)}</b>).<br>• <b>Elemen Pivot:</b> <b>${fr(p)}</b>.<br>• Rumus OBE: Baris R${pr + 1} baru = R${pr + 1} lama ÷ ${fr(p)}, lalu baris lainnya = baris lama − (koefisien kolom ${nm[pc]}) × R${pr + 1} baru.</div>`, pc, pr, rt);
+    R[pr + 1] = R[pr + 1].map(x => [x[0] / p, x[1] / p]);
+    R.forEach((r, i) => {
+      if (i === pr + 1) return;
+      const f = r[pc]; if (Math.abs(f[0]) < E && Math.abs(f[1]) < E) return;
+      R[i] = r.map((x, j) => sub(x, mul(f, R[pr + 1][j])));
+    });
+    bs[pr] = pc; if (art[lv]) dead[lv] = true;
+  }
+  return steps;
+}
+
+function tblB(s) {
+  let h = '<div class="scroll"><table class="simplex"><tr>' + s.head.map(x => `<th>${x}</th>`).join('') + '</tr>';
+  s.rows.forEach((r, ri) => {
+    h += '<tr>' + r.map((c, ci) => {
+      let cl = ci === 0 ? 'b' : '';
+      if (s.pc !== undefined) {
+        if (ri === s.pr && ci === s.pc) cl = 'p';
+        else if (ri === s.pr) cl += ' r';
+        else if (ci === s.pc) cl += ' c';
+      }
+      return `<td class="${cl}">${c}</td>`;
+    }).join('') + '</tr>';
+  });
+  h += '</table></div>';
+  if (s.pc !== undefined) h += LEG;
+  return h;
+}
+
+function bigSteps() {
+  let k = 0; const S = solveBig();
+  return S.map((s, i) => {
+    if (s.t) return s;
+    if (i === 0) return { t: 'Bentuk Standar', h: s.h };
+    k++;
+    return { t: 'Tabel ' + k + (i === S.length - 1 ? ' (Optimal)' : ''), h: tblB(s) + s.h };
+  });
+}
+
+let steps = [], cur = 0;
+function show() {
+  const s = steps[cur];
+  $('view').innerHTML = `<h3 class="font-bold text-lg mb-2">${s.t}</h3>` + s.h;
+  $('lp-step-counter').textContent = `Langkah ${cur + 1} dari ${steps.length}`;
+  [...$('tabs').children].forEach((b, k) => b.classList.toggle('on', k === cur));
+  $('prev').disabled = cur === 0;
+  $('next').disabled = cur === steps.length - 1;
+}
+$('go').onclick = () => {
+  steps = $('mt').value === 'two' ? solveTwoPhase() : bigSteps();
+  cur = 0; $('out').hidden = false; $('tabs').innerHTML = '';
+  steps.forEach((s, k) => {
+    const b = document.createElement('button');
+    b.textContent = k === 0 ? '1. Standar' : `${k + 1}. ${s.t.split(' · ')[0]}`;
+    b.onclick = () => { cur = k; show(); };
+    $('tabs').appendChild(b);
+  });
+  show();
+};
+$('prev').onclick = () => { if (cur > 0) { cur--; show(); } };
+$('next').onclick = () => { if (cur < steps.length - 1) { cur++; show(); } };
+
+/* ========================================================================= */
+/* BAGIAN 2: CONTOH SOAL & PEMBAHASAN RUNTUT METODE GOMORY (KEDUA PDF)       */
+/* ========================================================================= */
+const WALKTHROUGH_CASES = {
+  1: {
+    title: "Kasus 1: Contoh Materi Metode_Gomory.pdf",
+    problemHTML: `
+      <div class="flex flex-wrap justify-between items-start gap-2">
+        <div>
+          <div class="font-bold text-base" style="color:var(--ip)">Maksimumkan Z = 7x₁ + 9x₂</div>
+          <div class="text-sm mt-1">
+            <b>Dengan kendala:</b><br>
+            1) −x₁ + 3x₂ ≤ 6<br>
+            2) 7x₁ + x₂ ≤ 35<br>
+            3) x₁, x₂ ≥ 0 dan <b>non-negative integer (bulat)</b>
+          </div>
+        </div>
+        <div class="text-xs p-2.5 rounded-lg border" style="background:var(--card);border-color:var(--bd)">
+          <b>Sumber:</b> <code>Metode_Gomory.pdf</code> (Halaman 2–4)<br>
+          <b>Solusi Akhir:</b> x₁ = 4, x₂ = 3, Z<sub>maks</sub> = 55
+        </div>
+      </div>`,
+    steps: [
+      {
+        tab: "1. Tabel Optimal Simpleks",
+        title: "Langkah 1: Solusi Optimal Relaksasi Simpleks Biasa",
+        html: `
+          <p class="text-sm">Pertama, kita selesaikan masalah tanpa syarat bulat menggunakan metode simpleks biasa (dengan menambahkan variabel slack <b>s₁, s₂ ≥ 0</b>). Dari hasil iterasi simpleks diperoleh <b>Tabel Akhir Optimal Kontinu</b> sebagai berikut:</p>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>Solusi (RHS)</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>28/11</td><td>15/11</td><td><b>63</b></td></tr>
+              <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>7/22</td><td>1/22</td><td><b>7/2 (3.5)</b></td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td>−1/22</td><td>3/22</td><td><b>9/2 (4.5)</b></td></tr>
+            </table>
+          </div>
+          <div class="note ip-note">
+            <b>Uji Kebulatan (Langkah 2):</b><br>
+            Terlihat bahwa solusi kontinu saat ini adalah <b>x₂ = 7/2 = 3 + 1/2</b> dan <b>x₁ = 9/2 = 4 + 1/2</b> dengan <b>Z = 63</b>.<br>
+            Karena kedua variabel basis belum bernilai bulat, kita dapat memilih salah satu untuk membentuk <b>Kendala Potongan Gomory Pertama (s<sub>g1</sub>)</b>:<br>
+            • Jika menggunakan baris <b>x₂</b>: <span class="mono">x₂ + (0 + 7/22)s₁ + (0 + 1/22)s₂ = 3 + 1/2</span><br>
+            • Jika menggunakan baris <b>x₁</b>: <span class="mono">x₁ + (−1 + 21/22)s₁ + (0 + 3/22)s₂ = 4 + 1/2</span><br>
+            Sesuai materi PDF, kita pilih baris <b>x₂</b> sebagai pembentuk kendala Gomory pertama.
+          </div>`
+      },
+      {
+        tab: "2. Potongan Gomory 1 (sg1)",
+        title: "Langkah 2: Penambahan Kendala Gomory Pertama (sg₁) & Uji Rasio",
+        html: `
+          <p class="text-sm">Dari persamaan baris <b>x₂</b>: <span class="mono font-semibold">x₂ + (7/22)s₁ + (1/22)s₂ = 7/2</span>, kita pisahkan bagian bulat dan pecahan non-negatifnya (0 ≤ f &lt; 1):</p>
+          <ul class="text-sm list-disc pl-5 space-y-1">
+            <li>Koefisien s₁: <span class="mono">7/22 = 0 + <b>7/22</b> ⇒ f₂₁ = 7/22</span></li>
+            <li>Koefisien s₂: <span class="mono">1/22 = 0 + <b>1/22</b> ⇒ f₂₂ = 1/22</span></li>
+            <li>Sisi Kanan (Solusi): <span class="mono">7/2 = 3 + <b>1/2</b> ⇒ f₂ = 1/2</span></li>
+          </ul>
+          <p class="text-sm mt-2">Maka persamaan kendala Gomory pertama (<b>s<sub>g1</sub></b>) adalah: <span class="mono font-bold" style="color:var(--ip)">s<sub>g1</sub> − (7/22)s₁ − (1/22)s₂ = −1/2</span>. Kita tambahkan ke bagian bawah tabel:</p>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>s<sub>g1</sub></th><th>Solusi</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td class="c">28/11</td><td>15/11</td><td>0</td><td><b>63</b></td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td class="c">7/22</td><td>1/22</td><td>0</td><td><b>7/2</b></td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td class="c">−1/22</td><td>3/22</td><td>0</td><td><b>9/2</b></td></tr>
+              <tr class="r"><td class="b">s<sub>g1</sub> (Keluar)</td><td>0</td><td>0</td><td class="p">−7/22</td><td>−1/22</td><td>1</td><td><b>−1/2</b></td></tr>
+            </table>
+          </div>
+          ${LEG}
+          <div class="note">
+            <b>Pemilihan Kolom Masuk dengan Rasio Dual Simpleks:</b><br>
+            Kita cari rasio minimum antara koefisien baris Z dengan elemen negatif baris s<sub>g1</sub> pada kolom <b>s₁</b> dan <b>s₂</b>:<br>
+            • Rasio kolom <b>s₁</b>: <span class="mono">(28/11) ÷ (7/22) = (28/11) × (22/7) = <b>8</b></span> (Minimum!)<br>
+            • Rasio kolom <b>s₂</b>: <span class="mono">(15/11) ÷ (1/22) = (15/11) × 22 = <b>30</b></span><br>
+            Ternyata rasio yang lebih kecil adalah <b>s₁ (8)</b>. Maka <b>s₁</b> masuk menggantikan <b>s<sub>g1</sub></b> dengan elemen pivot <b>−7/22</b>.
+          </div>`
+      },
+      {
+        tab: "3. Hasil OBE 1 & Cut 2 (sg2)",
+        title: "Langkah 3: Hasil OBE Pertama & Pembentukan Kendala Gomory Kedua (sg₂)",
+        html: `
+          <p class="text-sm">Lakukan <b>Operasi Baris Elementer (OBE)</b> pada kolom <b>s₁</b> dengan elemen pivot <b>p = −7/22</b>:</p>
+          <div class="note">
+            <b>Rincian Rumus Operasi Baris Elementer (OBE) Pertama:</b><br>
+            1) <b>Baris Pivot Baru (s₁ menggantikan s<sub>g1</sub>):</b> <span class="mono">R<sub>s1(baru)</sub> = R<sub>sg1(lama)</sub> ÷ (−7/22) = R<sub>sg1(lama)</sub> × (−22/7)</span><br>
+               &nbsp;&nbsp;• Kolom s₁: <span class="mono">(−7/22) ÷ (−7/22) = <b>1</b></span> | Kolom s₂: <span class="mono">(−1/22) ÷ (−7/22) = <b>1/7</b></span> | Kolom s<sub>g1</sub>: <span class="mono">1 ÷ (−7/22) = <b>−22/7</b></span> | Solusi: <span class="mono">(−1/2) ÷ (−7/22) = <b>11/7</b></span><br>
+            2) <b>Baris Z Baru (koefisien kolom s₁ = 28/11):</b> <span class="mono">Z<sub>baru</sub> = Z<sub>lama</sub> − (28/11) × R<sub>s1(baru)</sub></span><br>
+               &nbsp;&nbsp;• Kolom s₂: <span class="mono">15/11 − (28/11)(1/7) = 15/11 − 4/11 = <b>1</b></span> | Kolom s<sub>g1</sub>: <span class="mono">0 − (28/11)(−22/7) = <b>8</b></span> | Solusi: <span class="mono">63 − (28/11)(11/7) = 63 − 4 = <b>59</b></span><br>
+            3) <b>Baris x₂ Baru (koefisien kolom s₁ = 7/22):</b> <span class="mono">R<sub>x2(baru)</sub> = R<sub>x2(lama)</sub> − (7/22) × R<sub>s1(baru)</sub></span><br>
+               &nbsp;&nbsp;• Kolom s₂: <span class="mono">1/22 − (7/22)(1/7) = <b>0</b></span> | Kolom s<sub>g1</sub>: <span class="mono">0 − (7/22)(−22/7) = <b>1</b></span> | Solusi: <span class="mono">7/2 − (7/22)(11/7) = 7/2 − 1/2 = <b>3</b></span><br>
+            4) <b>Baris x₁ Baru (koefisien kolom s₁ = −1/22):</b> <span class="mono">R<sub>x1(baru)</sub> = R<sub>x1(lama)</sub> − (−1/22) × R<sub>s1(baru)</sub></span><br>
+               &nbsp;&nbsp;• Kolom s₂: <span class="mono">3/22 + (1/22)(1/7) = 22/154 = <b>1/7</b></span> | Kolom s<sub>g1</sub>: <span class="mono">0 + (1/22)(−22/7) = <b>−1/7</b></span> | Solusi: <span class="mono">9/2 + (1/22)(11/7) = 9/2 + 1/14 = <b>32/7</b></span>
+          </div>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>s<sub>g1</sub></th><th>Solusi</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>1</td><td>8</td><td><b>59</b></td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td><b>3 (Bulat)</b></td></tr>
+              <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>1/7</td><td>−1/7</td><td><b>32/7 (4 + 4/7)</b></td></tr>
+              <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>1/7</td><td>−22/7</td><td><b>11/7</b></td></tr>
+            </table>
+          </div>
+          <div class="note ip-note">
+            <b>Evaluasi &amp; Pembentukan Potongan Gomory Kedua (s<sub>g2</sub>):</b><br>
+            Sekarang <b>x₂ = 3</b> sudah bernilai bulat, tetapi <b>x₁ = 32/7 = 4 + 4/7</b> masih pecahan. Maka kita bentuk kendala Gomory kedua dari baris <b>x₁</b>:<br>
+            • Persamaan baris x₁: <span class="mono">x₁ + (1/7)s₂ + (−1/7)s<sub>g1</sub> = 32/7</span><br>
+            • Pemisahan bulat &amp; pecahan positif (0 ≤ f &lt; 1):
+              <div class="mono my-1 pl-3">
+                x₁ + (0 + <b>1/7</b>)s₂ + (−1 + <b>6/7</b>)s<sub>g1</sub> = (4 + <b>4/7</b>)
+              </div>
+            • Perhatikan bahwa koefisien negatif <b>−1/7</b> dipecah menjadi <b>−1 + 6/7</b> sehingga bagian pecahannya positif yaitu <b>f = 6/7</b>!<br>
+            • Kendala Gomory kedua: <span class="mono font-bold" style="color:var(--ip)">s<sub>g2</sub> − (1/7)s₂ − (6/7)s<sub>g1</sub> = −4/7</span>
+          </div>`
+      },
+      {
+        tab: "4. Tabel Cut 2 & Optimal Akhir",
+        title: "Langkah 4: Tabel dengan sg₂, Uji Rasio Kedua & Tabel Optimal Integer",
+        html: `
+          <p class="text-sm">Tambahkan baris kendala Gomory kedua (<b>s<sub>g2</sub></b>) ke tabel simpleks:</p>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>s<sub>g1</sub></th><th>s<sub>g2</sub></th><th>Solusi</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td class="c">1</td><td>8</td><td>0</td><td><b>59</b></td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td class="c">0</td><td>1</td><td>0</td><td><b>3</b></td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td class="c">1/7</td><td>−1/7</td><td>0</td><td><b>32/7</b></td></tr>
+              <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td class="c">1/7</td><td>−22/7</td><td>0</td><td><b>11/7</b></td></tr>
+              <tr class="r"><td class="b">s<sub>g2</sub> (Keluar)</td><td>0</td><td>0</td><td>0</td><td class="p">−1/7</td><td>−6/7</td><td>1</td><td><b>−4/7</b></td></tr>
+            </table>
+          </div>
+          <div class="note">
+            <b>Uji Rasio Dual Simpleks &amp; Rincian OBE Kedua (Kolom s₂, Elemen Pivot = −1/7):</b><br>
+            • Rasio kolom <b>s₂</b>: <span class="mono">1 ÷ (1/7) = <b>7</b></span> (Minimum!) vs Kolom <b>s<sub>g1</sub></b>: <span class="mono">8 ÷ (6/7) = 56/6 ≈ 9.33</span><br>
+            • <b>Baris Pivot Baru (s₂ menggantikan s<sub>g2</sub>):</b> <span class="mono">R<sub>s2(baru)</sub> = R<sub>sg2(lama)</sub> ÷ (−1/7) = [0, 0, 0, 1, 6, −7 | 4]</span><br>
+            • <b>Baris Z Baru:</b> <span class="mono">Z<sub>baru</sub> = Z<sub>lama</sub> − 1 × R<sub>s2(baru)</sub> ⇒ Solusi Z = 59 − 1(4) = <b>55</b></span><br>
+            • <b>Baris x₂ Baru:</b> <span class="mono">Koefisien kolom s₂ sudah 0 ⇒ Tidak berubah (x₂ = <b>3</b>)</span><br>
+            • <b>Baris x₁ Baru:</b> <span class="mono">R<sub>x1(baru)</sub> = R<sub>x1(lama)</sub> − (1/7) × R<sub>s2(baru)</sub> ⇒ Solusi x₁ = 32/7 − (1/7)(4) = 28/7 = <b>4</b></span><br>
+            • <b>Baris s₁ Baru:</b> <span class="mono">R<sub>s1(baru)</sub> = R<sub>s1(lama)</sub> − (1/7) × R<sub>s2(baru)</sub> ⇒ Solusi s₁ = 11/7 − (1/7)(4) = 7/7 = <b>1</b></span>
+          </div>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>s<sub>g1</sub></th><th>s<sub>g2</sub></th><th>Solusi</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>0</td><td>2</td><td>7</td><td><b>55</b></td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td><b>3</b></td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>0</td><td>−1</td><td>1</td><td><b>4</b></td></tr>
+              <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>0</td><td>−4</td><td>1</td><td><b>1</b></td></tr>
+              <tr><td class="b">s₂</td><td>0</td><td>0</td><td>0</td><td>1</td><td>6</td><td>−7</td><td><b>4</b></td></tr>
+            </table>
+          </div>
+          <div class="note ok">
+            <b>STOP — Solusi Optimal Integer Tercapai!</b><br>
+            Seluruh variabel keputusan telah bernilai bulat non-negatif: <b>x₁ = 4</b> dan <b>x₂ = 3</b> dengan nilai maksimum <b>Z<sub>maks</sub> = 7(4) + 9(3) = 28 + 27 = 55</b>.<br>
+            <i>Verifikasi kendala:</i> −(4) + 3(3) = 5 ≤ 6 (Terpenuhi) dan 7(4) + 3 = 31 ≤ 35 (Terpenuhi).
+          </div>`
+      }
+    ]
+  },
+
+  2: {
+    title: "Kasus 2: Contoh Soal Jawab Permasalahan Integer Programming (PDF Kedua)",
+    problemHTML: `
+      <div class="flex flex-wrap justify-between items-start gap-2">
+        <div>
+          <div class="font-bold text-base" style="color:var(--ip)">Maksimumkan Z = 3x₁ + 4x₂</div>
+          <div class="text-sm mt-1">
+            <b>Dengan kendala:</b><br>
+            1) 3x₁ − x₂ ≤ 12<br>
+            2) 3x₁ + 11x₂ ≤ 66<br>
+            3) x₁, x₂ ≥ 0 dan <b>bernilai bulat (integer)</b>
+          </div>
+        </div>
+        <div class="text-xs p-2.5 rounded-lg border" style="background:var(--card);border-color:var(--bd)">
+          <b>Sumber:</b> <code>Soal_Jawab_Permasalahan_IP_Metode_Gomory.pdf</code> (Hal. 1–5)<br>
+          <b>Solusi Akhir:</b> 3 Potongan Gomory ⇒ x₁ = 5, x₂ = 4, Z<sub>maks</sub> = 31
+        </div>
+      </div>`,
+    steps: [
+      {
+        tab: "1. Relaksasi LP (Tabel 0–2)",
+        title: "Langkah 1: Relaksasi Pemrograman Linear dengan Metode Simpleks (Tabel 0 s/d Tabel 2)",
+        html: `
+          <p class="text-sm">Tambahkan variabel slack <b>s₁, s₂ ≥ 0</b> sehingga diperoleh bentuk standar: <span class="mono">3x₁ − x₂ + s₁ = 12</span>, <span class="mono">3x₁ + 11x₂ + s₂ = 66</span>, dan <span class="mono">Z − 3x₁ − 4x₂ = 0</span>.</p>
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 0 (Tabel Simpleks Awal)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>Sisi Kanan</th><th>Rasio</th></tr>
+              <tr><td class="b">Z</td><td>−3</td><td class="c">−4</td><td>0</td><td>0</td><td>0</td><td>—</td></tr>
+              <tr><td class="b">s₁</td><td>3</td><td class="c">−1</td><td>1</td><td>0</td><td>12</td><td>— (pembagi negatif)</td></tr>
+              <tr class="r"><td class="b">s₂</td><td>3</td><td class="p">11</td><td>0</td><td>1</td><td>66</td><td>66/11 = <b>6</b></td></tr>
+            </table>
+          </div>
+          <p class="text-xs" style="color:var(--mu)">Kolom masuk: <b>x₂</b> (koefisien −4). Baris keluar: <b>s₂</b> (rasio positif minimum 6). Elemen pivot: <b>11</b>.</p>
+
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 1 (Hasil Iterasi 1)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>Sisi Kanan</th><th>Rasio</th></tr>
+              <tr><td class="b">Z</td><td class="c">−21/11</td><td>0</td><td>0</td><td>4/11</td><td>24</td><td>—</td></tr>
+              <tr class="r"><td class="b">s₁</td><td class="p">36/11</td><td>0</td><td>1</td><td>1/11</td><td>18</td><td>18 ÷ (36/11) = <b>5.5</b></td></tr>
+              <tr><td class="b">x₂</td><td class="c">3/11</td><td>1</td><td>0</td><td>1/11</td><td>6</td><td>6 ÷ (3/11) = 22</td></tr>
+            </table>
+          </div>
+          <p class="text-xs" style="color:var(--mu)">Kolom masuk: <b>x₁</b> (koefisien −21/11). Baris keluar: <b>s₁</b> (rasio minimum 5.5). Elemen pivot: <b>36/11</b>.</p>
+
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 2 (Tabel Optimal Relaksasi Pemrograman Linear)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>Sisi Kanan</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>7/12</td><td>5/12</td><td><b>34.5 (69/2)</b></td></tr>
+              <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>11/36</td><td>1/36</td><td><b>5.5 (11/2)</b></td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td>−1/12</td><td>1/12</td><td><b>4.5 (9/2)</b></td></tr>
+            </table>
+          </div>
+          <div class="note ip-note">
+            Solusi optimal kontinu yang diperoleh adalah <b>x₁ = 5.5</b>, <b>x₂ = 4.5</b>, dan <b>Z = 34.5</b>. Karena nilai x₁ dan x₂ belum berupa bilangan bulat, proses dilanjutkan dengan pembuatan <b>Potongan Gomory Pertama</b>.
+          </div>`
+      },
+      {
+        tab: "2. Potongan Pertama (Tabel 3–4)",
+        title: "Langkah 2: Pemotongan Gomory Pertama pada Baris x₁ (Tabel 3 & Tabel 4)",
+        html: `
+          <p class="text-sm">Variabel <b>x₁</b> dan <b>x₂</b> keduanya memiliki bagian pecahan sebesar <b>0.5 (1/2)</b>. Baris <b>x₁</b> dipilih untuk pembentukan potongan pertama:</p>
+          <div class="note ip-note">
+            • Persamaan dari baris x₁: <span class="mono font-semibold">x₁ + (11/36)s₁ + (1/36)s₂ = 11/2</span><br>
+            • Pemisahan koefisien menjadi bagian bulat dan pecahan positif (0 ≤ f &lt; 1):<br>
+              &nbsp;&nbsp;– x₁: <span class="mono">1 = 1 + 0 ⇒ f = 0</span><br>
+              &nbsp;&nbsp;– s₁: <span class="mono">11/36 = 0 + <b>11/36</b> ⇒ f = 11/36</span><br>
+              &nbsp;&nbsp;– s₂: <span class="mono">1/36 = 0 + <b>1/36</b> ⇒ f = 1/36</span><br>
+              &nbsp;&nbsp;– Sisi Kanan: <span class="mono">11/2 = 5 + <b>1/2</b> ⇒ f = 1/2</span><br>
+            • Pertidaksamaan potongan Gomory: <span class="mono">(11/36)s₁ + (1/36)s₂ ≥ 1/2</span><br>
+            • Persamaan dengan variabel slack Gomory <b>S₁ ≥ 0</b>: <span class="mono font-bold" style="color:var(--ip)">(−11/36)s₁ + (−1/36)s₂ + S₁ = −1/2</span>
+          </div>
+
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 3 (Tabel Simpleks dengan Potongan Pertama S₁)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>Sisi Kanan</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td class="c">7/12</td><td>5/12</td><td>0</td><td>34.5</td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td class="c">11/36</td><td>1/36</td><td>0</td><td>5.5</td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td class="c">−1/12</td><td>1/12</td><td>0</td><td>4.5</td></tr>
+              <tr class="r"><td class="b">S₁ (Keluar)</td><td>0</td><td>0</td><td class="p">−11/36</td><td>−1/36</td><td>1</td><td><b>−0.5 (−1/2)</b></td></tr>
+            </table>
+          </div>
+          <div class="note">
+            <b>Penerapan Metode Dual Simpleks:</b><br>
+            • Baris keluar: <b>S₁</b> (sisi kanan negatif, yaitu −0.5).<br>
+            • Uji rasio elemen negatif di baris S₁:<br>
+              &nbsp;&nbsp;– Kolom <b>s₁</b>: <span class="mono">|(7/12) / (−11/36)| = 21/11 ≈ <b>1.91</b></span> (Rasio terkecil!)<br>
+              &nbsp;&nbsp;– Kolom <b>s₂</b>: <span class="mono">|(5/12) / (−1/36)| = <b>15</b></span><br>
+            • Kolom masuk: <b>s₁</b> dengan elemen pivot <b>−11/36</b>.
+          </div>
+
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 4 (Hasil Iterasi Pemotongan Pertama)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>Sisi Kanan</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>4/11</td><td>21/11</td><td><b>369/11 ≈ 33.55</b></td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td><b>5 (Bulat)</b></td></tr>
+              <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>1/11</td><td>−3/11</td><td><b>51/11 = 4 + 7/11</b></td></tr>
+              <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>1/11</td><td>−36/11</td><td><b>18/11 = 1 + 7/11</b></td></tr>
+            </table>
+          </div>
+          <p class="text-sm">Solusi saat ini <b>x₁ = 5</b> (sudah bulat), tetapi <b>x₂ = 51/11</b> masih berupa pecahan. Proses dilanjutkan dengan potongan Gomory kedua.</p>`
+      },
+      {
+        tab: "3. Potongan Kedua (Tabel 5–6)",
+        title: "Langkah 3: Pemotongan Gomory Kedua pada Baris x₂ (Tabel 5 & Tabel 6)",
+        html: `
+          <div class="note ip-note">
+            <b>Pembentukan Potongan Gomory Kedua (S₂) dari Baris x₂:</b><br>
+            • Persamaan dari baris x₂: <span class="mono font-semibold">x₂ + (1/11)s₂ + (−3/11)S₁ = 51/11</span><br>
+            • Pemisahan koefisien menjadi bagian bulat dan pecahan positif (0 ≤ f &lt; 1):<br>
+              &nbsp;&nbsp;– x₂: <span class="mono">f = 0</span><br>
+              &nbsp;&nbsp;– s₂: <span class="mono">1/11 = 0 + <b>1/11</b> ⇒ f = 1/11</span><br>
+              &nbsp;&nbsp;– S₁: <span class="mono">−3/11 = −1 + <b>8/11</b> ⇒ f = 8/11</span> <i>(Ingat: −3/11 bukan 0 − 3/11, melainkan −1 + 8/11 agar f positif!)</i><br>
+              &nbsp;&nbsp;– Sisi Kanan: <span class="mono">51/11 = 4 + <b>7/11</b> ⇒ f = 7/11</span><br>
+            • Pertidaksamaan potongan Gomory: <span class="mono">(1/11)s₂ + (8/11)S₁ ≥ 7/11</span><br>
+            • Persamaan dengan variabel slack <b>S₂ ≥ 0</b>: <span class="mono font-bold" style="color:var(--ip)">(−1/11)s₂ + (−8/11)S₁ + S₂ = −7/11</span>
+          </div>
+
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 5 (Tabel Simpleks dengan Potongan Kedua S₂)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>S₂</th><th>Sisi Kanan</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>4/11</td><td class="c">21/11</td><td>0</td><td>369/11</td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>0</td><td class="c">1</td><td>0</td><td>5</td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>1/11</td><td class="c">−3/11</td><td>0</td><td>51/11</td></tr>
+              <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>1/11</td><td class="c">−36/11</td><td>0</td><td>18/11</td></tr>
+              <tr class="r"><td class="b">S₂ (Keluar)</td><td>0</td><td>0</td><td>0</td><td>−1/11</td><td class="p">−8/11</td><td>1</td><td><b>−7/11</b></td></tr>
+            </table>
+          </div>
+          <div class="note">
+            <b>Penerapan Metode Dual Simpleks:</b><br>
+            • Baris keluar: <b>S₂</b> (sisi kanan −7/11).<br>
+            • Uji rasio elemen negatif di baris S₂:<br>
+              &nbsp;&nbsp;– Kolom <b>s₂</b>: <span class="mono">|(4/11) / (−1/11)| = <b>4</b></span><br>
+              &nbsp;&nbsp;– Kolom <b>S₁</b>: <span class="mono">|(21/11) / (−8/11)| = 21/8 = <b>2.625</b></span> (Rasio terkecil!)<br>
+            • Kolom masuk: <b>S₁</b> dengan elemen pivot <b>−8/11</b>.
+          </div>
+
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 6 (Hasil Iterasi Pemotongan Kedua)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>S₂</th><th>Sisi Kanan</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>1/8</td><td>0</td><td>21/8</td><td><b>255/8 = 31.875</b></td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>−1/8</td><td>0</td><td>11/8</td><td><b>33/8 = 4 + 1/8 (4.125)</b></td></tr>
+              <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>1/8</td><td>0</td><td>−3/8</td><td><b>39/8 = 4 + 7/8 (4.875)</b></td></tr>
+              <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>1/2</td><td>0</td><td>−9/2</td><td><b>9/2 = 4.5</b></td></tr>
+              <tr><td class="b">S₁</td><td>0</td><td>0</td><td>0</td><td>1/8</td><td>1</td><td>−11/8</td><td><b>7/8 = 0.875</b></td></tr>
+            </table>
+          </div>
+          <p class="text-sm">Kedua variabel kembali bernilai pecahan (<b>x₁ = 4.125</b> dengan f = 1/8, dan <b>x₂ = 4.875</b> dengan f = 7/8). Bagian pecahan terbesar terdapat pada <b>x₂ (f = 7/8 = 0.875)</b> sehingga baris <b>x₂</b> dipilih untuk potongan ketiga.</p>`
+      },
+      {
+        tab: "4. Potongan Ketiga & Optimal (Tabel 7–8)",
+        title: "Langkah 4: Pemotongan Gomory Ketiga (Tabel 7) & Solusi Optimal Akhir (Tabel 8)",
+        html: `
+          <div class="note ip-note">
+            <b>Pembentukan Potongan Gomory Ketiga (S₃) dari Baris x₂:</b><br>
+            • Persamaan dari baris x₂: <span class="mono font-semibold">x₂ + (1/8)s₂ + (−3/8)S₂ = 39/8</span><br>
+            • Pemisahan koefisien menjadi bagian bulat dan pecahan positif:<br>
+              &nbsp;&nbsp;– s₂: <span class="mono">1/8 = 0 + <b>1/8</b> ⇒ f = 1/8</span><br>
+              &nbsp;&nbsp;– S₂: <span class="mono">−3/8 = −1 + <b>5/8</b> ⇒ f = 5/8</span><br>
+              &nbsp;&nbsp;– Sisi Kanan: <span class="mono">39/8 = 4 + <b>7/8</b> ⇒ f = 7/8</span><br>
+            • Persamaan dengan variabel slack <b>S₃ ≥ 0</b>: <span class="mono font-bold" style="color:var(--ip)">(−1/8)s₂ + (−5/8)S₂ + S₃ = −7/8</span>
+          </div>
+
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 7 (Tabel Simpleks dengan Potongan Ketiga S₃)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>S₂</th><th>S₃</th><th>Sisi Kanan</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td class="c">1/8</td><td>0</td><td>21/8</td><td>0</td><td>255/8</td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td class="c">−1/8</td><td>0</td><td>11/8</td><td>0</td><td>33/8</td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td class="c">1/8</td><td>0</td><td>−3/8</td><td>0</td><td>39/8</td></tr>
+              <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td class="c">1/2</td><td>0</td><td>−9/2</td><td>0</td><td>9/2</td></tr>
+              <tr><td class="b">S₁</td><td>0</td><td>0</td><td>0</td><td class="c">1/8</td><td>1</td><td>−11/8</td><td>0</td><td>7/8</td></tr>
+              <tr class="r"><td class="b">S₃ (Keluar)</td><td>0</td><td>0</td><td>0</td><td class="p">−1/8</td><td>0</td><td>−5/8</td><td>1</td><td><b>−7/8</b></td></tr>
+            </table>
+          </div>
+          <div class="note">
+            <b>Penerapan Metode Dual Simpleks:</b><br>
+            • Baris keluar: <b>S₃</b> (sisi kanan −7/8).<br>
+            • Uji rasio elemen negatif di baris S₃:<br>
+              &nbsp;&nbsp;– Kolom <b>s₂</b>: <span class="mono">|(1/8) / (−1/8)| = <b>1</b></span> (Rasio terkecil!)<br>
+              &nbsp;&nbsp;– Kolom <b>S₂</b>: <span class="mono">|(21/8) / (−5/8)| = 21/5 = <b>4.2</b></span><br>
+            • Kolom masuk: <b>s₂</b> dengan elemen pivot <b>−1/8</b>.
+          </div>
+
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel 8 (Tabel Simpleks Optimal Akhir)</h4>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>S₂</th><th>S₃</th><th>Sisi Kanan</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>2</td><td>1</td><td><b>31</b></td></tr>
+              <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>2</td><td>−1</td><td><b>5</b></td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>−1</td><td>1</td><td><b>4</b></td></tr>
+              <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>−7</td><td>4</td><td><b>1</b></td></tr>
+              <tr><td class="b">S₁</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>−2</td><td>1</td><td><b>0</b></td></tr>
+              <tr><td class="b">s₂</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>5</td><td>−8</td><td><b>7</b></td></tr>
+            </table>
+          </div>
+          <div class="note ok">
+            <b>Solusi Optimal Integer Tercapai!</b><br>
+            Variabel keputusan <b>x₁ = 5</b> dan <b>x₂ = 4</b> sudah bernilai bulat dan seluruh sisi kanan bernilai non-negatif.<br>
+            • <b>Nilai Maksimum Z = 3(5) + 4(4) = 15 + 16 = 31</b>.<br>
+            • <b>Verifikasi pada kendala awal:</b><br>
+              1) 3(5) − (4) = 11 ≤ 12 (Terpenuhi, sisa slack s₁ = 1)<br>
+              2) 3(5) + 11(4) = 15 + 44 = 59 ≤ 66 (Terpenuhi, sisa slack s₂ = 7)
+          </div>`
+      }
+    ]
+  },
+
+  3: {
+    title: "Kasus 3: Pembahasan Soal Latihan 3 Variabel (Halaman 5 PDF)",
+    problemHTML: `
+      <div class="flex flex-wrap justify-between items-start gap-2">
+        <div>
+          <div class="font-bold text-base" style="color:var(--ip)">Maksimumkan Z = 3x₁ + 2x₂ + x₃</div>
+          <div class="text-sm mt-1">
+            <b>Dengan kendala:</b><br>
+            1) x₁ + x₂ + x₃ ≤ 4<br>
+            2) 2x₁ + x₂ ≤ 5<br>
+            3) x₁, x₂, x₃ ≥ 0 dan <b>bernilai bulat (integer)</b>
+          </div>
+        </div>
+        <div class="text-xs p-2.5 rounded-lg border" style="background:var(--card);border-color:var(--bd)">
+          <b>Sumber:</b> Soal Latihan <code>Soal_Jawab_Permasalahan_IP_Metode_Gomory.pdf</code> (Hal. 5)<br>
+          <b>Kunci Jawaban PDF:</b> x₁ = 2, x₂ = 1, x₃ = 1, Nilai Maksimum Z = 9
+        </div>
+      </div>`,
+    steps: [
+      {
+        tab: "1. Relaksasi Simpleks",
+        title: "Langkah 1: Penyelesaian Relaksasi LP dengan Metode Simpleks",
+        html: `
+          <p class="text-sm">Tambahkan variabel slack <b>s₁, s₂ ≥ 0</b> sehingga diperoleh sistem persamaan standar: <span class="mono">x₁ + x₂ + x₃ + s₁ = 4</span> dan <span class="mono">2x₁ + x₂ + s₂ = 5</span>.</p>
+          <h4 class="font-bold text-sm mt-3 mb-1">Tabel Awal &amp; Iterasi Menuju Tabel Optimal Relaksasi</h4>
+          <p class="text-sm">Setelah dilakukan 2 kali iterasi simpleks (memasukkan <b>x₁</b> lalu <b>x₂</b> ke dalam basis), diperoleh <b>Tabel Optimal Relaksasi Kontinu</b>:</p>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>x₃</th><th>s₁</th><th>s₂</th><th>Sisi Kanan (RHS)</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td><b>9</b></td></tr>
+              <tr><td class="b">x₂</td><td>0</td><td>1</td><td>2</td><td>2</td><td>−1</td><td><b>3 (Bulat)</b></td></tr>
+              <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>−1</td><td>−1</td><td>1</td><td><b>1 (Bulat)</b></td></tr>
+            </table>
+          </div>
+          <div class="note ip-note">
+            <b>Catatan Penting tentang Solusi Alternatif &amp; Potongan Gomory:</b><br>
+            Apabila pada iterasi simpleks dipilih pivot yang menghasilkan pecahan (misalnya jika <b>x₃</b> masuk basis terlebih dahulu sehingga <b>x₁ = 5/2 = 2.5</b>, <b>x₃ = 3/2 = 1.5</b>, dan <b>Z = 9</b>), maka baris pecahan tersebut dipotong dengan kendala Gomory.<br>
+            Mari kita lihat bagaimana jika tabel optimal kontinu berada pada titik ekstrem pecahan <b>x₁ = 5/2 (2.5)</b> dan <b>x₃ = 3/2 (1.5)</b>!
+          </div>`
+      },
+      {
+        tab: "2. Analisis Potongan Gomory",
+        title: "Langkah 2: Pemotongan Titik Pecahan (x₁ = 5/2, x₃ = 3/2) Menuju Solusi Bulat",
+        html: `
+          <p class="text-sm">Misalkan dari relaksasi diperoleh titik ekstrem pecahan di mana <b>x₃</b> dan <b>x₁</b> menjadi basis:</p>
+          <div class="scroll">
+            <table class="simplex">
+              <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>x₃</th><th>s₁</th><th>s₂</th><th>Sisi Kanan</th></tr>
+              <tr><td class="b">Z</td><td>0</td><td>−1/2</td><td>0</td><td>1</td><td>1</td><td><b>9</b></td></tr>
+              <tr><td class="b">x₃</td><td>0</td><td>1/2</td><td>1</td><td>1</td><td>−1/2</td><td><b>3/2 = 1 + 1/2</b></td></tr>
+              <tr class="r"><td class="b">x₁</td><td>1</td><td>1/2</td><td>0</td><td>0</td><td>1/2</td><td><b>5/2 = 2 + 1/2</b></td></tr>
+            </table>
+          </div>
+          <div class="note ip-note">
+            <b>Pembentukan Potongan Gomory dari Baris x₁:</b><br>
+            • Persamaan baris x₁: <span class="mono">x₁ + (1/2)x₂ + (1/2)s₂ = 5/2 = 2 + 1/2</span><br>
+            • Kendala potongan Gomory (<b>S₁</b>): <span class="mono font-bold" style="color:var(--ip)">−(1/2)x₂ − (1/2)s₂ + S₁ = −1/2</span><br>
+            • Setelah dilakukan pivot pada kolom <b>x₂</b> (elemen pivot −1/2), variabel <b>x₂</b> masuk bernilai <b>1</b> sehingga nilai variabel basis menjadi bulat seluruhnya!
+          </div>
+          <div class="note ok">
+            <b>Kunci Jawaban Optimal Integer Akhir (Sesuai PDF Halaman 5):</b><br>
+            • <b>x₁ = 2</b><br>
+            • <b>x₂ = 1</b><br>
+            • <b>x₃ = 1</b><br>
+            • <b>Nilai Maksimum Z = 3(2) + 2(1) + 1(1) = 6 + 2 + 1 = 9</b><br>
+            • <b>Verifikasi Kendala:</b><br>
+              1) x₁ + x₂ + x₃ = 2 + 1 + 1 = 4 ≤ 4 (Terpenuhi)<br>
+              2) 2x₁ + x₂ = 2(2) + 1 = 5 ≤ 5 (Terpenuhi)<br>
+            <i>Catatan: Titik bulat (x₁ = 1, x₂ = 3, x₃ = 0) juga menghasilkan Z = 3(1) + 2(3) + 0 = 9 (solusi optimal bulat alternatif).</i>
+          </div>`
+      }
+    ]
+  }
+};
+
+let curWTCase = 1, curWTStep = 0;
+
+function selectWalkthroughCase(c) {
+  curWTCase = c;
+  curWTStep = 0;
+  [1, 2, 3].forEach(k => {
+    const b = $('btn-case-' + k);
+    if (k === c) {
+      b.style.background = 'var(--ip)';
+      b.style.color = '#fff';
+      b.style.borderColor = 'var(--ip)';
+    } else {
+      b.style.background = 'var(--card)';
+      b.style.color = 'var(--tx)';
+      b.style.borderColor = 'var(--bd)';
+    }
+  });
+  renderWalkthrough();
+}
+
+function renderWalkthrough() {
+  const data = WALKTHROUGH_CASES[curWTCase];
+  $('wt-problem-box').innerHTML = data.problemHTML;
+  const pills = $('wt-pills');
+  pills.innerHTML = '';
+  data.steps.forEach((s, idx) => {
+    const b = document.createElement('button');
+    b.textContent = s.tab;
+    b.className = idx === curWTStep ? 'on' : '';
+    b.onclick = () => { curWTStep = idx; renderWalkthrough(); };
+    pills.appendChild(b);
+  });
+  const stepObj = data.steps[curWTStep];
+  $('wt-step-indicator').textContent = `Tahap ${curWTStep + 1} dari ${data.steps.length}`;
+  $('wt-content').innerHTML = `<h3 class="font-bold text-lg mb-2">${stepObj.title}</h3>` + stepObj.html;
+  $('wt-prev').disabled = curWTStep === 0;
+  $('wt-next').disabled = curWTStep === data.steps.length - 1;
+}
+
+function moveWalkthrough(delta) {
+  const data = WALKTHROUGH_CASES[curWTCase];
+  const next = curWTStep + delta;
+  if (next >= 0 && next < data.steps.length) {
+    curWTStep = next;
+    renderWalkthrough();
+  }
+}
+
+function openCaseInGomorySolver() {
+  switchIPSub('solver');
+  loadGomoryPreset('pdf' + curWTCase);
+}
+
+/* ========================================================================= */
+/* BAGIAN 3: SOLVER INTERAKTIF METODE GOMORY (DYNAMIC ENGINE)                */
+/* ========================================================================= */
+let ipSt = {
+  min: false,
+  n: 2,
+  m: 2,
+  c: [3, 4],
+  rows: [
+    { a: [3, -1], sg: "≤", b: 12 },
+    { a: [3, 11], sg: "≤", b: 66 }
+  ]
+};
+
+const GOMORY_PRESETS = {
+  pdf1: {
+    min: false, n: 2, c: [7, 9],
+    rule: 'maxf',
+    rows: [
+      { a: [-1, 3], sg: "≤", b: 6 },
+      { a: [7, 1], sg: "≤", b: 35 }
+    ]
+  },
+  pdf2: {
+    min: false, n: 2, c: [3, 4],
+    rule: 'firstvar',
+    rows: [
+      { a: [3, -1], sg: "≤", b: 12 },
+      { a: [3, 11], sg: "≤", b: 66 }
+    ]
+  },
+  pdf3: {
+    min: false, n: 3, c: [3, 2, 1],
+    rule: 'maxf',
+    rows: [
+      { a: [1, 1, 1], sg: "≤", b: 4 },
+      { a: [2, 1, 0], sg: "≤", b: 5 }
+    ]
+  }
+};
+
+function loadGomoryPreset(key) {
+  const p = GOMORY_PRESETS[key];
+  ipSt = {
+    min: p.min,
+    n: p.n,
+    m: p.rows.length,
+    c: p.c.slice(),
+    rows: p.rows.map(r => ({ a: r.a.slice(), sg: r.sg, b: r.b }))
+  };
+  $('ip-mm').value = ipSt.min ? 'min' : 'max';
+  $('ip-nn').value = ipSt.n;
+  $('ip-mc').value = ipSt.m;
+  if (p.rule) $('ip-cut-rule').value = p.rule;
+  drawIPForm();
+  runGomorySolver();
+}
+
+function changeIPDim() {
+  ipSt.n = Math.max(1, Math.min(5, +$('ip-nn').value || 2));
+  ipSt.m = Math.max(1, Math.min(6, +$('ip-mc').value || 2));
+  while (ipSt.c.length < ipSt.n) ipSt.c.push(0);
+  ipSt.c.length = ipSt.n;
+  while (ipSt.rows.length < ipSt.m) ipSt.rows.push({ a: Array(ipSt.n).fill(0), sg: "≤", b: 0 });
+  ipSt.rows.length = ipSt.m;
+  ipSt.rows.forEach(r => {
+    while (r.a.length < ipSt.n) r.a.push(0);
+    r.a.length = ipSt.n;
+  });
+  drawIPForm();
+}
+
+function drawIPForm() {
+  let h = '<table class="in"><tr><th></th>' + ipSt.c.map((_, j) => `<th>x${sb(j + 1)}</th>`).join('') + '<th>Tanda</th><th>RHS</th></tr>';
+  h += '<tr><td class="font-semibold pr-2">Z =</td>' + ipSt.c.map((v, j) => `<td><input type="number" step="any" value="${v}" data-ipc="${j}"></td>`).join('') + '<td></td><td class="text-xs" style="color:var(--mu)">(x<sub>j</sub> bulat)</td></tr>';
+  ipSt.rows.forEach((r, i) => {
+    h += `<tr><td class="font-semibold pr-2">K${i + 1}</td>` +
+      r.a.map((v, j) => `<td><input type="number" step="any" value="${v}" data-ipa="${i},${j}"></td>`).join('') +
+      `<td><select data-ips="${i}"><option value="≤"${r.sg === '≤' ? ' selected' : ''}>≤</option></select></td>` +
+      `<td><input type="number" step="any" value="${r.b}" data-ipb="${i}"></td></tr>`;
+  });
+  $('ip-form').innerHTML = h + '</table>';
+}
+
+$('ip-form').addEventListener('input', e => {
+  const d = e.target.dataset, v = e.target.value;
+  if (d.ipc !== undefined) ipSt.c[+d.ipc] = +v || 0;
+  else if (d.ipa) { const [i, j] = d.ipa.split(','); ipSt.rows[i].a[j] = +v || 0; }
+  else if (d.ipb !== undefined) ipSt.rows[+d.ipb].b = +v || 0;
+});
+
+let ipSteps = [], ipCur = 0;
+
+function fmtParen(val) {
+  return val < -E ? `(${fr(val)})` : fr(val);
+}
+
+// Fungsi Khusus Pembentuk Penjelasan & Tabel Operasi Baris Elementer (OBE) Super Detail untuk Gomory Solver
+function buildDetailedGomoryOBE(nm, bsOld, ZOld, TOld, pr, pc, modeLabel) {
+  const N = nm.length;
+  const colHeaders = [...nm, "Solusi (RHS)"];
+  const pvt = TOld[pr][pc];
+  const lvName = nm[bsOld[pr]];
+  const evName = nm[pc];
+  const pivotRowOld = TOld[pr].slice();
+  const pivotRowNew = pivotRowOld.map(v => v / pvt);
+
+  // 1. Kotak Penjelasan Konsep & Langkah A (Normalisasi Baris Pivot)
+  let h = `
+  <div class="mt-4 p-4 rounded-xl border" style="background:var(--bg);border-color:var(--ip)">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+      <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:var(--ip-soft);color:var(--ip)">
+        📐 Rincian Lengkap Operasi Baris Elementer (OBE) · ${modeLabel}
+      </span>
+      <span class="text-xs font-mono font-semibold" style="color:var(--mu)">
+        Kolom Masuk: <b>${evName}</b> | Baris Keluar: <b>${lvName}</b> (R${pr + 1}) | Elemen Pivot = <b>${fr(pvt)}</b>
+      </span>
+    </div>
+
+    <div class="note ip-note my-2">
+      <b>Langkah A — Normalisasi Baris Pivot (Mengubah Elemen Pivot Menjadi 1):</b><br>
+      Baris kunci <b>R${pr + 1} (${lvName})</b> akan digantikan oleh variabel masuk <b>${evName}</b>. Agar angka pada posisi pivot menjadi <b>1</b>, seluruh elemen pada baris <b>R${pr + 1}-lama</b> dibagi dengan elemen pivot <b>${fmtParen(pvt)}</b>:
+      <div class="mono font-bold text-sm mt-1 p-1.5 rounded border inline-block" style="background:var(--card);border-color:var(--bd)">
+        R${pr + 1}-baru (${evName}) = R${pr + 1}-lama (${lvName}) ÷ ${fmtParen(pvt)}
+      </div>
+    </div>
+
+    <div class="scroll">
+      <table class="simplex">
+        <tr>
+          <th class="text-left">Tahap Normalisasi Pivot</th>
+          ${colHeaders.map((c, idx) => `<th class="${idx === pc ? 'c' : ''}">${c}</th>`).join('')}
+        </tr>
+        <tr>
+          <td class="b text-left">R${pr + 1}-lama (${lvName})</td>
+          ${pivotRowOld.map((v, idx) => `<td class="${idx === pc ? 'p' : ''}">${fr(v)}</td>`).join('')}
+        </tr>
+        <tr class="nw">
+          <td class="b text-left" style="color:var(--ip)">R${pr + 1}-baru (${evName}) = R${pr + 1}-lama ÷ ${fmtParen(pvt)}</td>
+          ${pivotRowNew.map((v, idx) => `<td class="${idx === pc ? 'c' : ''}">${fr(v)}</td>`).join('')}
+        </tr>
+      </table>
+    </div>
+
+    <details class="mt-2">
+      <summary class="text-xs">Lihat rincian pembagian per kolom untuk Baris Pivot Baru R${pr + 1} (${evName})</summary>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 mt-2 text-xs mono">
+        ${colHeaders.map((cName, j) => `
+          <div class="p-1.5 rounded border" style="background:var(--card);border-color:var(--bd)">
+            <b>${cName}:</b> ${fmtParen(pivotRowOld[j])} ÷ ${fmtParen(pvt)} = <b style="color:var(--ip)">${fr(pivotRowNew[j])}</b>
+          </div>
+        `).join('')}
+      </div>
+    </details>
+
+    <div class="note my-3">
+      <b>Langkah B — Eliminasi Baris Lainnya Termasuk Baris Z (Mengubah Angka Kolom Pivot ${evName} Menjadi 0):</b><br>
+      Untuk setiap baris lain (baik baris <b>Z</b> maupun baris kendala <b>R<sub>i</sub></b> selain R${pr + 1}), ambil angka pada kolom pivot <b>${evName}</b> sebagai pengali (<b>k</b>), lalu gunakan rumus eliminasi Gauss-Jordan:
+      <div class="mono font-bold text-sm mt-1 p-1.5 rounded border inline-block" style="background:var(--card);border-color:var(--bd)">
+        Baris Baru = Baris Lama − (k × R${pr + 1}-baru)
+      </div>
+    </div>
+  `;
+
+  // 2. Tabel Gabungan Step-by-Step 3 Sub-Baris untuk Baris Z dan Setiap Baris R_i
+  h += `<div class="scroll"><table class="simplex">
+    <tr>
+      <th class="text-left">Operasi Eliminasi Baris demi Baris</th>
+      ${colHeaders.map((c, idx) => `<th class="${idx === pc ? 'c' : ''}">${c}</th>`).join('')}
+    </tr>`;
+
+  // Daftar semua baris yang dieliminasi: Baris Z terlebih dahulu, lalu R1..Rm
+  const allRows = [
+    { isZ: true, label: "Baris Z", short: "Z", oldArr: ZOld.slice() },
+    ...TOld.map((r, idx) => ({
+      isZ: false,
+      rowIdx: idx,
+      label: `Baris R${idx + 1} (${nm[bsOld[idx]]})`,
+      short: `R${idx + 1}`,
+      oldArr: r.slice()
+    }))
+  ];
+
+  const perCellDetails = [];
+
+  allRows.forEach(item => {
+    if (!item.isZ && item.rowIdx === pr) return; // lewati baris pivot karena sudah di Langkah A
+    const f = item.oldArr[pc];
+    const absF = Math.abs(f);
+
+    if (absF < E) {
+      // Baris tidak berubah karena koefisien di kolom pivot sudah 0
+      h += `
+        <tr class="nw">
+          <td class="b text-left">${item.label}-baru = ${item.short}-lama <span class="text-xs font-normal" style="color:var(--ok)">(Tetap, kolom ${evName} = 0)</span></td>
+          ${item.oldArr.map((v, idx) => `<td class="${idx === pc ? 'c' : ''}">${fr(v)}</td>`).join('')}
+        </tr>`;
+      perCellDetails.push(`
+        <div class="p-2.5 rounded-lg border text-xs" style="background:var(--card);border-color:var(--bd)">
+          <div class="font-bold mb-1" style="color:var(--ok)">✔ ${item.label}: TIDAK BERUBAH</div>
+          Karena koefisien pada kolom pivot (<b>${evName}</b>) sudah bernilai <b>0</b>, maka <span class="mono">${item.short}-baru = ${item.short}-lama − (0 × R${pr + 1}-baru) = ${item.short}-lama</span>.
+        </div>
+      `);
+    } else {
+      const multArr = pivotRowNew.map(v => f * v);
+      const newArr = item.oldArr.map((v, j) => v - f * pivotRowNew[j]);
+      const signFormula = f > 0 ? `− (${fr(absF)} × R${pr + 1}-baru)` : `+ (${fr(absF)} × R${pr + 1}-baru)`;
+
+      h += `
+        <tr>
+          <td class="b text-left">${item.short}-lama (koef. ${evName} = ${fr(f)})</td>
+          ${item.oldArr.map((v, idx) => `<td class="${idx === pc ? 'c' : ''}">${fr(v)}</td>`).join('')}
+        </tr>
+        <tr>
+          <td class="b text-left" style="color:var(--mu)">Pengali (${ fmtParen(f) }) × R${pr + 1}-baru</td>
+          ${multArr.map((v, idx) => `<td style="color:var(--mu)">${fr(v)}</td>`).join('')}
+        </tr>
+        <tr class="nw" style="border-bottom:2px solid var(--bd)">
+          <td class="b text-left" style="color:var(--ac)">${item.short}-baru = ${item.short}-lama ${signFormula}</td>
+          ${newArr.map((v, idx) => `<td class="${idx === pc ? 'c' : ''}">${fr(v)}</td>`).join('')}
+        </tr>`;
+
+      perCellDetails.push(`
+        <div class="p-2.5 rounded-lg border text-xs" style="background:var(--card);border-color:var(--bd)">
+          <div class="font-bold mb-1.5" style="color:var(--ac)">
+            🔹 Rincian Per Kolom ${item.label} &nbsp;[ Rumus: <span class="mono">${item.short}-baru = ${item.short}-lama − (${fmtParen(f)} × R${pr + 1}-baru)</span> ]
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 mono">
+            ${colHeaders.map((cName, j) => `
+              <div class="p-1 rounded border" style="background:var(--bg);border-color:var(--bd)">
+                <b>${cName}:</b> ${fmtParen(item.oldArr[j])} − (${fmtParen(f)} × ${fmtParen(pivotRowNew[j])}) = <b>${fr(newArr[j])}</b>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `);
+    }
+  });
+
+  h += `</table></div>`;
+
+  // 3. Accordion Rincian Aritmatika Per Sel / Kolom untuk Semua Baris
+  h += `
+    <details open class="mt-3">
+      <summary class="text-xs sm:text-sm">🧮 Lihat Rincian Perhitungan Aritmatika Pecahan Per Kolom (Z dan Setiap Baris)</summary>
+      <div class="space-y-2 mt-2">
+        ${perCellDetails.join('')}
+      </div>
+    </details>
+  </div>`;
+
+  return h;
+}
+
+function renderGomoryTable(nm, bs, Z, T, opts = {}) {
+  const { pc = -1, pr = -1, rt = null, cutRowIdx = -1, showFracCol = false } = opts;
+  const N = nm.length;
+  let h = `<div class="scroll"><table class="simplex"><tr><th>Basis</th>` +
+    nm.map((v, j) => `<th class="${j === pc ? 'c' : ''}">${v}</th>`).join('') +
+    `<th>Solusi (RHS)</th>` +
+    (rt ? `<th>Rasio</th>` : '') +
+    (showFracCol ? `<th>Pecahan (f<sub>i</sub>)</th>` : '') +
+    `</tr>`;
+
+  // Baris Z
+  h += `<tr><td class="b">Z</td>` +
+    nm.map((_, j) => `<td class="${j === pc ? 'c' : ''}">${fr(Z[j])}</td>`).join('') +
+    `<td><b>${fr(Z[N])}</b></td>` +
+    (rt ? `<td>—</td>` : '') +
+    (showFracCol ? `<td>—</td>` : '') +
+    `</tr>`;
+
+  // Baris Basis
+  T.forEach((row, i) => {
+    const isCut = i === cutRowIdx;
+    const { intPart, fracPart } = gomoryDecomp(row[N]);
+    const isRowPivot = i === pr;
+    h += `<tr class="${isCut ? 'cut-row' : ''} ${isRowPivot ? 'r' : ''}">` +
+      `<td class="b">${nm[bs[i]]}</td>` +
+      nm.map((_, j) => {
+        const cls = (i === pr && j === pc) ? 'p' : (j === pc ? 'c' : '');
+        return `<td class="${cls}">${fr(row[j])}</td>`;
+      }).join('') +
+      `<td><b>${fr(row[N])}</b></td>` +
+      (rt ? `<td>${rt[i] !== undefined ? fr(rt[i]) : '—'}</td>` : '') +
+      (showFracCol ? `<td>${fracPart > 1e-6 ? `<span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">${intPart} + <b>${fr(fracPart)}</b></span>` : `<span class="text-xs" style="color:var(--ok)">Bulat (${intPart})</span>`}</td>` : '') +
+      `</tr>`;
+  });
+
+  h += `</table></div>`;
+  return h;
+}
+
+function runGomorySolver() {
+  const n = ipSt.n, m = ipSt.m;
+  ipSteps = [];
+  const push = (t, h) => ipSteps.push({ t, h });
+  const rule = $('ip-cut-rule').value;
+
+  // Konversi koefisien tujuan untuk tabel bentuk kanonik Z - c1 x1 - c2 x2 = 0
+  const cObj = ipSt.c.map(v => ipSt.min ? -v : v);
+  const nm = [];
+  for (let j = 0; j < n; j++) nm.push("x" + sb(j + 1));
+  for (let i = 0; i < m; i++) nm.push("s" + sb(i + 1));
+
+  let N = nm.length;
+  const bs = [];
+  const T = [];
+  for (let i = 0; i < m; i++) {
+    const row = Array(N + 1).fill(0);
+    for (let j = 0; j < n; j++) row[j] = ipSt.rows[i].a[j];
+    row[n + i] = 1;
+    row[N] = ipSt.rows[i].b;
+    bs.push(n + i);
+    T.push(row);
+  }
+  const Z = Array(N + 1).fill(0);
+  for (let j = 0; j < n; j++) Z[j] = -cObj[j];
+
+  // Langkah 0: Formulasi Standar Relaksasi LP
+  const eqList = ipSt.rows.map((r, i) => `K${i + 1}: ` + eq(T[i].slice(0, N), nm, fr(r.b)));
+  push("1. Relaksasi LP",
+    `<p class="text-sm"><b>Langkah 1 Metode Gomory:</b> Selesaikan permasalahan Integer Programming sebagai masalah Pemrograman Linear biasa (mengabaikan syarat bulat sementara waktu) dengan menambahkan variabel slack <b>s₁ .. s<sub>${m}</sub> ≥ 0</b>:</p>
+    <div class="note ip-note">
+      <b>Fungsi Tujuan:</b> ${ipSt.min ? 'Minimumkan' : 'Maksimumkan'} Z = ${eq(ipSt.c, nm.slice(0, n), '').replace(/ = $/, '')}<br>
+      <b>Persamaan Baris Z Awal:</b> Z ${Z.slice(0, n).map((v, j) => (v < 0 ? ' − ' : ' + ') + fr(Math.abs(v)) + nm[j]).join('')} = 0<br>
+      ${eqList.join('<br>')}
+    </div>` +
+    renderGomoryTable(nm, bs, Z, T)
+  );
+
+  // Fase 1: Iterasi Simpleks Primal sampai Optimal Kontinu
+  let simplexIter = 0;
+  let unbounded = false;
+  while (simplexIter < 40) {
+    let pc = -1;
+    for (let j = 0; j < N; j++) {
+      if (Z[j] < -E && (pc < 0 || Z[j] < Z[pc] - E)) pc = j;
+    }
+    if (pc < 0) break; // Sudah optimal kontinu
+
+    const rt = [];
+    let pr = -1, best = Infinity;
+    for (let i = 0; i < T.length; i++) {
+      if (T[i][pc] > E) {
+        rt[i] = T[i][N] / T[i][pc];
+        if (rt[i] < best - E) { best = rt[i]; pr = i; }
+      }
+    }
+    if (pr < 0) {
+      push(`Tidak Terbatas`, renderGomoryTable(nm, bs, Z, T, { pc }) + `<div class="note er"><b>Masalah Tidak Terbatas (Unbounded):</b> Kolom ${nm[pc]} tidak memiliki elemen positif.</div>`);
+      unbounded = true;
+      break;
+    }
+
+    simplexIter++;
+    const lvName = nm[bs[pr]], evName = nm[pc], pvt = T[pr][pc];
+    const beforeTbl = renderGomoryTable(nm, bs, Z, T, { pc, pr, rt });
+
+    // Buat rincian OBE super detail sebelum matriks T dan Z diubah
+    const obeDetailHTML = buildDetailedGomoryOBE(
+      nm,
+      bs.slice(),
+      Z.slice(),
+      T.map(r => r.slice()),
+      pr,
+      pc,
+      `Relaksasi Simpleks Iterasi ${simplexIter}`
+    );
+
+    // Operasi Baris Elementer
+    T[pr] = T[pr].map(v => v / pvt);
+    for (let i = 0; i < T.length; i++) {
+      if (i === pr) continue;
+      const f = T[i][pc];
+      if (Math.abs(f) > E) T[i] = T[i].map((v, j) => v - f * T[pr][j]);
+    }
+    const zf = Z[pc];
+    if (Math.abs(zf) > E) {
+      for (let j = 0; j <= N; j++) Z[j] = Z[j] - zf * T[pr][j];
+    }
+    bs[pr] = pc;
+
+    push(`Simpleks Iterasi ${simplexIter}`,
+      `<p class="text-sm"><b>Iterasi Simpleks Biasa ke-${simplexIter}:</b> Kolom masuk adalah <b>${evName}</b> (koefisien baris Z paling negatif = <b>${fr(zf)}</b>) dan baris keluar adalah <b>${lvName}</b> (rasio positif terkecil = <b>${fr(best)}</b>, elemen pivot = <b>${fr(pvt)}</b>):</p>` +
+      beforeTbl +
+      LEG +
+      obeDetailHTML +
+      `<p class="text-sm font-semibold mt-4 mb-1">✅ Tabel Simpleks Baru Hasil OBE Iterasi ke-${simplexIter}:</p>` +
+      renderGomoryTable(nm, bs, Z, T)
+    );
+  }
+
+  if (unbounded) {
+    finishIPRender();
+    return;
+  }
+
+  // Tampilkan Tabel Optimal Relaksasi LP & Uji Kebulatan
+  const contVals = nm.slice(0, n).map((v, j) => {
+    const rIdx = bs.indexOf(j);
+    return `${v} = <b>${rIdx < 0 ? '0' : fr(T[rIdx][N])}</b>`;
+  });
+  push(`Optimal Kontinu`,
+    `<p class="text-sm">Seluruh koefisien pada baris Z sudah <b>≥ 0</b>, sehingga <b>Tabel Optimal Relaksasi Linear Programming</b> telah tercapai:</p>` +
+    renderGomoryTable(nm, bs, Z, T, { showFracCol: true }) +
+    `<div class="note ip-note">
+      <b>Solusi Optimal Kontinu:</b> ${contVals.join(', ')} dengan <b>Z = ${fr(ipSt.min ? -Z[N] : Z[N])}</b>.<br>
+      Perhatikan kolom <b>Pecahan (f<sub>i</sub>)</b> di sebelah kanan tabel. Jika masih ada variabel keputusan yang memuat bagian pecahan non-nol, kita lanjutkan ke pembuatan <b>Potongan Gomory (Cutting Plane)</b>.
+    </div>`
+  );
+
+  // Fase 2: Loop Pemotongan Gomory (Cutting Plane) & Dual Simpleks
+  let cutCount = 0;
+  while (cutCount < 12) {
+    // Cari baris basis yang memiliki nilai pecahan
+    let chosenRow = -1;
+    let bestFrac = -1;
+
+    for (let i = 0; i < T.length; i++) {
+      const varIdx = bs[i];
+      const { fracPart } = gomoryDecomp(T[i][N]);
+      if (fracPart > 1e-5 && (1 - fracPart) > 1e-5) {
+        if (rule === 'firstvar') {
+          // Prioritaskan variabel keputusan asli x1, x2.. dengan pecahan terbesar
+          const score = (varIdx < n ? 10 : 0) + fracPart;
+          if (score > bestFrac + 1e-6) {
+            bestFrac = score;
+            chosenRow = i;
+          }
+        } else {
+          if (fracPart > bestFrac + 1e-6) {
+            bestFrac = fracPart;
+            chosenRow = i;
+          }
+        }
+      }
+    }
+
+    // Jika semua variabel sudah bulat -> selesai!
+    if (chosenRow < 0) {
+      const finalVars = nm.slice(0, n).map((v, j) => {
+        const rIdx = bs.indexOf(j);
+        return `${v} = <b>${rIdx < 0 ? '0' : fr(Math.round(T[rIdx][N]))}</b>`;
+      });
+      const zFinal = ipSt.min ? -Z[N] : Z[N];
+      push(`Solusi Bulat Optimal`,
+        `<p class="text-sm"><b>Pemeriksaan Akhir Kebulatan:</b> Seluruh variabel basis pada kolom Solusi (RHS) telah bernilai <b>bulat (integer)</b> dan non-negatif!</p>` +
+        renderGomoryTable(nm, bs, Z, T, { showFracCol: true }) +
+        `<div class="note ok">
+          <b>🎉 Solusi Optimal Integer Ditemukan (${cutCount} Potongan Gomory):</b><br>
+          • Nilai Variabel Keputusan: ${finalVars.join(', ')}<br>
+          • <b>Nilai Optimal Z = ${fr(zFinal)}</b>
+        </div>`
+      );
+      break;
+    }
+
+    cutCount++;
+    const srcRow = T[chosenRow];
+    const srcVarName = nm[bs[chosenRow]];
+    const rhsDecomp = gomoryDecomp(srcRow[N]);
+
+    // Rincian pemisahan koefisien non-basis pada baris terpilih
+    const decompList = [];
+    const cutCoeffs = Array(N).fill(0);
+    for (let j = 0; j < N; j++) {
+      if (bs.includes(j)) {
+        cutCoeffs[j] = 0;
+        continue;
+      }
+      const val = srcRow[j];
+      if (Math.abs(val) < 1e-7) continue;
+      const d = gomoryDecomp(val);
+      cutCoeffs[j] = -d.fracPart;
+      decompList.push(`<li>Koefisien <b>${nm[j]}</b>: <span class="mono">${fr(val)} = ${d.intPart} + <b>${fr(d.fracPart)}</b> &nbsp;⇒&nbsp; f = <b>${fr(d.fracPart)}</b></span></li>`);
+    }
+
+    // Tambahkan variabel slack Gomory baru (S_k)
+    const sgName = `s${sb('g' + cutCount)}`;
+    nm.push(sgName);
+    Z.splice(N, 0, 0); // sisipkan 0 sebelum RHS pada baris Z
+    T.forEach(r => r.splice(N, 0, 0)); // sisipkan 0 sebelum RHS pada setiap baris lama
+    N = nm.length;
+
+    const newCutRow = Array(N + 1).fill(0);
+    for (let j = 0; j < N - 1; j++) newCutRow[j] = cutCoeffs[j];
+    newCutRow[N - 1] = 1; // koefisien sgName = 1
+    newCutRow[N] = -rhsDecomp.fracPart; // RHS negatif (-f_i)
+
+    T.push(newCutRow);
+    bs.push(N - 1);
+    const cutRowIdx = T.length - 1;
+
+    // Cari kolom masuk dengan Rasio Dual Simpleks
+    let dualPC = -1, minDualRatio = Infinity;
+    const dualRatioDesc = [];
+    for (let j = 0; j < N - 1; j++) {
+      if (newCutRow[j] < -1e-6) {
+        const ratio = Math.abs(Z[j] / newCutRow[j]);
+        dualRatioDesc.push(`<li>Kolom <b>${nm[j]}</b>: <span class="mono">|${fr(Z[j])} ÷ (${fr(newCutRow[j])})| = <b>${fr(ratio)}</b> (${ ratio.toFixed(3) })</span></li>`);
+        if (ratio < minDualRatio - 1e-7) {
+          minDualRatio = ratio;
+          dualPC = j;
+        }
+      }
+    }
+
+    const eqCutTerms = [];
+    for (let j = 0; j < N - 1; j++) {
+      if (Math.abs(newCutRow[j]) > 1e-7) {
+        eqCutTerms.push(`(${fr(newCutRow[j])})${nm[j]}`);
+      }
+    }
+
+    if (dualPC < 0) {
+      push(`Potongan ${cutCount} (Infeasible)`,
+        renderGomoryTable(nm, bs, Z, T, { cutRowIdx }) +
+        `<div class="note er"><b>Tidak Ada Solusi Bulat Layak:</b> Baris potongan ${sgName} memiliki RHS negatif tetapi tidak ada elemen negatif pada baris tersebut untuk melakukan pivot Dual Simpleks.</div>`
+      );
+      break;
+    }
+
+    const dualPivot = T[cutRowIdx][dualPC];
+    const tableWithCutHTML = renderGomoryTable(nm, bs, Z, T, { pc: dualPC, pr: cutRowIdx, cutRowIdx });
+
+    // Buat rincian OBE Dual Simpleks super detail sebelum T dan Z dimodifikasi
+    const dualOBEDetailHTML = buildDetailedGomoryOBE(
+      nm,
+      bs.slice(),
+      Z.slice(),
+      T.map(r => r.slice()),
+      cutRowIdx,
+      dualPC,
+      `Dual Simpleks Potongan Gomory ke-${cutCount} (${sgName})`
+    );
+
+    // Lakukan OBE Dual Simpleks
+    T[cutRowIdx] = T[cutRowIdx].map(v => v / dualPivot);
+    for (let i = 0; i < T.length; i++) {
+      if (i === cutRowIdx) continue;
+      const f = T[i][dualPC];
+      if (Math.abs(f) > E) T[i] = T[i].map((v, j) => v - f * T[cutRowIdx][j]);
+    }
+    const zf = Z[dualPC];
+    if (Math.abs(zf) > E) {
+      for (let j = 0; j <= N; j++) Z[j] = Z[j] - zf * T[cutRowIdx][j];
+    }
+    bs[cutRowIdx] = dualPC;
+
+    push(`Potongan Gomory ${cutCount} (${sgName})`,
+      `<div class="note ip-note">
+        <b>Pembentukan Kendala Potongan Gomory ke-${cutCount} (${sgName}) dari Baris ${srcVarName}:</b><br>
+        • Nilai ${srcVarName} saat ini = <span class="mono"><b>${fr(rhsDecomp.intPart + rhsDecomp.fracPart)}</b> = ${rhsDecomp.intPart} + <b>${fr(rhsDecomp.fracPart)}</b> (f<sub>i</sub> = ${fr(rhsDecomp.fracPart)})</span><br>
+        • Pemisahan koefisien variabel non-basis menjadi bagian bulat dan pecahan positif (0 ≤ f<sub>ij</sub> &lt; 1):
+        <ul class="list-disc pl-5 my-1">${decompList.join('')}</ul>
+        • Persamaan Baris Potongan Gomory: <span class="mono font-bold" style="color:var(--ip)">${eqCutTerms.join(' + ')} + ${sgName} = ${fr(-rhsDecomp.fracPart)}</span>
+      </div>
+      <p class="text-sm font-semibold mb-1">Tabel Simpleks Setelah Penambahan Baris ${sgName}:</p>` +
+      tableWithCutHTML +
+      LEG +
+      `<div class="note">
+        <b>Penerapan Metode Dual Simpleks:</b><br>
+        • <b>Baris Keluar (Leaving Row):</b> <b>${sgName}</b> (karena memiliki sisi kanan negatif <b>${fr(-rhsDecomp.fracPart)}</b>).<br>
+        • <b>Uji Rasio Dual Simpleks (|Z<sub>j</sub> / a<sub>rj</sub>| untuk a<sub>rj</sub> &lt; 0):</b>
+        <ul class="list-disc pl-5 my-1">${dualRatioDesc.join('')}</ul>
+        • <b>Kolom Masuk (Entering Column):</b> <b>${nm[dualPC]}</b> (rasio positif terkecil = <b>${fr(minDualRatio)}</b>) dengan elemen pivot = <b>${fr(dualPivot)}</b>.
+      </div>` +
+      dualOBEDetailHTML +
+      `<p class="text-sm font-semibold mt-4 mb-1">✅ Tabel Hasil Setelah Operasi Baris Elementer (OBE) pada Kolom ${nm[dualPC]}:</p>` +
+      renderGomoryTable(nm, bs, Z, T, { showFracCol: true })
+    );
+  }
+
+  finishIPRender();
+}
+
+function finishIPRender() {
+  ipCur = 0;
+  $('ip-out').hidden = false;
+  const tabs = $('ip-tabs');
+  tabs.innerHTML = '';
+  ipSteps.forEach((s, idx) => {
+    const b = document.createElement('button');
+    b.textContent = s.t;
+    b.onclick = () => { ipCur = idx; showIPStep(); };
+    tabs.appendChild(b);
+  });
+  showIPStep();
+}
+
+function showIPStep() {
+  const s = ipSteps[ipCur];
+  $('ip-view').innerHTML = `<h3 class="font-bold text-lg mb-2">${s.t}</h3>` + s.h;
+  $('ip-step-counter').textContent = `Tahap ${ipCur + 1} dari ${ipSteps.length}`;
+  [...$('ip-tabs').children].forEach((b, k) => b.classList.toggle('on', k === ipCur));
+  $('ip-prev').disabled = ipCur === 0;
+  $('ip-next').disabled = ipCur === ipSteps.length - 1;
+}
+
+function moveIPStep(delta) {
+  const next = ipCur + delta;
+  if (next >= 0 && next < ipSteps.length) {
+    ipCur = next;
+    showIPStep();
+  }
+}
+
+/* ========================================================================= */
+/* INISIALISASI AWAL                                                         */
+/* ========================================================================= */
+load(EX.e3);
+updateFracTester();
+selectWalkthroughCase(1);
+loadGomoryPreset('pdf2');
+switchCategory('ip');
+switchIPSub('materi');
+</script>
+</body>
+</html>
