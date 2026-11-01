@@ -1,0 +1,2632 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TKA Mentor Pro — Modul Bahasa Indonesia & Survei Karakter</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        },
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar & Interactive Utilities */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 3D Flashcard Flip */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Highlight animations for Text Analyzer */
+        .hl-span {
+            transition: all 0.25s ease;
+            border-radius: 0.375rem;
+            padding: 0.1rem 0.25rem;
+        }
+        .hl-kalimat-utama {
+            background-color: #fef08a;
+            color: #713f12;
+            font-weight: 700;
+            box-shadow: 0 0 0 2px #facc15;
+        }
+        .hl-fakta {
+            background-color: #bbf7d0;
+            color: #14532d;
+            border-bottom: 2px solid #16a34a;
+        }
+        .hl-opini {
+            background-color: #ddd6fe;
+            color: #4c1d95;
+            border-bottom: 2px dashed #7c3aed;
+        }
+        .hl-konjungsi {
+            background-color: #fed7aa;
+            color: #7c2d12;
+            font-weight: 600;
+        }
+
+        /* Smooth fade in for tabs */
+        .tab-fade {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-600 selection:text-white min-h-screen flex flex-col">
+
+    <!-- TOP ANNOUNCEMENT / MENTOR BAR -->
+    <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 text-white px-4 py-2.5 text-xs sm:text-sm border-b border-indigo-700/50">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400 text-slate-950">
+                    <i class="fa-solid fa-bolt"></i> PRIORITAS UJIAN DEKAT
+                </span>
+                <span class="font-medium text-indigo-100">Fokus Taktis Hari Ini: <strong class="text-white">Bahasa Indonesia (Literasi & EYD V)</strong> & <strong class="text-white">Survei Karakter (SJT Skor 4)</strong></span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-indigo-200">
+                <span><i class="fa-solid fa-fire text-amber-400 mr-1"></i> Target Skor: <strong class="text-white">750+</strong></span>
+                <button onclick="resetAllProgress()" class="hover:text-white underline decoration-indigo-400/60 transition" title="Reset Riwayat Belajar">Reset Progres</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER & NAVIGATION -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchMainPage('dashboard')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                        <i class="fa-solid fa-graduation-cap text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-extrabold text-lg tracking-tight text-slate-900 leading-none">TKA Mentor<span class="text-indigo-600">Pro</span></h1>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-200">SMA Edition</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Portal Belajar Interaktif & Simulasi TKA Terpadu</p>
+                    </div>
+                </div>
+
+                <!-- Main Navigation Pills (Desktop) -->
+                <nav class="hidden lg:flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80" aria-label="Menu Utama">
+                    <button onclick="switchMainPage('dashboard')" id="nav-dashboard" class="main-nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-white text-indigo-700 shadow-sm">
+                        <i class="fa-solid fa-compass"></i> Beranda & Rencana
+                    </button>
+                    <button onclick="switchMainPage('bindo')" id="nav-bindo" class="main-nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-book-open-reader text-indigo-600"></i> Bahasa Indonesia
+                    </button>
+                    <button onclick="switchMainPage('karakter')" id="nav-karakter" class="main-nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-hands-holding-circle text-emerald-600"></i> Survei Karakter
+                    </button>
+                    <button onclick="switchMainPage('tryout')" id="nav-tryout" class="main-nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-stopwatch text-rose-600"></i> Simulasi & Tryout TKA
+                    </button>
+                    <button onclick="switchMainPage('flashcard')" id="nav-flashcard" class="main-nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-layer-group text-amber-600"></i> Flashcard & Cheatsheet
+                    </button>
+                </nav>
+
+                <!-- Mini Pomodoro & XP Status -->
+                <div class="flex items-center gap-2.5">
+                    <!-- Mini Pomodoro Widget Trigger -->
+                    <div class="hidden sm:flex items-center gap-2 bg-slate-100 border border-slate-200/80 px-3 py-1.5 rounded-xl">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="pomo-indicator"></div>
+                        <span class="font-mono text-xs font-bold text-slate-800" id="header-pomo-time">25:00</span>
+                        <button onclick="togglePomodoro()" id="header-pomo-btn" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold ml-1" title="Mulai/Jeda Timer Belajar">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button onclick="resetPomodoro()" class="text-xs text-slate-400 hover:text-slate-600" title="Reset Timer">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Overall Mastery Badge -->
+                    <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-200/80 px-3 py-1.5 rounded-xl">
+                        <i class="fa-solid fa-award text-indigo-600 text-sm"></i>
+                        <div class="text-left">
+                            <div class="text-[10px] uppercase font-bold text-indigo-500 leading-none">Skor Kesiapan</div>
+                            <div class="text-xs font-extrabold text-indigo-950 leading-tight" id="header-readiness-pct">0% Siap</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation Scrollable Row -->
+            <div class="flex lg:hidden items-center gap-1.5 overflow-x-auto py-2.5 no-scrollbar border-t border-slate-100">
+                <button onclick="switchMainPage('dashboard')" id="mnav-dashboard" class="m-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-1.5">
+                    <i class="fa-solid fa-compass"></i> Beranda
+                </button>
+                <button onclick="switchMainPage('bindo')" id="mnav-bindo" class="m-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-open-reader"></i> B. Indonesia
+                </button>
+                <button onclick="switchMainPage('karakter')" id="mnav-karakter" class="m-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-hands-holding-circle"></i> Survei Karakter
+                </button>
+                <button onclick="switchMainPage('tryout')" id="mnav-tryout" class="m-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-stopwatch"></i> Simulasi TKA
+                </button>
+                <button onclick="switchMainPage('flashcard')" id="mnav-flashcard" class="m-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-layer-group"></i> Flashcard
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+        <!-- ================================================================= -->
+        <!-- PAGE 1: BERANDA & RENCANA BELAJAR (DASHBOARD MENTOR)              -->
+        <!-- ================================================================= -->
+        <section id="page-dashboard" class="main-page tab-fade space-y-8">
+            <!-- Hero Mentor Welcome Card -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-950 text-white p-6 sm:p-8 shadow-xl border border-indigo-800/40">
+                <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    <div class="lg:col-span-8 space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-semibold">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            Sesi Pendampingan Intensif TKA SMA
+                        </div>
+                        <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                            Halo, Calon Juara! Siap Menaklukkan <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-emerald-300">Bahasa Indonesia & Survei Karakter?</span>
+                        </h2>
+                        <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
+                            Banyak siswa kehilangan poin di <strong>Bahasa Indonesia</strong> karena terjebak bacaan panjang, dan kehilangan skor maksimal di <strong>Survei Karakter</strong> karena memilih jawaban "terlihat sopan tapi pasif". Di portal ini, kita bedah polanya dengan rumus cepat, lab interaktif, dan latihan berstandar TKA.
+                        </p>
+                        <div class="flex flex-wrap gap-3 pt-2">
+                            <button onclick="switchMainPage('bindo')" class="px-5 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition flex items-center gap-2">
+                                <i class="fa-solid fa-rocket"></i> Mulai Modul Bahasa Indonesia
+                            </button>
+                            <button onclick="switchMainPage('karakter')" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 transition flex items-center gap-2">
+                                <i class="fa-solid fa-compass-drafting"></i> Pelajari Survei Karakter
+                            </button>
+                            <button onclick="switchMainPage('tryout')" class="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/15 transition flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-300"></i> Langsung Simulasi Ujian
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Mentor Checklist & Progress -->
+                    <div class="lg:col-span-4 bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-300/40 flex items-center justify-center text-amber-300">
+                                    <i class="fa-solid fa-list-check"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-sm text-white">Target Misi Hari Ini</h3>
+                                    <p class="text-xs text-indigo-200">Centang misi untuk menaikkan kesiapan</p>
+                                </div>
+                            </div>
+                            <span id="mission-counter" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-900/80 text-indigo-200">0/5</span>
+                        </div>
+
+                        <div class="space-y-2 text-xs" id="mentor-missions-list">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Pillar Subject Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1: Bahasa Indonesia -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold border border-indigo-100">
+                                <i class="fa-solid fa-book-open-reader"></i>
+                            </span>
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">4 Sub-Modul + Lab</span>
+                        </div>
+                        <h3 class="text-lg font-extrabold text-slate-900 mb-1">1. Bahasa Indonesia</h3>
+                        <p class="text-xs text-slate-500 mb-4">Fokus pada Literasi Membaca Cepat, Ide Pokok, EYD V / Kata Baku, dan Kalimat Efektif.</p>
+                        <ul class="space-y-2 text-xs text-slate-600 mb-6">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-indigo-500"></i> <span><strong>Sub 1.1:</strong> Ide Pokok, Simpulan & Fakta/Opini</span></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-indigo-500"></i> <span><strong>Sub 1.2:</strong> EYD V, Tanda Baca & Kata Baku</span></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-indigo-500"></i> <span><strong>Sub 1.3:</strong> Kalimat Efektif & Kepaduan</span></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-indigo-500"></i> <span><strong>Sub 1.4:</strong> Bank Latihan Terbimbing</span></li>
+                        </ul>
+                    </div>
+                    <button onclick="switchMainPage('bindo')" class="w-full py-2.5 px-4 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-bold text-xs transition flex items-center justify-center gap-2">
+                        Buka Ruang Belajar B. Indonesia <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Card 2: Survei Karakter -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold border border-emerald-100">
+                                <i class="fa-solid fa-hands-holding-circle"></i>
+                            </span>
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">3 Sub-Modul + SJT</span>
+                        </div>
+                        <h3 class="text-lg font-extrabold text-slate-900 mb-1">2. Survei Karakter</h3>
+                        <p class="text-xs text-slate-500 mb-4">Mengukur kematangan etika, empati, integritas, dan pengambilan keputusan berbasis Profil Pelajar Pancasila.</p>
+                        <ul class="space-y-2 text-xs text-slate-600 mb-6">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-500"></i> <span><strong>Sub 2.1:</strong> 6 Dimensi Profil Pelajar Pancasila</span></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-500"></i> <span><strong>Sub 2.2:</strong> Strategi SJT & Simulator Dilema</span></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-500"></i> <span><strong>Sub 2.3:</strong> Bedah Kasus Skor 1–4</span></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-500"></i> <span><strong>Anti-Jebakan:</strong> Social Desirability Bias</span></li>
+                        </ul>
+                    </div>
+                    <button onclick="switchMainPage('karakter')" class="w-full py-2.5 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold text-xs transition flex items-center justify-center gap-2">
+                        Buka Ruang Survei Karakter <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Card 3: Strategi & Rumus Taktis Mentor -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold border border-amber-100">
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </span>
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">Rahasia Mentor</span>
+                        </div>
+                        <h3 class="text-lg font-extrabold text-slate-900 mb-1">3. Strategi Manajemen Waktu</h3>
+                        <p class="text-xs text-slate-500 mb-4">Kunci lulus TKA bukan hanya pintar, tetapi taktis mengelola energi dan durasi per butir soal.</p>
+                        <div class="space-y-2.5 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200/70 mb-4">
+                            <div class="flex items-start gap-2.5">
+                                <span class="px-1.5 py-0.5 bg-indigo-600 text-white rounded font-bold text-[10px] mt-0.5">ATURAN 1</span>
+                                <p class="text-slate-700"><strong>Baca Pertanyaan Dulu, Baru Teks!</strong> Hemat 40% waktu dengan langsung mencari kata kunci di kalimat pertama/terakhir paragraf.</p>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <span class="px-1.5 py-0.5 bg-emerald-600 text-white rounded font-bold text-[10px] mt-0.5">ATURAN 2</span>
+                                <p class="text-slate-700"><strong>Rumus Skor 4 Karakter:</strong> Pilih tindakan yang <em>Empatik + Solutif + Sesuai Aturan + Mengajak Dialog</em>.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="switchMainPage('tryout')" class="w-full py-2.5 px-4 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white font-bold text-xs transition flex items-center justify-center gap-2">
+                        Uji Kemampuan di Simulasi TKA <i class="fa-solid fa-stopwatch"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interactive Daily Warmup + Study Diagnostic -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left: Pemanasan Kilat 1 Menit (Quick Daily Challenge) -->
+                <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-fire-flame-curved"></i>
+                            </span>
+                            <div>
+                                <h3 class="font-extrabold text-slate-900 text-base">Pemanasan Otak 30 Detik: Baku atau Tidak Baku?</h3>
+                                <p class="text-xs text-slate-500">Uji refleks EYD V sebelum masuk ke materi berat</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-mono font-bold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-700" id="warmup-score-badge">Skor: 0</span>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 text-center space-y-4">
+                        <div class="text-xs uppercase tracking-wider font-bold text-slate-400">Manakah penulisan kata yang BAKU menurut KBBI VI / EYD V?</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto" id="warmup-buttons-container">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="warmup-feedback" class="text-xs font-medium text-slate-600 min-h-[2rem] flex items-center justify-center">
+                            Klik salah satu kata di atas untuk melihat penjelasan mentor!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Rencana Belajar H-7 Menuju Hari-H -->
+                <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2.5 mb-4">
+                            <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </span>
+                            <div>
+                                <h3 class="font-extrabold text-slate-900 text-base">Peta Jalan Intensif (Sprint Plan)</h3>
+                                <p class="text-xs text-slate-500">Rekomendasi urutan belajar dari Mentormu</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 flex items-start gap-3">
+                                <span class="font-mono font-bold text-indigo-700 bg-white px-2 py-1 rounded border border-indigo-200">SESI 1</span>
+                                <div>
+                                    <div class="font-bold text-slate-900">Kuasai Struktur Paragraf & Fakta vs Opini</div>
+                                    <p class="text-slate-600 mt-0.5">35% soal Bahasa Indonesia menanyakan Gagasan Utama, Simpulan, dan Fakta. Gunakan Lab Analitik Paragraf.</p>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-100 flex items-start gap-3">
+                                <span class="font-mono font-bold text-amber-700 bg-white px-2 py-1 rounded border border-amber-200">SESI 2</span>
+                                <div>
+                                    <div class="font-bold text-slate-900">Sapu Bersih PUEBI/EYD V & Kalimat Efektif</div>
+                                    <p class="text-slate-600 mt-0.5">Hafalkan 30 kata baku paling sering menjebak dan syarat kalimat efektif (hemat & logis).</p>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-3">
+                                <span class="font-mono font-bold text-emerald-700 bg-white px-2 py-1 rounded border border-emerald-200">SESI 3</span>
+                                <div>
+                                    <div class="font-bold text-slate-900">Kalibrasi Pola Pikir Survei Karakter (Skor 4)</div>
+                                    <p class="text-slate-600 mt-0.5">Latih kepekaan memilih tindakan aktif-konstruktif pada dilema etika di sekolah & masyarakat.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- PAGE 2: MATA PELAJARAN 1 — BAHASA INDONESIA                       -->
+        <!-- ================================================================= -->
+        <section id="page-bindo" class="main-page hidden tab-fade space-y-6">
+            <!-- Subject Header Banner -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-indigo-500/20">
+                        <i class="fa-solid fa-book-open-reader"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Mata Uji Prioritas 1</span>
+                            <span class="text-xs text-slate-400">•</span>
+                            <span class="text-xs font-semibold text-slate-500">Literasi Membaca & Penalaran Bahasa</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">Modul Lengkap Bahasa Indonesia TKA</h2>
+                    </div>
+                </div>
+
+                <!-- Subpage Navigation Tabs -->
+                <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button onclick="switchBindoSub('bacaan')" id="bsub-bacaan" class="bindo-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-sm">
+                        1.1 Pemahaman Bacaan
+                    </button>
+                    <button onclick="switchBindoSub('eyd')" id="bsub-eyd" class="bindo-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+                        1.2 EYD V & Kata Baku
+                    </button>
+                    <button onclick="switchBindoSub('efektif')" id="bsub-efektif" class="bindo-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+                        1.3 Kalimat Efektif
+                    </button>
+                    <button onclick="switchBindoSub('latihan')" id="bsub-latihan" class="bindo-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+                        1.4 Latihan Soal Terbimbing
+                    </button>
+                </div>
+            </div>
+
+            <!-- SUBPAGE 1.1: PEMAHAMAN BACAAN & IDE POKOK -->
+            <div id="bindo-panel-bacaan" class="bindo-subpanel space-y-6 tab-fade">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left: Concept Cards -->
+                    <div class="lg:col-span-6 space-y-6">
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-magnifying-glass-chart text-indigo-600"></i>
+                                    Rumus Cepat Menentukan Ide Pokok
+                                </h3>
+                                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Sering Keluar!</span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                <strong>Ide Pokok (Gagasan Utama)</strong> adalah inti pembahasan yang menjiwai seluruh paragraf. Ide pokok selalu berada di dalam <strong>Kalimat Utama</strong>. Jangan membaca berulang-ulang seluruh wacana! Gunakan <em>Rumus Lirik Awal-Akhir</em>:
+                            </p>
+
+                            <div class="space-y-3 text-xs">
+                                <div class="p-3.5 rounded-xl bg-slate-50 border-l-4 border-indigo-600">
+                                    <div class="font-bold text-slate-900 text-sm">1. Paragraf Deduktif (Umum → Khusus)</div>
+                                    <p class="text-slate-600 mt-1">Kalimat utama terletak di <strong>awal paragraf (Kalimat ke-1)</strong>. Ciri khas: Kalimat ke-2 mengandung kata ganti tunjuk (<em>hal ini, tersebut, kondisi itu</em>) atau pengulangan kata kunci dari kalimat pertama.</p>
+                                </div>
+                                <div class="p-3.5 rounded-xl bg-slate-50 border-l-4 border-emerald-600">
+                                    <div class="font-bold text-slate-900 text-sm">2. Paragraf Induktif (Khusus → Umum)</div>
+                                    <p class="text-slate-600 mt-1">Kalimat utama terletak di <strong>akhir paragraf</strong>. Ciri khas: Kalimat terakhir diawali konjungsi penyimpul seperti <em>Oleh karena itu, Dengan demikian, Jadi, Maka dari itu</em>.</p>
+                                </div>
+                                <div class="p-3.5 rounded-xl bg-slate-50 border-l-4 border-amber-500">
+                                    <div class="font-bold text-slate-900 text-sm">3. Fakta vs Opini di Dalam Teks</div>
+                                    <p class="text-slate-600 mt-1">
+                                        <strong>Fakta:</strong> Kejadian yang sudah terjadi, terverifikasi data/angka/tanggal/nama lembaga.<br>
+                                        <strong>Opini:</strong> Mengandung kata sifat subjektif (<em>sangat penting, cukup baik, mengkhawatirkan</em>) atau kata prediksi/saran (<em>seharusnya, diperkirakan, berpotensi, sebaiknya</em>).
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Perbedaan Ide Pokok vs Simpulan -->
+                        <div class="bg-gradient-to-br from-indigo-950 to-slate-900 text-white rounded-2xl p-6 shadow-md space-y-3">
+                            <div class="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wider">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Awas Tertukar di Ujian!
+                            </div>
+                            <h4 class="font-extrabold text-base">Bedanya Ide Pokok vs Simpulan Paragraf</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+                                <div class="bg-white/10 p-3.5 rounded-xl border border-white/10">
+                                    <div class="font-bold text-indigo-300 mb-1">IDE POKOK / GAGASAN UTAMA</div>
+                                    <p class="text-slate-200">Merupakan ringkasan langsung dari <strong>Kalimat Utama saja</strong>. Tidak boleh memasukkan rincian penjelas.</p>
+                                </div>
+                                <div class="bg-white/10 p-3.5 rounded-xl border border-white/10">
+                                    <div class="font-bold text-emerald-300 mb-1">SIMPULAN PARAGRAF</div>
+                                    <p class="text-slate-200">Merupakan benang merah logis dari <strong>keseluruhan isi paragraf</strong> (Sebab + Akibat atau Masalah + Solusi).</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Interactive Text Analyzer Demo -->
+                    <div class="lg:col-span-6 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                                <div>
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 bg-amber-100 text-amber-800 rounded">Lab Interaktif 1.1</span>
+                                    <h3 class="text-lg font-extrabold text-slate-900 mt-1">Simulator Bedah Wacana TKA</h3>
+                                    <p class="text-xs text-slate-500">Pilih teks contoh dan nyalakan sorotan untuk melihat anatomi paragraf secara visual.</p>
+                                </div>
+                            </div>
+
+                            <!-- Passage Selector -->
+                            <div class="flex flex-wrap gap-2 my-4">
+                                <button onclick="selectAnalyzerPassage(0)" id="passage-btn-0" class="passage-sel-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white">
+                                    Wacana 1: Krisis Air Bersih (Deduktif)
+                                </button>
+                                <button onclick="selectAnalyzerPassage(1)" id="passage-btn-1" class="passage-sel-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                    Wacana 2: Literasi Digital (Induktif)
+                                </button>
+                                <button onclick="selectAnalyzerPassage(2)" id="passage-btn-2" class="passage-sel-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                    Wacana 3: Transisi Energi (Campuran)
+                                </button>
+                            </div>
+
+                            <!-- Highlight Toggle Controls -->
+                            <div class="flex flex-wrap items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200/80 mb-4">
+                                <span class="text-xs font-bold text-slate-500 mr-1"><i class="fa-solid fa-highlighter mr-1"></i> Sorot Elemen:</span>
+                                <button onclick="toggleHighlightMode('utama')" id="hl-btn-utama" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-yellow-400 bg-yellow-100 text-yellow-900 transition">
+                                    Kalimat Utama
+                                </button>
+                                <button onclick="toggleHighlightMode('fakta')" id="hl-btn-fakta" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-emerald-400 bg-emerald-100 text-emerald-900 transition">
+                                    Kalimat Fakta
+                                </button>
+                                <button onclick="toggleHighlightMode('opini')" id="hl-btn-opini" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-violet-400 bg-violet-100 text-violet-900 transition">
+                                    Kalimat Opini
+                                </button>
+                                <button onclick="toggleHighlightMode('all')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-white ml-auto">
+                                    Tampilkan Semua
+                                </button>
+                            </div>
+
+                            <!-- Interactive Passage Box -->
+                            <div id="analyzer-passage-box" class="p-5 rounded-2xl bg-slate-50/70 border border-slate-200 text-sm leading-relaxed text-slate-800 space-y-2">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Mentor Diagnostic Summary for Selected Passage -->
+                        <div id="analyzer-summary-box" class="p-4 rounded-xl bg-indigo-50/80 border border-indigo-200/80 text-xs space-y-1.5">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPAGE 1.2: PUEBI / EYD V & KATA BAKU -->
+            <div id="bindo-panel-eyd" class="bindo-subpanel hidden space-y-6 tab-fade">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left: Golden Rules of EYD V -->
+                    <div class="lg:col-span-6 space-y-6">
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                            <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-spell-check text-indigo-600"></i>
+                                4 Kaidah Emas EYD V yang Selalu Muncul di TKA
+                            </h3>
+
+                            <div class="space-y-3 text-xs">
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                    <div class="font-bold text-indigo-700 text-sm mb-1">1. Bedakan Kata Depan "di" vs Awalan "di-"</div>
+                                    <p class="text-slate-600">
+                                        • <strong>Dipisah (di + spasi):</strong> Jika menunjukkan tempat/arah/waktu (bisa diganti kata <em>ke</em> atau <em>dari</em>). Contoh: <code>di sekolah</code>, <code>di samping</code>, <code>di atas</code>, <code>di luar negeri</code>.<br>
+                                        • <strong>Digabung (di-):</strong> Jika merupakan imbuhan kata kerja pasif (bisa diubah menjadi aktif <em>me-</em>). Contoh: <code>dikelola</code>, <code>ditindaklanjuti</code>, <code>diambil alih</code>.
+                                    </p>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                    <div class="font-bold text-indigo-700 text-sm mb-1">2. Huruf Kapital: Geografi & Jabatan</div>
+                                    <p class="text-slate-600">
+                                        • <strong>Diikuti Nama Diri = KAPITAL:</strong> <code>Pulau Kalimantan</code>, <code>Selat Sunda</code>, <code>Gubernur Jawa Tengah</code>, <code>Presiden Soekarno</code>.<br>
+                                        • <strong>Tanpa Nama / Jenis Spesies = KECIL:</strong> <code>berenang di danau</code>, <code>dilantik menjadi gubernur</code>, <code>jeruk bali</code>, <code>kunci inggris</code>, <code>gula jawa</code>.
+                                    </p>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                    <div class="font-bold text-indigo-700 text-sm mb-1">3. Gabungan Kata & Imbuhan Apit</div>
+                                    <p class="text-slate-600">
+                                        • Gabungan kata yang hanya mendapat awalan ATAU akhiran saja tetap <strong>dipisah</strong>: <code>bertanggung jawab</code>, <code>beri tahu</code>, <code>bekerja sama</code>.<br>
+                                        • Jika mendapat awalan DAN akhiran sekaligus, wajib <strong>serangkai</strong>: <code>pertanggungjawaban</code>, <code>pemberitahuan</code>, <code>ketidakadilan</code>.
+                                    </p>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                    <div class="font-bold text-indigo-700 text-sm mb-1">4. Tanda Koma (,) & Konjungsi</div>
+                                    <p class="text-slate-600">
+                                        • <strong>Pakai koma sebelum:</strong> <code>tetapi</code>, <code>melainkan</code>, <code>sedangkan</code>, <code>padahal</code>.<br>
+                                        • <strong>JANGAN pakai koma sebelum:</strong> <code>karena</code>, <code>sehingga</code>, <code>bahwa</code>, <code>maka</code> (di tengah kalimat induk-anak).<br>
+                                        • <strong>Wajib koma setelah konjungsi antarkalimat:</strong> <code>Oleh karena itu,</code> <code>Namun,</code> <code>Akan tetapi,</code> <code>Meskipun demikian,</code>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Interactive Spot & Fix the Error Lab -->
+                    <div class="lg:col-span-6 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded">Lab Interaktif 1.2</span>
+                                <h3 class="text-lg font-extrabold text-slate-900 mt-1">Detektor Kesalahan Ejaan & Kata Baku</h3>
+                                <p class="text-xs text-slate-500">Klik pada kata/frasa yang bertanda garis bawah di kalimat berikut untuk memperbaikinya sesuai EYD V!</p>
+                            </div>
+                            <button onclick="resetEydInspector()" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-xl">
+                                <i class="fa-solid fa-rotate"></i> Reset Lab
+                            </button>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 leading-loose text-sm text-slate-800" id="eyd-inspector-container">
+                            <!-- Rendered by JS -->
+                        </div>
+
+                        <div id="eyd-inspector-feedback" class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                            <i class="fa-solid fa-hand-pointer mr-1"></i> Klik pada <strong>6 bagian bergaris bawah merah</strong> pada paragraf di atas untuk memperbaiki ketidakbakuan kata dan ejaannya!
+                        </div>
+
+                        <!-- Quick Reference Table of Deadly Non-Standard Words -->
+                        <div class="pt-2">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2.5">Daftar Kata Baku Paling Sering Menjebak di TKA:</h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Risiko</span> <span class="text-slate-400 line-through ml-1">Resiko</span></div>
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Praktik</span> <span class="text-slate-400 line-through ml-1">Praktek</span></div>
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Apotek</span> <span class="text-slate-400 line-through ml-1">Apotik</span></div>
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Hierarki</span> <span class="text-slate-400 line-through ml-1">Hirarki</span></div>
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Kuitansi</span> <span class="text-slate-400 line-through ml-1">Kwitansi</span></div>
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Cendekiawan</span> <span class="text-slate-400 line-through ml-1">Cendikiawan</span></div>
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Antre</span> <span class="text-slate-400 line-through ml-1">Antri</span></div>
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Mengubah</span> <span class="text-slate-400 line-through ml-1">Merubah</span></div>
+                                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200"><span class="text-emerald-700 font-bold">✓ Sekadar</span> <span class="text-slate-400 line-through ml-1">Sekedar</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPAGE 1.3: KALIMAT EFEKTIF & KEPADUAN PARAGRAF -->
+            <div id="bindo-panel-efektif" class="bindo-subpanel hidden space-y-6 tab-fade">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left: 4 Pillars of Kalimat Efektif -->
+                    <div class="lg:col-span-6 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
+                            4 Syarat Mutlak Kalimat Efektif (Rumus S-H-L-P)
+                        </h3>
+                        <p class="text-xs text-slate-600">Jika ada soal TKA yang menanyakan <em>"Perbaikan kalimat tidak efektif..."</em>, periksa 4 penyakit kalimat berikut secara berurutan:</p>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3.5 rounded-xl bg-slate-50 border-l-4 border-indigo-600">
+                                <div class="font-bold text-slate-900">1. Kesepadanan Struktur (Wajib Punya Subjek & Predikat Jelas)</div>
+                                <p class="text-slate-600 mt-1">
+                                    <strong>Jebakan:</strong> Menaruh preposisi (<em>Bagi, Untuk, Dalam, Di, Pada</em>) di depan Subjek sehingga Subjeknya hilang!<br>
+                                    <span class="text-rose-600">✗ Salah:</span> <em>Bagi seluruh peserta ujian harap membawa kartu TKA.</em><br>
+                                    <span class="text-emerald-700 font-semibold">✓ Efektif:</span> <em>Seluruh peserta ujian harap membawa kartu TKA.</em>
+                                </p>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-slate-50 border-l-4 border-emerald-600">
+                                <div class="font-bold text-slate-900">2. Kehematan Kata (Bebas Pleonasme & Jamak Ganda)</div>
+                                <p class="text-slate-600 mt-1">
+                                    <strong>Jebakan:</strong> Menggunakan dua kata bersinonim sekaligus atau kata <em>para/banyak/beberapa</em> diikuti kata ulang.<br>
+                                    <span class="text-rose-600">✗ Salah:</span> <em>Para siswa-siswi saling bantu-membantu demi untuk kemajuan.</em><br>
+                                    <span class="text-emerald-700 font-semibold">✓ Efektif:</span> <em>Para siswa saling membantu demi kemajuan.</em>
+                                </p>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-slate-50 border-l-4 border-amber-500">
+                                <div class="font-bold text-slate-900">3. Kelogisan Makna</div>
+                                <p class="text-slate-600 mt-1">
+                                    <span class="text-rose-600">✗ Salah:</span> <em>Waktu dan tempat kami persilakan.</em> (Waktu & tempat tidak bisa maju ke podium!)<br>
+                                    <span class="text-emerald-700 font-semibold">✓ Efektif:</span> <em>Bapak Kepala Sekolah kami persilakan.</em>
+                                </p>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-slate-50 border-l-4 border-violet-600">
+                                <div class="font-bold text-slate-900">4. Keparalelan Bentuk Imbuhan (Kesejajaran)</div>
+                                <p class="text-slate-600 mt-1">
+                                    Jika rincian pertama memakai <code>me-</code>, rincian berikutnya juga harus memakai <code>me-</code>.<br>
+                                    <span class="text-rose-600">✗ Salah:</span> <em>Tahap penelitian meliputi pengumpulan data, menganalisis, dan penyimpulan.</em><br>
+                                    <span class="text-emerald-700 font-semibold">✓ Efektif:</span> <em>Tahap penelitian meliputi pengumpulan, penganalisisan, dan penyimpulan data.</em>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Interactive Sentence Refactoring Simulator -->
+                    <div class="lg:col-span-6 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                        <div class="border-b border-slate-100 pb-3">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded">Lab Interaktif 1.3</span>
+                            <h3 class="text-lg font-extrabold text-slate-900 mt-1">Simulator Bedah & Penyuntingan Kalimat</h3>
+                            <p class="text-xs text-slate-500">Pilih kasus kalimat di bawah ini dan pangkas kata-kata mubazir/salah struktur hingga menjadi Kalimat Efektif sempurna!</p>
+                        </div>
+
+                        <div id="sentence-refactor-list" class="space-y-4">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPAGE 1.4: LATIHAN SOAL PER-SUBMATERI (BAHASA INDONESIA) -->
+            <div id="bindo-panel-latihan" class="bindo-subpanel hidden space-y-6 tab-fade">
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-900">Bank Latihan Terbimbing: Bahasa Indonesia</h3>
+                            <p class="text-xs text-slate-500">Setiap soal dilengkapi fitur <strong>"Bedah Taktis Mentor"</strong> langsung setelah kamu memilih jawaban.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="filterBindoPractice('all')" id="bfilter-all" class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white">Semua Topik</button>
+                            <button onclick="filterBindoPractice('Ide Pokok & Simpulan')" id="bfilter-ide" class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700">Ide Pokok & Bacaan</button>
+                            <button onclick="filterBindoPractice('EYD V & Kata Baku')" id="bfilter-eyd" class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700">EYD V & Kata Baku</button>
+                            <button onclick="filterBindoPractice('Kalimat Efektif')" id="bfilter-efektif" class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700">Kalimat Efektif</button>
+                        </div>
+                    </div>
+
+                    <div id="bindo-practice-container" class="space-y-6">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- PAGE 3: MATA PELAJARAN 2 — SURVEI KARAKTER                        -->
+        <!-- ================================================================= -->
+        <section id="page-karakter" class="main-page hidden tab-fade space-y-6">
+            <!-- Subject Header Banner -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0 shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-hands-holding-circle"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Mata Uji Prioritas 2</span>
+                            <span class="text-xs text-slate-400">•</span>
+                            <span class="text-xs font-semibold text-slate-500">Profil Pelajar Pancasila & Situational Judgment Test (SJT)</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">Modul Strategis Survei Karakter</h2>
+                    </div>
+                </div>
+
+                <!-- Subpage Navigation Tabs -->
+                <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button onclick="switchKarakterSub('dimensi')" id="ksub-dimensi" class="karakter-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white shadow-sm">
+                        2.1 6 Dimensi Karakter
+                    </button>
+                    <button onclick="switchKarakterSub('dilema')" id="ksub-dilema" class="karakter-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+                        2.2 Strategi SJT & Simulator Dilema
+                    </button>
+                    <button onclick="switchKarakterSub('latihan')" id="ksub-latihan" class="karakter-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900">
+                        2.3 Latihan Kasus Skor 1–4
+                    </button>
+                </div>
+            </div>
+
+            <!-- SUBPAGE 2.1: 6 DIMENSI PROFIL PELAJAR PANCASILA -->
+            <div id="karakter-panel-dimensi" class="karakter-subpanel space-y-6 tab-fade">
+                <div class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white rounded-2xl p-6 shadow-md">
+                    <div class="max-w-3xl space-y-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-300"><i class="fa-solid fa-key mr-1"></i> Kunci Penilaian Survei Karakter</span>
+                        <h3 class="text-lg sm:text-xl font-extrabold">Bukan Hafalan Pasal, Melainkan Tindakan Nyata dalam Konflik Sosial!</h3>
+                        <p class="text-xs sm:text-sm text-emerald-100 leading-relaxed">
+                            Dalam Survei Karakter TKA, setiap soal memiliki <strong>gradasi poin 1 sampai 4</strong> (tidak ada skor 0 selama dijawab). Opsi bernilai <strong>4 poin</strong> selalu mencerminkan kematangan salah satu dari <strong>6 Dimensi Profil Pelajar Pancasila</strong> di bawah ini. Klik setiap dimensi untuk melihat indikator soalnya:
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 6 Interactive Dimension Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="pancasila-dimensions-grid">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <!-- SUBPAGE 2.2: DILEMA ETIKA & SIMULATOR PENGAMBILAN KEPUTUSAN -->
+            <div id="karakter-panel-dilema" class="karakter-subpanel hidden space-y-6 tab-fade">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left: Anatomy of Score 4 vs Score 3 Trap -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                            <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-scale-balanced text-emerald-600"></i>
+                                Anatomi Rubrik Skor 4, 3, 2, 1
+                            </h3>
+                            <p class="text-xs text-slate-600">Mengapa banyak siswa terjebak memilih jawaban berskor 3? Karena jawaban skor 3 terlihat "aman dan tidak mencari masalah", padahal pasif!</p>
+
+                            <div class="space-y-2.5 text-xs">
+                                <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                                    <div class="flex items-center justify-between font-bold text-emerald-900">
+                                        <span>SKOR 4 (Proaktif, Empatik & Solutif)</span>
+                                        <span class="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px]">TARGET KITA</span>
+                                    </div>
+                                    <p class="text-emerald-800 mt-1">Mengambil tindakan nyata secara sopan, merangkul pihak yang berselisih/kesulitan, tetap berpegang pada aturan/integritas, dan menawarkan solusi konstruktif.</p>
+                                </div>
+
+                                <div class="p-3 rounded-xl bg-blue-50 border border-blue-200">
+                                    <div class="flex items-center justify-between font-bold text-blue-900">
+                                        <span>SKOR 3 (Baik tapi Pasif / Delegatif)</span>
+                                        <span class="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px]">JEBAKAN UMUM</span>
+                                    </div>
+                                    <p class="text-blue-800 mt-1">Setuju pada nilai kebaikan, tetapi menyerahkan tanggung jawab ke orang lain (misal langsung melapor guru untuk hal sepele tanpa menegur baik-baik dulu) atau hanya bersimpati dalam hati.</p>
+                                </div>
+
+                                <div class="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                                    <div class="font-bold text-amber-900">SKOR 2 (Kompromi Semu / Konformis)</div>
+                                    <p class="text-amber-800 mt-1">Ikut-ikutan arus mayoritas demi menjaga pertemanan meskipun tahu ada aturan atau etika yang dilanggar.</p>
+                                </div>
+
+                                <div class="p-3 rounded-xl bg-rose-50 border border-rose-200">
+                                    <div class="font-bold text-rose-900">SKOR 1 (Egois, Agresif, atau Apatis)</div>
+                                    <p class="text-rose-800 mt-1">Menyalahkan pihak lain secara emosional, mendiskriminasi, atau memilih tidak peduli karena merasa bukan urusannya.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Interactive Branching Dilemma Simulator -->
+                    <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                                <div>
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded">Lab Interaktif 2.2</span>
+                                    <h3 class="text-lg font-extrabold text-slate-900 mt-1">Simulator Dilema Etika (SJT Roleplay)</h3>
+                                    <p class="text-xs text-slate-500">Pilih skenario kasus nyata di sekolah, ambil keputusan, dan lihat bedah skor 1–4 secara instan!</p>
+                                </div>
+                                <div class="flex gap-1.5">
+                                    <button onclick="loadDilemmaScenario(0)" id="dilemma-tab-0" class="dilemma-tab-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white">Kasus 1</button>
+                                    <button onclick="loadDilemmaScenario(1)" id="dilemma-tab-1" class="dilemma-tab-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Kasus 2</button>
+                                    <button onclick="loadDilemmaScenario(2)" id="dilemma-tab-2" class="dilemma-tab-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Kasus 3</button>
+                                </div>
+                            </div>
+
+                            <div id="dilemma-simulator-body" class="space-y-4">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPAGE 2.3: LATIHAN KASUS TERBIMBING (SURVEI KARAKTER) -->
+            <div id="karakter-panel-latihan" class="karakter-subpanel hidden space-y-6 tab-fade">
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-900">Bank Latihan Kasus Terbimbing: Survei Karakter</h3>
+                            <p class="text-xs text-slate-500">Pilih tindakan paling tepat. Sistem akan menampilkan <strong>bobot poin (1 s.d. 4) untuk SEMUA opsi</strong> beserta alasan psikometrinya.</p>
+                        </div>
+                    </div>
+
+                    <div id="karakter-practice-container" class="space-y-6">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- PAGE 4: SIMULASI KUIS & TRYOUT TKA TERPADU                        -->
+        <!-- ================================================================= -->
+        <section id="page-tryout" class="main-page hidden tab-fade space-y-6">
+            <!-- Tryout Mode Selection Screen -->
+            <div id="tryout-lobby" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div class="max-w-3xl space-y-2">
+                    <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-100 text-rose-700">Computer-Based Test (CBT) Simulator</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Simulasi Ujian TKA: Bahasa Indonesia & Survei Karakter</h2>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Rasakan atmosfer ujian sesungguhnya lengkap dengan hitung mundur waktu, navigasi nomor soal, penanda <em>Ragu-ragu</em>, serta rapor diagnostik kekuatan & kelemahan materimu di akhir sesi.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Paket 1: Tryout Terpadu Penuh -->
+                    <div class="rounded-2xl p-6 border-2 border-indigo-600 bg-indigo-50/40 flex flex-col justify-between space-y-4">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 bg-indigo-600 text-white rounded-full">Paling Direkomendasikan</span>
+                            <h3 class="text-lg font-extrabold text-slate-900 mt-3">Simulasi TKA Gabungan (Full)</h3>
+                            <p class="text-xs text-slate-600 mt-1">Kombinasi soal Bahasa Indonesia (Literasi, EYD V, Kalimat Efektif) dan Survei Karakter (SJT Skor 1–4).</p>
+                            <div class="mt-4 space-y-1.5 text-xs text-slate-700 font-medium">
+                                <div><i class="fa-solid fa-list-ol text-indigo-600 w-5"></i> 12 Butir Soal Pilihan TKA</div>
+                                <div><i class="fa-solid fa-clock text-indigo-600 w-5"></i> Durasi: 15 Menit</div>
+                                <div><i class="fa-solid fa-chart-pie text-indigo-600 w-5"></i> Analisis Skor + Pembahasan Lengkap</div>
+                            </div>
+                        </div>
+                        <button onclick="startTryoutSession('all')" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition">
+                            <i class="fa-solid fa-play mr-1"></i> Mulai Simulasi Gabungan
+                        </button>
+                    </div>
+
+                    <!-- Paket 2: Fokus Bahasa Indonesia -->
+                    <div class="rounded-2xl p-6 border border-slate-200 bg-white flex flex-col justify-between space-y-4">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full">Fokus Mapel 1</span>
+                            <h3 class="text-lg font-extrabold text-slate-900 mt-3">Drill Khusus Bahasa Indonesia</h3>
+                            <p class="text-xs text-slate-600 mt-1">Uji kecepatan membaca ide pokok, kejelian kata baku EYD V, dan ketepatan kalimat efektif.</p>
+                            <div class="mt-4 space-y-1.5 text-xs text-slate-700 font-medium">
+                                <div><i class="fa-solid fa-list-ol text-indigo-600 w-5"></i> 6 Soal High-Yield B. Indonesia</div>
+                                <div><i class="fa-solid fa-clock text-indigo-600 w-5"></i> Durasi: 8 Menit</div>
+                                <div><i class="fa-solid fa-check-double text-indigo-600 w-5"></i> Skor Benar = 100 Poin/Soal</div>
+                            </div>
+                        </div>
+                        <button onclick="startTryoutSession('bindo')" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white font-bold text-xs transition">
+                            <i class="fa-solid fa-play mr-1"></i> Mulai Drill B. Indonesia
+                        </button>
+                    </div>
+
+                    <!-- Paket 3: Fokus Survei Karakter -->
+                    <div class="rounded-2xl p-6 border border-slate-200 bg-white flex flex-col justify-between space-y-4">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full">Fokus Mapel 2</span>
+                            <h3 class="text-lg font-extrabold text-slate-900 mt-3">Drill Khusus Survei Karakter</h3>
+                            <p class="text-xs text-slate-600 mt-1">Uji ketajaman memilih opsi Skor 4 pada berbagai dilema sosial dan akademik di sekolah.</p>
+                            <div class="mt-4 space-y-1.5 text-xs text-slate-700 font-medium">
+                                <div><i class="fa-solid fa-list-ol text-emerald-600 w-5"></i> 6 Studi Kasus Karakter</div>
+                                <div><i class="fa-solid fa-clock text-emerald-600 w-5"></i> Durasi: 8 Menit</div>
+                                <div><i class="fa-solid fa-star text-emerald-600 w-5"></i> Sistem Pembobotan Berjenjang 1–4</div>
+                            </div>
+                        </div>
+                        <button onclick="startTryoutSession('karakter')" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition">
+                            <i class="fa-solid fa-play mr-1"></i> Mulai Drill Survei Karakter
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active CBT Exam Interface -->
+            <div id="tryout-active-workspace" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left: Question Display Area -->
+                <div class="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+                    <div>
+                        <!-- Top Question Bar -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <span id="cbt-q-number-badge" class="px-3 py-1 rounded-xl bg-indigo-600 text-white font-extrabold text-xs">Soal 1 / 12</span>
+                                <span id="cbt-q-topic-badge" class="px-3 py-1 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">Topik</span>
+                            </div>
+                            <div class="flex items-center gap-2 bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-xl text-rose-700 font-mono text-xs font-extrabold">
+                                <i class="fa-regular fa-clock"></i>
+                                <span id="cbt-timer-display">15:00</span>
+                            </div>
+                        </div>
+
+                        <!-- Question Stimulus / Text -->
+                        <div id="cbt-question-content" class="py-5 space-y-4 text-sm text-slate-800 leading-relaxed">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <!-- Options List -->
+                        <div id="cbt-options-container" class="space-y-2.5">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Bottom Navigation Controls -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                        <button onclick="navigateCbtQuestion(-1)" id="cbt-prev-btn" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-2">
+                            <i class="fa-solid fa-chevron-left"></i> Sebelumnya
+                        </button>
+
+                        <button onclick="toggleCbtDoubt()" id="cbt-doubt-btn" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs transition flex items-center gap-2 border border-amber-300">
+                            <i class="fa-solid fa-flag"></i> Ragu-ragu
+                        </button>
+
+                        <button onclick="navigateCbtQuestion(1)" id="cbt-next-btn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center gap-2">
+                            Selanjutnya <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Question Number Grid & Submit Panel -->
+                <div class="lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 text-sm mb-1">Navigasi Nomor Soal</h3>
+                        <p class="text-xs text-slate-500 mb-4">Klik nomor untuk melompat ke soal tertentu.</p>
+
+                        <div id="cbt-number-grid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-4 gap-2 mb-6">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="grid grid-cols-3 gap-2 text-[11px] text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+                            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-indigo-600 inline-block"></span> Terjawab</div>
+                            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400 inline-block"></span> Ragu-ragu</div>
+                            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-200 inline-block"></span> Kosong</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 pt-4 border-t border-slate-100">
+                        <div id="cbt-unanswered-warning" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900"></div>
+                        <button onclick="finishTryoutSession()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Kumpulkan & Lihat Hasil Analisis
+                        </button>
+                        <button onclick="cancelTryoutSession()" class="w-full py-2 rounded-xl text-slate-400 hover:text-rose-600 font-semibold text-xs transition">
+                            Batalkan Simulasi
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tryout Result & Diagnostic Review Screen -->
+            <div id="tryout-result-screen" class="hidden space-y-6">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- PAGE 5: FLASHCARD KILAT & CHEATSHEET MENTOR                       -->
+        <!-- ================================================================= -->
+        <section id="page-flashcard" class="main-page hidden tab-fade space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left: 3D Flip Flashcard Deck -->
+                <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full">Active Recall Engine</span>
+                            <h2 class="text-xl font-extrabold text-slate-900 mt-1">Flashcard Kilat TKA</h2>
+                            <p class="text-xs text-slate-500">Klik kartu untuk membalik dan menguji daya ingatmu!</p>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="filterFlashcards('all')" id="fc-filter-all" class="fc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white">Semua (18)</button>
+                            <button onclick="filterFlashcards('Kata Baku')" id="fc-filter-baku" class="fc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700">Kata Baku</button>
+                            <button onclick="filterFlashcards('Kaidah Bahasa')" id="fc-filter-kaidah" class="fc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700">Kaidah & Konjungsi</button>
+                            <button onclick="filterFlashcards('Survei Karakter')" id="fc-filter-karakter" class="fc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700">Indikator Karakter</button>
+                        </div>
+                    </div>
+
+                    <!-- 3D Flip Card Container -->
+                    <div class="perspective-1000 h-64 sm:h-72 w-full cursor-pointer select-none" onclick="flipCurrentFlashcard()">
+                        <div id="flashcard-3d-inner" class="transform-style-3d relative w-full h-full">
+                            <!-- Front Side -->
+                            <div class="backface-hidden absolute inset-0 rounded-3xl bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900 text-white p-6 sm:p-8 flex flex-col justify-between shadow-lg border border-indigo-700/40">
+                                <div class="flex items-center justify-between text-xs text-indigo-200">
+                                    <span id="fc-category-badge" class="px-2.5 py-1 rounded-lg bg-white/10 font-bold">Kategori</span>
+                                    <span id="fc-counter-badge" class="font-mono font-bold">1 / 18</span>
+                                </div>
+                                <div class="my-auto text-center space-y-2">
+                                    <div class="text-[11px] uppercase tracking-widest text-indigo-300 font-semibold">PERTANYAAN / UJI KONSEP</div>
+                                    <h3 id="fc-front-text" class="text-lg sm:text-2xl font-extrabold leading-snug">Memuat kartu...</h3>
+                                </div>
+                                <div class="text-center text-xs text-indigo-300">
+                                    <i class="fa-solid fa-rotate mr-1"></i> Klik di mana saja pada kartu untuk melihat jawaban
+                                </div>
+                            </div>
+
+                            <!-- Back Side -->
+                            <div class="backface-hidden rotate-y-180 absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-800 via-teal-900 to-slate-900 text-white p-6 sm:p-8 flex flex-col justify-between shadow-lg border border-emerald-600/40">
+                                <div class="flex items-center justify-between text-xs text-emerald-200">
+                                    <span class="px-2.5 py-1 rounded-lg bg-white/10 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Kunci & Penjelasan Mentor</span>
+                                    <span class="font-mono font-bold">JAWABAN</span>
+                                </div>
+                                <div class="my-auto text-center space-y-2">
+                                    <h3 id="fc-back-title" class="text-lg sm:text-xl font-extrabold text-amber-300">Jawaban</h3>
+                                    <p id="fc-back-desc" class="text-xs sm:text-sm text-emerald-50 leading-relaxed max-w-lg mx-auto">Penjelasan</p>
+                                </div>
+                                <div class="text-center text-xs text-emerald-300">
+                                    <i class="fa-solid fa-rotate mr-1"></i> Klik kembali untuk membalik kartu
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flashcard Controls -->
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="moveFlashcard(-1)" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left"></i> Kartu Sebelumnya
+                        </button>
+                        <button onclick="markFlashcardMastered()" id="fc-master-btn" class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition flex items-center gap-2">
+                            <i class="fa-solid fa-check"></i> Tandai Sudah Hafal (<span id="fc-mastered-count">0</span>)
+                        </button>
+                        <button onclick="moveFlashcard(1)" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center gap-2">
+                            Kartu Berikutnya <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Cheatsheet Rangkuman H-1 Ujian & Catatan Pribadi -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-500"></i>
+                                Cheatsheet Sakti H-1 Ujian
+                            </h3>
+                            <span class="text-[11px] font-bold text-slate-400">Ringkasan Inti</span>
+                        </div>
+
+                        <div class="space-y-3 text-xs text-slate-700">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <div class="font-bold text-indigo-700 mb-1">Rumus Konjungsi Antarkalimat</div>
+                                <p><strong>Namun, / Akan tetapi, / Meskipun demikian,</strong> = Pertentangan.<br>
+                                <strong>Oleh karena itu, / Dengan demikian,</strong> = Akibat / Simpulan.<br>
+                                <strong>Selain itu, / Di samping itu,</strong> = Penambahan selaras.</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <div class="font-bold text-emerald-700 mb-1">Rumus Anti-Salah Survei Karakter</div>
+                                <p>Hindari opsi yang mengandung kata ekstrem pasif/otoriter: <em>"Membiarkan saja", "Langsung mengeluarkan dari kelompok", "Menegur dengan keras di depan umum", "Mengikuti suara terbanyak agar tidak dijauhi"</em>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Sticky Notes (Saved to LocalStorage) -->
+                    <div class="bg-amber-50/70 rounded-3xl p-6 border border-amber-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-extrabold text-amber-950 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-pen-to-square text-amber-600"></i>
+                                Catatan Pribadi & Kata KunciTargetmu
+                            </h3>
+                            <span id="note-save-status" class="text-[11px] font-semibold text-emerald-700">Tersimpan Otomatis</span>
+                        </div>
+                        <textarea id="student-personal-notes" oninput="saveStudentNotes()" rows="4" placeholder="Tulis kata baku yang sering kamu lupa atau catatan rumus di sini..." class="w-full rounded-xl bg-white p-3 text-xs text-slate-800 border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200/80 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-[11px]">M</span>
+                <span class="font-bold text-slate-800">TKA Mentor Pro</span> — Dirancang khusus untuk kesuksesan TKA Bahasa Indonesia & Survei Karakter SMA.
+            </div>
+            <div>
+                Semangat belajar! Konsistensi 25 menit sehari mengalahkan SKS semalam suntuk.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================================================================= -->
+    <!-- COMPLETE APPLICATION LOGIC & EDUCATIONAL DATABASE                 -->
+    <!-- ================================================================= -->
+    <script>
+        // =================================================================
+        // 1. STATE & LOCAL STORAGE MANAGEMENT
+        // =================================================================
+        const STORAGE_KEY = 'tka_mentor_pro_v1';
+        let appState = {
+            missions: [
+                { id: 'm1', title: 'Bedah 3 wacana di Lab Analitik Paragraf (1.1)', done: false },
+                { id: 'm2', title: 'Temukan 6 kesalahan ejaan di Detektor EYD V (1.2)', done: false },
+                { id: 'm3', title: 'Selesaikan latihan terbimbing Bahasa Indonesia (1.4)', done: false },
+                { id: 'm4', title: 'Uji keputusan di Simulator Dilema Karakter (2.2)', done: false },
+                { id: 'm5', title: 'Tuntaskan 1 Sesi Simulasi Tryout TKA', done: false }
+            ],
+            masteredFlashcards: [],
+            answeredPracticeIds: [],
+            notes: '',
+            warmupScore: 0
+        };
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    appState = { ...appState, ...parsed };
+                }
+            } catch (e) {
+                console.warn('LocalStorage tidak tersedia, menggunakan memori sesi.');
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } catch (e) {}
+            updateHeaderReadiness();
+        }
+
+        function resetAllProgress() {
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();
+        }
+
+        function completeMission(missionId) {
+            const m = appState.missions.find(x => x.id === missionId);
+            if (m && !m.done) {
+                m.done = true;
+                saveState();
+                renderMissions();
+            }
+        }
+
+        function toggleMissionManual(missionId) {
+            const m = appState.missions.find(x => x.id === missionId);
+            if (m) {
+                m.done = !m.done;
+                saveState();
+                renderMissions();
+            }
+        }
+
+        function renderMissions() {
+            const container = document.getElementById('mentor-missions-list');
+            const counter = document.getElementById('mission-counter');
+            if (!container) return;
+
+            const doneCount = appState.missions.filter(m => m.done).length;
+            counter.textContent = `${doneCount}/${appState.missions.length}`;
+
+            container.innerHTML = appState.missions.map(m => `
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl cursor-pointer transition ${m.done ? 'bg-emerald-500/20 border border-emerald-400/30 text-emerald-100' : 'bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200'}">
+                    <input type="checkbox" ${m.done ? 'checked' : ''} onchange="toggleMissionManual('${m.id}')" class="rounded text-emerald-500 focus:ring-0">
+                    <span class="${m.done ? 'line-through text-emerald-200' : ''}">${m.title}</span>
+                </label>
+            `).join('');
+        }
+
+        function updateHeaderReadiness() {
+            const missionPct = (appState.missions.filter(m => m.done).length / appState.missions.length) * 50;
+            const practicePct = Math.min(30, (appState.answeredPracticeIds.length / 8) * 30);
+            const fcPct = Math.min(20, (appState.masteredFlashcards.length / 10) * 20);
+            const total = Math.round(missionPct + practicePct + fcPct);
+            const badge = document.getElementById('header-readiness-pct');
+            if (badge) badge.textContent = `${total}% Siap`;
+        }
+
+        // =================================================================
+        // 2. NAVIGATION CONTROLLER (MAIN PAGES & SUBPAGES)
+        // =================================================================
+        function switchMainPage(pageId) {
+            document.querySelectorAll('.main-page').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`page-${pageId}`);
+            if (target) target.classList.remove('hidden');
+
+            // Desktop nav highlight
+            document.querySelectorAll('.main-nav-btn').forEach(btn => {
+                btn.className = 'main-nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900';
+            });
+            const activeBtn = document.getElementById(`nav-${pageId}`);
+            if (activeBtn) {
+                activeBtn.className = 'main-nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-white text-indigo-700 shadow-sm';
+            }
+
+            // Mobile nav highlight
+            document.querySelectorAll('.m-nav-btn').forEach(btn => {
+                btn.className = 'm-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 flex items-center gap-1.5';
+            });
+            const activeMBtn = document.getElementById(`mnav-${pageId}`);
+            if (activeMBtn) {
+                activeMBtn.className = 'm-nav-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-1.5';
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchBindoSub(subId) {
+            document.querySelectorAll('.bindo-subpanel').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`bindo-panel-${subId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.bindo-sub-btn').forEach(btn => {
+                btn.className = 'bindo-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900';
+            });
+            document.getElementById(`bsub-${subId}`).className = 'bindo-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-sm';
+        }
+
+        function switchKarakterSub(subId) {
+            document.querySelectorAll('.karakter-subpanel').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`karakter-panel-${subId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.karakter-sub-btn').forEach(btn => {
+                btn.className = 'karakter-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-900';
+            });
+            document.getElementById(`ksub-${subId}`).className = 'karakter-sub-btn px-3.5 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white shadow-sm';
+        }
+
+        // =================================================================
+        // 3. POMODORO STUDY TIMER
+        // =================================================================
+        let pomoSeconds = 25 * 60;
+        let pomoInterval = null;
+        let pomoRunning = false;
+
+        function updatePomoDisplay() {
+            const mins = String(Math.floor(pomoSeconds / 60)).padStart(2, '0');
+            const secs = String(pomoSeconds % 60).padStart(2, '0');
+            const el = document.getElementById('header-pomo-time');
+            if (el) el.textContent = `${mins}:${secs}`;
+        }
+
+        function togglePomodoro() {
+            const btn = document.getElementById('header-pomo-btn');
+            if (pomoRunning) {
+                clearInterval(pomoInterval);
+                pomoRunning = false;
+                btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            } else {
+                pomoRunning = true;
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                pomoInterval = setInterval(() => {
+                    if (pomoSeconds > 0) {
+                        pomoSeconds--;
+                        updatePomoDisplay();
+                    } else {
+                        clearInterval(pomoInterval);
+                        pomoRunning = false;
+                        pomoSeconds = 25 * 60;
+                        updatePomoDisplay();
+                        btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetPomodoro() {
+            clearInterval(pomoInterval);
+            pomoRunning = false;
+            pomoSeconds = 25 * 60;
+            updatePomoDisplay();
+            const btn = document.getElementById('header-pomo-btn');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+        }
+
+        // =================================================================
+        // 4. DASHBOARD WARMUP: BAKU VS TIDAK BAKU REFLEX
+        // =================================================================
+        const warmupPairs = [
+            { baku: 'Risiko', tidakBaku: 'Resiko', reason: 'Serapan dari bahasa Inggris "risk" / Belanda "risico" menggunakan vokal i-i-o (Risiko).' },
+            { baku: 'Praktik', tidakBaku: 'Praktek', reason: 'Kata serapan berakhiran -ic dalam bahasa Inggris diserap menjadi -ik (Praktik, Malapraktik).' },
+            { baku: 'Hierarki', tidakBaku: 'Hirarki', reason: 'Sesuai KBBI VI, ejaan baku mempertahankan gugus vokal ie (Hierarki).' },
+            { baku: 'Cendekiawan', tidakBaku: 'Cendikiawan', reason: 'Kata dasarnya adalah "cendekia" (pakai huruf e), bukan "cendikia".' },
+            { baku: 'Mengubah', tidakBaku: 'Merubah', reason: 'Kata dasarnya adalah "ubah" (meN- + ubah = mengubah), bukan "rubah".' },
+            { baku: 'Kuitansi', tidakBaku: 'Kwitansi', reason: 'Serapan Belanda "kwitantie" dibakukan menjadi Kuitansi (pakai u-i, bukan kw).' },
+            { baku: 'Antre', tidakBaku: 'Antri', reason: 'Serapan dari bahasa Belanda "antreden", bentuk bakunya adalah Antre / Mengantre.' },
+            { baku: 'Sekadar', tidakBaku: 'Sekedar', reason: 'Berasal dari kata dasar "kadar" (ukuran), sehingga yang baku adalah Sekadar.' }
+        ];
+        let currentWarmupIdx = 0;
+
+        function renderWarmupPair() {
+            const pair = warmupPairs[currentWarmupIdx];
+            const container = document.getElementById('warmup-buttons-container');
+            const swap = Math.random() > 0.5;
+            const leftWord = swap ? pair.baku : pair.tidakBaku;
+            const rightWord = swap ? pair.tidakBaku : pair.baku;
+
+            container.innerHTML = `
+                <button onclick="answerWarmup('${leftWord}')" class="py-3.5 px-5 rounded-xl bg-white hover:bg-indigo-50 border-2 border-slate-200 hover:border-indigo-400 font-extrabold text-base text-slate-800 shadow-sm transition">
+                    ${leftWord}
+                </button>
+                <button onclick="answerWarmup('${rightWord}')" class="py-3.5 px-5 rounded-xl bg-white hover:bg-indigo-50 border-2 border-slate-200 hover:border-indigo-400 font-extrabold text-base text-slate-800 shadow-sm transition">
+                    ${rightWord}
+                </button>
+            `;
+        }
+
+        function answerWarmup(chosen) {
+            const pair = warmupPairs[currentWarmupIdx];
+            const fb = document.getElementById('warmup-feedback');
+            const badge = document.getElementById('warmup-score-badge');
+
+            if (chosen === pair.baku) {
+                appState.warmupScore += 10;
+                fb.innerHTML = `<span class="text-emerald-700 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Tepat Sekali! "${pair.baku}" adalah kata baku.</span> <span class="text-slate-600 ml-1">${pair.reason}</span>`;
+            } else {
+                fb.innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> Hati-hati terjebak! Yang baku adalah "${pair.baku}".</span> <span class="text-slate-600 ml-1">${pair.reason}</span>`;
+            }
+            badge.textContent = `Skor: ${appState.warmupScore}`;
+            saveState();
+
+            currentWarmupIdx = (currentWarmupIdx + 1) % warmupPairs.length;
+            setTimeout(renderWarmupPair, 1800);
+        }
+
+        // =================================================================
+        // 5. LAB 1.1: INTERACTIVE TEXT ANALYZER (BAHASA INDONESIA)
+        // =================================================================
+        const analyzerPassages = [
+            {
+                title: 'Krisis Air Bersih Perkotaan (Paragraf Deduktif)',
+                type: 'Deduktif (Kalimat Utama di Awal Paragraf)',
+                idePokok: 'Ancaman krisis air bersih di kawasan metropolitan Indonesia akibat eksploitasi air tanah.',
+                simpulan: 'Eksploitasi air tanah berlebih di kawasan metropolitan memicu krisis air bersih dan penurunan muka tanah sehingga memerlukan intervensi regulasi segera.',
+                sentences: [
+                    { text: '(1) Krisis ketersediaan air bersih kini menjadi ancaman serius bagi keberlanjutan hidup masyarakat di berbagai kawasan metropolitan Indonesia.', isUtama: true, isFakta: false, isOpini: true },
+                    { text: '(2) Berdasarkan laporan Kementerian PUPR tahun 2025, sekitar 34 persen rumah tangga di kota besar masih bergantung penuh pada penyedotan air tanah dalam.', isUtama: false, isFakta: true, isOpini: false },
+                    { text: '(3) Eksploitasi masif tersebut tercatat menurunkan permukaan tanah di pesisir utara Pulau Jawa rata-rata 4 hingga 9 sentimeter per tahun.', isUtama: false, isFakta: true, isOpini: false },
+                    { text: '(4) Apabila pemerintah daerah tidak segera memperketat izin sumur industri, bencana ekologis yang lebih parah diperkirakan akan melanda dalam satu dekade mendatang.', isUtama: false, isFakta: false, isOpini: true }
+                ]
+            },
+            {
+                title: 'Kerentanan Hoaks Kesehatan (Paragraf Induktif)',
+                type: 'Induktif (Kalimat Utama di Akhir Paragraf)',
+                idePokok: 'Pentingnya penguatan literasi digital kritis untuk menangkal hoaks kesehatan.',
+                simpulan: 'Karena tingginya sebaran informasi medis palsu dan kebiasaan berbagi tanpa verifikasi, penguatan literasi digital kritis di masyarakat menjadi kebutuhan mendesak.',
+                sentences: [
+                    { text: '(1) Survei Masyarakat Telematika Indonesia mencatat bahwa 41 persen informasi bohong yang beredar di grup pesan instan berkaitan dengan klaim pengobatan alternatif.', isUtama: false, isFakta: true, isOpini: false },
+                    { text: '(2) Sayangnya, sebagian besar pengguna media sosial cenderung langsung meneruskan pesan sensasional tanpa memeriksa kredibilitas sumber medisnya terlebih dahulu.', isUtama: false, isFakta: false, isOpini: true },
+                    { text: '(3) Rumah sakit rujukan di berbagai provinsi bahkan melaporkan peningkatan kasus komplikasi akibat pasien menghentikan terapi medis demi ramuan viral.', isUtama: false, isFakta: true, isOpini: false },
+                    { text: '(4) Oleh karena itu, penguatan literasi digital yang mengedepankan daya nalar kritis masyarakat menjadi benteng utama dalam menangkal disinformasi kesehatan.', isUtama: true, isFakta: false, isOpini: true }
+                ]
+            },
+            {
+                title: 'Ekosistem Kendaraan Listrik (Paragraf Campuran)',
+                type: 'Campuran / Deduktif-Induktif (Awal & Akhir)',
+                idePokok: 'Kesiapan ekosistem hulu-hilir sebagai syarat keberhasilan transisi kendaraan listrik.',
+                simpulan: 'Transisi kendaraan listrik di Indonesia tidak cukup hanya dengan subsidi pembelian, melainkan harus didukung kesiapan infrastruktur pengisian daya dan pengolahan limbah baterai.',
+                sentences: [
+                    { text: '(1) Keberhasilan program percepatan kendaraan listrik di Indonesia sangat bergantung pada kesiapan ekosistem pendukung dari hulu hingga hilir.', isUtama: true, isFakta: false, isOpini: true },
+                    { text: '(2) Hingga kuartal ketiga tahun 2025, jumlah Stasiun Pengisian Kendaraan Listrik Umum (SPKLU) baru mencapai 2.800 titik yang mayoritas terpusat di Jabodetabek dan Bali.', isUtama: false, isFakta: true, isOpini: false },
+                    { text: '(3) Selain ketimpangan distribusi infrastruktur, fasilitas daur ulang limbah baterai litium domestik juga masih berada pada tahap uji coba terbatas.', isUtama: false, isFakta: true, isOpini: false },
+                    { text: '(4) Dengan demikian, pemberian insentif harga kendaraan tidak akan berdampak optimal tanpa diimbangi pemerataan infrastruktur dan tata kelola ekosistem baterai.', isUtama: true, isFakta: false, isOpini: true }
+                ]
+            }
+        ];
+
+        let currentPassageIdx = 0;
+        let activeHighlights = { utama: true, fakta: false, opini: false };
+
+        function selectAnalyzerPassage(idx) {
+            currentPassageIdx = idx;
+            document.querySelectorAll('.passage-sel-btn').forEach((btn, i) => {
+                btn.className = i === idx
+                    ? 'passage-sel-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white'
+                    : 'passage-sel-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+            });
+            completeMission('m1');
+            renderAnalyzerPassage();
+        }
+
+        function toggleHighlightMode(mode) {
+            if (mode === 'all') {
+                activeHighlights = { utama: true, fakta: true, opini: true };
+            } else {
+                activeHighlights[mode] = !activeHighlights[mode];
+            }
+            renderAnalyzerPassage();
+        }
+
+        function renderAnalyzerPassage() {
+            const p = analyzerPassages[currentPassageIdx];
+            const box = document.getElementById('analyzer-passage-box');
+            const summary = document.getElementById('analyzer-summary-box');
+
+            // Update button active states
+            document.getElementById('hl-btn-utama').style.opacity = activeHighlights.utama ? '1' : '0.45';
+            document.getElementById('hl-btn-fakta').style.opacity = activeHighlights.fakta ? '1' : '0.45';
+            document.getElementById('hl-btn-opini').style.opacity = activeHighlights.opini ? '1' : '0.45';
+
+            box.innerHTML = p.sentences.map(s => {
+                let classes = ['hl-span'];
+                let badges = [];
+                if (activeHighlights.utama && s.isUtama) {
+                    classes.push('hl-kalimat-utama');
+                    badges.push('<span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-yellow-400 text-yellow-950 mr-1">Kalimat Utama</span>');
+                }
+                if (activeHighlights.fakta && s.isFakta) {
+                    classes.push('hl-fakta');
+                    badges.push('<span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-600 text-white mr-1">Fakta</span>');
+                }
+                if (activeHighlights.opini && s.isOpini) {
+                    classes.push('hl-opini');
+                    badges.push('<span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-violet-600 text-white mr-1">Opini</span>');
+                }
+                return `<span class="${classes.join(' ')}">${badges.join('')}${s.text}</span> `;
+            }).join('');
+
+            summary.innerHTML = `
+                <div class="font-extrabold text-indigo-950 text-xs uppercase tracking-wider mb-1"><i class="fa-solid fa-clipboard-check mr-1"></i> Hasil Bedah Wacana:</div>
+                <div><strong class="text-indigo-900">Jenis Paragraf:</strong> ${p.type}</div>
+                <div><strong class="text-indigo-900">Ide Pokok:</strong> ${p.idePokok}</div>
+                <div><strong class="text-indigo-900">Simpulan Utuh:</strong> ${p.simpulan}</div>
+            `;
+        }
+
+        // =================================================================
+        // 6. LAB 1.2: DETEKTOR KESALAHAN EYD V & KATA BAKU
+        // =================================================================
+        const eydErrorItems = [
+            { id: 'e1', wrong: 'praktek', right: 'praktik', rule: 'Kata serapan berakhiran -ic diserap menjadi -ik (praktik, apotek, atlet).' },
+            { id: 'e2', wrong: 'di kelola', right: 'dikelola', rule: 'Awalan "di-" pada kata kerja pasif wajib ditulis serangkai (dikelola, bukan di kelola).' },
+            { id: 'e3', wrong: 'bertanggungjawab', right: 'bertanggung jawab', rule: 'Gabungan kata yang hanya mendapat awalan "ber-" saja tetap dipisah: bertanggung jawab.' },
+            { id: 'e4', wrong: 'resiko', right: 'risiko', rule: 'Bentuk baku dalam KBBI VI adalah "risiko" (menggunakan huruf i), bukan "resiko".' },
+            { id: 'e5', wrong: 'sungai Mahakam', right: 'Sungai Mahakam', rule: 'Unsur geografi yang diikuti nama diri wajib diawali huruf kapital: Sungai Mahakam.' },
+            { id: 'e6', wrong: 'Oleh karena itu', right: 'Oleh karena itu,', rule: 'Konjungsi antarkalimat di awal kalimat wajib diikuti tanda koma (,).' }
+        ];
+        let fixedEydIds = [];
+
+        function renderEydInspector() {
+            const container = document.getElementById('eyd-inspector-container');
+            const makeToken = (errObj) => {
+                const isFixed = fixedEydIds.includes(errObj.id);
+                if (isFixed) {
+                    return `<span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 font-bold border border-emerald-300"><i class="fa-solid fa-check text-emerald-600 mr-1"></i>${errObj.right}</span>`;
+                }
+                return `<button onclick="fixEydToken('${errObj.id}')" class="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold border-b-2 border-rose-500 transition cursor-pointer">${errObj.wrong}</button>`;
+            };
+
+            container.innerHTML = `
+                Dalam ${makeToken(eydErrorItems[0])} konservasi lingkungan modern, kawasan hutan lindung yang ${makeToken(eydErrorItems[1])} secara kolaboratif terbukti lebih efektif menekan laju deforestasi. Setiap pemangku kepentingan wajib ${makeToken(eydErrorItems[2])} untuk meminimalkan ${makeToken(eydErrorItems[3])} pencemaran limbah di sepanjang aliran ${makeToken(eydErrorItems[4])}. ${makeToken(eydErrorItems[5])} pengawasan berkala dari pemerintah dan masyarakat adat tidak boleh mengendur sedikit pun.
+            `;
+        }
+
+        function fixEydToken(id) {
+            if (!fixedEydIds.includes(id)) {
+                fixedEydIds.push(id);
+            }
+            const item = eydErrorItems.find(x => x.id === id);
+            const fb = document.getElementById('eyd-inspector-feedback');
+
+            if (fixedEydIds.length === eydErrorItems.length) {
+                completeMission('m2');
+                fb.className = 'p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-900';
+                fb.innerHTML = `<i class="fa-solid fa-trophy text-emerald-600 mr-1"></i> <strong>Luar Biasa! Semua 6 kesalahan EYD V berhasil kamu perbaiki!</strong> Paragraf di atas kini 100% sesuai kaidah baku TKA.`;
+            } else {
+                fb.className = 'p-4 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-950';
+                fb.innerHTML = `<strong>Perbaikan (${fixedEydIds.length}/6):</strong> <span class="line-through text-rose-600">${item.wrong}</span> → <strong class="text-emerald-700">${item.right}</strong>. <br><span class="text-slate-600">${item.rule}</span>`;
+            }
+            renderEydInspector();
+        }
+
+        function resetEydInspector() {
+            fixedEydIds = [];
+            renderEydInspector();
+            const fb = document.getElementById('eyd-inspector-feedback');
+            fb.className = 'p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900';
+            fb.innerHTML = `<i class="fa-solid fa-hand-pointer mr-1"></i> Klik pada <strong>6 bagian bergaris bawah merah</strong> pada paragraf di atas untuk memperbaiki ketidakbakuan kata dan ejaannya!`;
+        }
+
+        // =================================================================
+        // 7. LAB 1.3: KALIMAT EFEKTIF REFACTORING DEMO
+        // =================================================================
+        const sentenceRefactorData = [
+            {
+                id: 'sr1',
+                title: 'Kasus 1: Penyakit Preposisi di Depan Subjek & Pleonasme',
+                badSentence: 'Bagi seluruh peserta TKA diharapkan agar supaya hadir tepat waktu.',
+                goodSentence: 'Seluruh peserta TKA diharapkan hadir tepat waktu.',
+                diagnosis: 'Kata depan "Bagi" di awal kalimat membuat kalimat kehilangan Subjek (tidak bersubjek). Selain itu, frasa "agar supaya" adalah pleonasme (pemborosan dua kata bersinonim).',
+                fixed: false
+            },
+            {
+                id: 'sr2',
+                title: 'Kasus 2: Penyakit Jamak Ganda & Ketidakparalelan Imbuhan',
+                badSentence: 'Para peneliti-peneliti sedang melakukan pengumpulan data, menganalisis sampel, dan penyimpulan hasil.',
+                goodSentence: 'Para peneliti sedang melakukan pengumpulan data, penganalisisan sampel, dan penyimpulan hasil.',
+                diagnosis: 'Kata "Para" sudah bermakna jamak sehingga tidak boleh diikuti kata ulang "peneliti-peneliti". Selain itu, rincian imbuhan harus paralel (peN-an: pengumpulan, penganalisisan, dan penyimpulan).',
+                fixed: false
+            },
+            {
+                id: 'sr3',
+                title: 'Kasus 3: Penyakit Rancu Konjungsi Sebab-Akibat',
+                badSentence: 'Karena curah hujan sangat ekstrem, sehingga jadwal penerbangan terpaksa ditunda.',
+                goodSentence: 'Karena curah hujan sangat ekstrem, jadwal penerbangan terpaksa ditunda.',
+                diagnosis: 'Kalimat tidak boleh menggabungkan konjungsi "Karena" (anak kalimat) dan "sehingga" (induk kalimat) sekaligus karena menyebabkan kalimat tidak memiliki induk kalimat.',
+                fixed: false
+            }
+        ];
+
+        function renderSentenceRefactor() {
+            const container = document.getElementById('sentence-refactor-list');
+            container.innerHTML = sentenceRefactorData.map((item, idx) => `
+                <div class="p-4 rounded-2xl border ${item.fixed ? 'bg-emerald-50/60 border-emerald-200' : 'bg-slate-50 border-slate-200'} space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold text-slate-700">${item.title}</span>
+                        <button onclick="toggleSentenceRefactor(${idx})" class="px-3 py-1 rounded-lg text-xs font-bold transition ${item.fixed ? 'bg-slate-200 text-slate-700' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}">
+                            ${item.fixed ? 'Lihat Kalimat Awal' : 'Pangkas & Efektifkan!'}
+                        </button>
+                    </div>
+                    <div class="p-3 rounded-xl bg-white border border-slate-200/80 text-xs sm:text-sm font-medium ${item.fixed ? 'text-emerald-800' : 'text-rose-700'}">
+                        ${item.fixed ? `<i class="fa-solid fa-check-circle text-emerald-600 mr-1"></i> "${item.goodSentence}"` : `<i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> "${item.badSentence}"`}
+                    </div>
+                    ${item.fixed ? `<p class="text-xs text-slate-600 leading-relaxed"><strong>Bedah Mentor:</strong> ${item.diagnosis}</p>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function toggleSentenceRefactor(idx) {
+            sentenceRefactorData[idx].fixed = !sentenceRefactorData[idx].fixed;
+            renderSentenceRefactor();
+        }
+
+        // =================================================================
+        // 8. SUBPAGE 1.4: BAHASA INDONESIA GUIDED PRACTICE BANK
+        // =================================================================
+        const bindoPracticeQuestions = [
+            {
+                id: 'bp1',
+                topic: 'Ide Pokok & Simpulan',
+                stimulus: '(1) Transformasi layanan kesehatan berbasis kecerdasan buatan (AI) di Indonesia mulai menunjukkan dampak nyata dalam mempercepat diagnosis penyakit katastropik. (2) Di beberapa rumah sakit vertikal Kementerian Kesehatan, algoritma pembacaan citra radiologi mampu mendeteksi lesi paru-paru 60 persen lebih cepat dibandingkan metode konvensional. (3) Namun, adopsi teknologi mutakhir ini belum merata karena keterbatasan infrastruktur internet pita lebar di puskesmas daerah terpencil. (4) Selain itu, regulasi pelindungan data rekam medis pasien juga menuntut pengawasan siber yang ekstra ketat.',
+                question: 'Gagasan utama (ide pokok) paragraf tersebut adalah...',
+                options: [
+                    'Keunggulan algoritma radiologi AI di rumah sakit vertikal Kementerian Kesehatan.',
+                    'Dampak dan tantangan implementasi kecerdasan buatan pada layanan kesehatan di Indonesia.',
+                    'Keterbatasan jaringan internet pita lebar di puskesmas daerah terpencil.',
+                    'Pentingnya regulasi pelindungan data rekam medis pasien di era kecerdasan buatan.',
+                    'Perbandingan kecepatan diagnosis metode konvensional dengan kecerdasan buatan.'
+                ],
+                correct: 1,
+                explanation: 'Kalimat (1) memperkenalkan dampak positif transformasi AI kesehatan, sedangkan kalimat (3) dan (4) menambahkan kendala/tantangan pemerataan serta regulasinya. Dengan demikian, ide pokok yang merangkum keseluruhan isi paragraf adalah dampak dan tantangan implementasi AI pada layanan kesehatan di Indonesia.'
+            },
+            {
+                id: 'bp2',
+                topic: 'Ide Pokok & Simpulan',
+                stimulus: 'Mengacu pada paragraf yang sama pada nomor sebelumnya: "(1) Transformasi layanan kesehatan... (2) Di beberapa rumah sakit vertikal Kementerian Kesehatan, algoritma pembacaan citra radiologi mampu mendeteksi lesi paru-paru 60 persen lebih cepat... (3) Namun, adopsi teknologi mutakhir ini belum merata... (4) Selain itu, regulasi pelindungan data rekam medis pasien juga menuntut pengawasan siber yang ekstra ketat."',
+                question: 'Kalimat yang mengandung FAKTA empiris terukur pada paragraf tersebut terdapat pada nomor...',
+                options: [
+                    'Kalimat (1) dan (3)',
+                    'Kalimat (2) saja',
+                    'Kalimat (3) dan (4)',
+                    'Kalimat (1) dan (4)',
+                    'Kalimat (4) saja'
+                ],
+                correct: 1,
+                explanation: 'Kalimat (2) menyajikan data kuantitatif hasil pengukuran empiris di rumah sakit vertikal Kemenkes (60 persen lebih cepat). Kalimat (1) mengandung opini "mulai menunjukkan dampak nyata", kalimat (3) opini "belum merata", dan kalimat (4) opini keharusan "menuntut pengawasan ekstra ketat".'
+            },
+            {
+                id: 'bp3',
+                topic: 'EYD V & Kata Baku',
+                stimulus: 'Cermati daftar kalimat berikut untuk menguji ketepatan ejaan EYD V!',
+                question: 'Manakah kalimat di bawah ini yang SELURUH kata dan penggunaan huruf kapitalnya BAKU sesuai EYD V?',
+                options: [
+                    'Apotik hidup yang dikelola warga Desa Sukamaju berhasil mengurangi resiko penyakit demam berdarah.',
+                    'Para atlit renang nasional sedang berlatih menyeberangi Selat Sunda dengan pengawasan tim medis.',
+                    'Pemerintah Provinsi Jawa Tengah terus mengoptimalkan praktik pelayanan publik berbasis digital di setiap kabupaten.',
+                    'Sekedar mengingatkan, jadual keberangkatan kereta api antarkota telah diperbarui sejak pekan lalu.',
+                    'Gubernur yang baru dilantik itu menghimbau masyarakat agar tidak antri di loket manual.'
+                ],
+                correct: 2,
+                explanation: 'Bedah Opsi: (A) salah pada "Apotik" (baku: Apotek) & "resiko" (baku: risiko). (B) salah pada "atlit" (baku: atlet). (D) salah pada "Sekedar" (baku: Sekadar) & "jadual" (baku: jadwal). (E) salah pada "menghimbau" (baku: mengimbau) & "antri" (baku: antre). Hanya opsi (C) yang 100% baku!'
+            },
+            {
+                id: 'bp4',
+                topic: 'EYD V & Kata Baku',
+                stimulus: '(1) Hilirisasi komoditas nikel memberikan nilai tambah ekonomi yang signifikan bagi neraca perdagangan nasional. (2) [...] kebijakan tersebut harus diimbangi dengan reklamasi lahan pascatambang agar tidak merusak biodiversitas pulau-pulau kecil.',
+                question: 'Konjungsi antarkalimat beserta tanda baca yang paling tepat untuk mengisi bagian rumpang [...] pada kalimat (2) adalah...',
+                options: [
+                    'Oleh karena itu,',
+                    'Meskipun demikian,',
+                    'Dengan demikian,',
+                    'Sedangkan,',
+                    'Selain itu'
+                ],
+                correct: 1,
+                explanation: 'Kalimat (1) menyatakan dampak positif (nilai tambah ekonomi), sedangkan kalimat (2) menyatakan syarat/peringatan kontras (harus diimbangi reklamasi agar tidak merusak). Hubungan antarkalimatnya adalah pertentangan/konsesif, sehingga yang tepat adalah "Meskipun demikian," (lengkap dengan tanda koma). Catatan: "Sedangkan" adalah konjungsi intrakalimat dan tidak boleh di awal kalimat!'
+            },
+            {
+                id: 'bp5',
+                topic: 'Kalimat Efektif',
+                stimulus: 'Perhatikan kalimat tidak efektif berikut:\n"Dalam rapat koordinasi kemarin membahas tentang strategi pencegahan perundungan di lingkungan sekolah."',
+                question: 'Agar kalimat tersebut menjadi kalimat efektif yang memenuhi syarat kesepadanan struktur dan kehematan, perbaikan yang paling tepat adalah...',
+                options: [
+                    'Di dalam rapat koordinasi kemarin membahas mengenai strategi pencegahan perundungan di lingkungan sekolah.',
+                    'Rapat koordinasi kemarin membahas strategi pencegahan perundungan di lingkungan sekolah.',
+                    'Dalam rapat koordinasi kemarin dibahas tentang strategi pencegahan perundungan di sekolah.',
+                    'Bagi peserta rapat koordinasi kemarin membahas strategi pencegahan perundungan di lingkungan sekolah.',
+                    'Rapat koordinasi kemarin membahas tentang berbagai strategi-strategi pencegahan perundungan di lingkungan sekolah.'
+                ],
+                correct: 1,
+                explanation: 'Ada 2 kesalahan pada kalimat soal: (1) Kata depan "Dalam" di awal kalimat membuat Subjek hilang; (2) Kata kerja transitif "membahas" diikuti preposisi "tentang" (seharusnya langsung diikuti Objek). Jadi perbaikan paling efektif adalah: "Rapat koordinasi kemarin (S) membahas (P) strategi pencegahan perundungan di lingkungan sekolah (O)."'
+            }
+        ];
+
+        let currentBindoFilter = 'all';
+        let userBindoAnswers = {};
+
+        function filterBindoPractice(topic) {
+            currentBindoFilter = topic;
+            document.querySelectorAll('.bfilter-btn').forEach(btn => {
+                btn.className = 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700';
+            });
+            const mapId = {
+                'all': 'bfilter-all',
+                'Ide Pokok & Simpulan': 'bfilter-ide',
+                'EYD V & Kata Baku': 'bfilter-eyd',
+                'Kalimat Efektif': 'bfilter-efektif'
+            };
+            const active = document.getElementById(mapId[topic]);
+            if (active) active.className = 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white';
+            renderBindoPractice();
+        }
+
+        function renderBindoPractice() {
+            const container = document.getElementById('bindo-practice-container');
+            const filtered = currentBindoFilter === 'all'
+                ? bindoPracticeQuestions
+                : bindoPracticeQuestions.filter(q => q.topic === currentBindoFilter);
+
+            container.innerHTML = filtered.map((q, idx) => {
+                const chosen = userBindoAnswers[q.id];
+                const isAnswered = chosen !== undefined;
+                return `
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 font-bold text-xs">${q.topic}</span>
+                            <span class="text-xs font-mono text-slate-400">Kode Soal: ${q.id.toUpperCase()}</span>
+                        </div>
+                        <div class="p-4 rounded-xl bg-white border border-slate-200/80 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">${q.stimulus}</div>
+                        <div class="font-bold text-sm text-slate-900">${idx + 1}. ${q.question}</div>
+                        <div class="space-y-2">
+                            ${q.options.map((opt, oIdx) => {
+                                const letter = String.fromCharCode(65 + oIdx);
+                                let btnStyle = 'bg-white hover:bg-indigo-50/60 border-slate-200 text-slate-700';
+                                if (isAnswered) {
+                                    if (oIdx === q.correct) {
+                                        btnStyle = 'bg-emerald-50 border-emerald-500 text-emerald-950 font-bold';
+                                    } else if (oIdx === chosen && chosen !== q.correct) {
+                                        btnStyle = 'bg-rose-50 border-rose-400 text-rose-900';
+                                    }
+                                }
+                                return `
+                                    <button onclick="selectBindoPracticeAnswer('${q.id}', ${oIdx})" class="w-full text-left p-3 rounded-xl border text-xs sm:text-sm transition flex items-start gap-3 ${btnStyle}">
+                                        <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 font-bold flex items-center justify-center shrink-0 text-xs">${letter}</span>
+                                        <span>${opt}</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                        ${isAnswered ? `
+                            <div class="p-4 rounded-xl ${chosen === q.correct ? 'bg-emerald-100/70 border border-emerald-300 text-emerald-950' : 'bg-amber-50 border border-amber-300 text-amber-950'} text-xs leading-relaxed space-y-1">
+                                <div class="font-extrabold flex items-center gap-1.5">
+                                    <i class="fa-solid ${chosen === q.correct ? 'fa-circle-check text-emerald-600' : 'fa-lightbulb text-amber-600'}"></i>
+                                    ${chosen === q.correct ? 'Jawabanmu Tepat!' : `Kurang Tepat — Jawaban Benar: Opsi ${String.fromCharCode(65 + q.correct)}`}
+                                </div>
+                                <p><strong>Pembahasan Taktis Mentor:</strong> ${q.explanation}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectBindoPracticeAnswer(qId, optIdx) {
+            userBindoAnswers[qId] = optIdx;
+            if (!appState.answeredPracticeIds.includes(qId)) {
+                appState.answeredPracticeIds.push(qId);
+            }
+            if (Object.keys(userBindoAnswers).length >= 3) {
+                completeMission('m3');
+            }
+            saveState();
+            renderBindoPractice();
+        }
+
+        // =================================================================
+        // 9. SUBPAGE 2.1: 6 DIMENSI PROFIL PELAJAR PANCASILA
+        // =================================================================
+        const pancasilaDimensions = [
+            {
+                title: '1. Beriman, Bertakwa & Berakhlak Mulia',
+                icon: 'fa-heart',
+                color: 'emerald',
+                subElemen: 'Integritas (Kejujuran), Empati, Menghormati Perbedaan Keyakinan, Menjaga Alam.',
+                tkaTrap: 'Menoleransi kecurangan teman dekat atas nama "kesetiakawanan".',
+                score4Formula: 'Menolak menyontek dengan santun, mengingatkan teman secara empatik di ruang privat, dan menawarkan belajar bersama.'
+            },
+            {
+                title: '2. Berkebinekaan Global',
+                icon: 'fa-earth-asia',
+                color: 'indigo',
+                subElemen: 'Menghargai Budaya Lain, Komunikasi Interkultural, Menolak Stereotip & Perundungan.',
+                tkaTrap: 'Bersikap netral/diam saja saat siswa pindahan dari daerah lain diejek logat bicaranya.',
+                score4Formula: 'Menegur teman yang mengejek secara baik-baik, merangkul siswa baru ke dalam kelompok, dan mengenalkan keberagaman budaya.'
+            },
+            {
+                title: '3. Bergotong Royong',
+                icon: 'fa-people-carry-box',
+                color: 'amber',
+                subElemen: 'Kolaborasi Aktif, Kepedulian Sosial, Berbagi Beban Kerja secara Adil.',
+                tkaTrap: 'Mengerjakan seluruh tugas kelompok sendirian karena kesal ada anggota yang pasif, atau langsung mencoret namanya.',
+                score4Formula: 'Mengajak anggota yang pasif berdialog untuk mencari tahu kendalanya, lalu membagi ulang porsi tugas sesuai kemampuannya.'
+            },
+            {
+                title: '4. Mandiri',
+                icon: 'fa-person-hiking',
+                color: 'violet',
+                subElemen: 'Regulasi Emosi, Disiplin Diri, Inisiatif Belajar, Tanggung Jawab atas Kesalahan.',
+                tkaTrap: 'Menyalahkan situasi eksternal (macet, listrik padam) ketika terlambat mengumpulkan tugas.',
+                score4Formula: 'Mengakui kelalaian secara jujur tanpa mencari kambing hitam, menerima konsekuensi, dan menyusun jadwal antisipasi.'
+            },
+            {
+                title: '5. Bernalar Kritis',
+                icon: 'fa-brain',
+                color: 'rose',
+                subElemen: 'Verifikasi Informasi (Tabayyun), Objektivitas Data, Mengambil Keputusan Berbasis Bukti.',
+                tkaTrap: 'Langsung ikut memboikot/menyebarkan kabar viral tentang sekolah sebelum ada klarifikasi resmi.',
+                score4Formula: 'Menahan diri untuk tidak menyebarkan kabar yang belum terverifikasi, mencari sumber primer, dan mengajak teman berpikir objektif.'
+            },
+            {
+                title: '6. Kreatif',
+                icon: 'fa-lightbulb',
+                color: 'teal',
+                subElemen: 'Keluwesan Berpikir, Mencari Solusi Alternatif saat Keterbatasan Dana/Alat.',
+                tkaTrap: 'Membatalkan acara pentas seni/proyek ilmiah hanya karena proposal dana dipotong.',
+                score4Formula: 'Memodifikasi konsep kegiatan dengan memanfaatkan bahan daur ulang/sumber daya yang tersedia tanpa mengurangi esensi acara.'
+            }
+        ];
+
+        function renderPancasilaDimensions() {
+            const grid = document.getElementById('pancasila-dimensions-grid');
+            grid.innerHTML = pancasilaDimensions.map(d => `
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">
+                                <i class="fa-solid ${d.icon}"></i>
+                            </div>
+                            <h4 class="font-extrabold text-slate-900 text-sm leading-snug">${d.title}</h4>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-3"><strong>Fokus Indikator:</strong> ${d.subElemen}</p>
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
+                            <strong><i class="fa-solid fa-xmark mr-1"></i> Jebakan Skor Rendah:</strong> ${d.tkaTrap}
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                            <strong><i class="fa-solid fa-check mr-1"></i> Pola Skor 4 (Maksimal):</strong> ${d.score4Formula}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // =================================================================
+        // 10. LAB 2.2: INTERACTIVE DILEMMA SIMULATOR (SURVEI KARAKTER)
+        // =================================================================
+        const dilemmaScenarios = [
+            {
+                title: 'Kasus 1: Dilema Integritas vs Solidaritas Sahabat',
+                dimension: 'Beriman & Berakhlak Mulia (Integritas) + Gotong Royong',
+                story: 'Kamu adalah bendahara panitia pensi SMA. Sahabat dekatmu yang menjadi koordinator perlengkapan memintamu meminjamkan uang kas panitia sebesar Rp500.000 selama tiga hari untuk membayar biaya perbaikan motor ayahnya yang mendadak rusak. Ia berjanji akan menggantinya sebelum audit OSIS pekan depan. Apa tindakan yang kamu ambil?',
+                choices: [
+                    {
+                        text: 'Menolak meminjamkan uang kas panitia dengan sopan karena melanggar amanah organisasi, lalu menawarkan bantuan dari uang tabungan pribadimu atau menggalang patungan sukarela bersama teman dekat.',
+                        score: 4,
+                        badge: 'SKOR 4 — Integritas Utuh + Empati Solutif',
+                        feedback: 'Sempurna! Kamu menjaga integritas uang publik (tidak kompromi pada penyalahgunaan wewenang) sekaligus tetap menunjukkan empati nyata lewat solusi pribadi yang sah.'
+                    },
+                    {
+                        text: 'Menolak permintaan tersebut secara tegas dan langsung melaporkan niat sahabatmu kepada Pembina OSIS agar ia diberi peringatan keras.',
+                        score: 3,
+                        badge: 'SKOR 3 — Patuh Aturan tapi Kurang Empatik',
+                        feedback: 'Kamu memang menjaga aturan kas, tetapi langsung melapor untuk memberi sanksi atas kesulitan keluarga sahabat tanpa dialog empatik terkesan kaku dan merusak relasi.'
+                    },
+                    {
+                        text: 'Meminjamkan uang kas tersebut secara diam-diam dengan syarat sahabatmu menulis surat perjanjian bermeterai agar uangnya pasti kembali sebelum audit.',
+                        score: 2,
+                        badge: 'SKOR 2 — Kompromi Integritas',
+                        feedback: 'Meskipun ada surat perjanjian, memakai dana publik organisasi untuk kepentingan pribadi tetap merupakan pelanggaran prosedur dan penyalahgunaan amanah.'
+                    },
+                    {
+                        text: 'Langsung memberikan uang kas tersebut karena menolong sahabat yang sedang kesusahan jauh lebih penting daripada aturan birokrasi OSIS.',
+                        score: 1,
+                        badge: 'SKOR 1 — Mengabaikan Integritas & Akuntabilitas',
+                        feedback: 'Terjebak solidaritas buta yang melanggar prinsip kejujuran dan akuntabilitas keuangan.'
+                    }
+                ]
+            },
+            {
+                title: 'Kasus 2: Konflik Anggota Kelompok yang Pasif karena Bekerja',
+                dimension: 'Bergotong Royong + Empati Sosial',
+                story: 'Kelompokmu mendapat proyek makalah sosiologi yang harus dikumpulkan lusa. Salah satu anggota kelompokmu, Raka, selalu tidak hadir saat diskusi sepulang sekolah. Dari teman lain, kamu mendengar Raka harus menjaga warung ibunya yang sedang sakit setiap sore. Anggota kelompok lain marah dan menuntut agar nama Raka dihapus saja dari sampul makalah. Sebagai ketua kelompok, apa yang kamu lakukan?',
+                choices: [
+                    {
+                        text: 'Menenangkan teman-teman, menghubungi Raka secara pribadi untuk mengonfirmasi kondisinya, lalu memberi Raka bagian tugas yang bisa dikerjakan dari rumah sambil menjaga warung.',
+                        score: 4,
+                        badge: 'SKOR 4 — Kepemimpinan Inklusif, Adil & Empatik',
+                        feedback: 'Tepat sekali! Kamu melakukan tabayyun (klarifikasi), berempati pada kendala keluarga teman, namun tetap menjaga keadilan kontribusi dengan menyesuaikan bentuk tugasnya.'
+                    },
+                    {
+                        text: 'Meminta anggota lain memaklumi kondisi Raka dan tetap mencantumkan nama Raka di makalah meskipun ia sama sekali tidak mengerjakan bagian apa pun.',
+                        score: 3,
+                        badge: 'SKOR 3 — Empatik tapi Kurang Mendidik Tanggung Jawab',
+                        feedback: 'Niatmu baik, tetapi membebaskan Raka 100% tanpa komunikasi dapat memicu kecemburuan anggota lain dan tidak melatih komunikasi tanggung jawab.'
+                    },
+                    {
+                        text: 'Menyerahkan keputusan sepenuhnya kepada pemungutan suara (voting) anggota kelompok agar kamu tidak disalahkan.',
+                        score: 2,
+                        badge: 'SKOR 2 — Menghindari Tanggung Jawab Kepemimpinan',
+                        feedback: 'Voting tanpa klarifikasi fakta terlebih dahulu berisiko menghasilkan keputusan mayoritas yang tidak adil bagi Raka.'
+                    },
+                    {
+                        text: 'Langsung mencoret nama Raka dari kelompok karena aturan harus ditegakkan tanpa pandang bulu.',
+                        score: 1,
+                        badge: 'SKOR 1 — Kaku & Nir-Empati',
+                        feedback: 'Mengabaikan empati kemanusiaan dan tidak melakukan klarifikasi terlebih dahulu.'
+                    }
+                ]
+            },
+            {
+                title: 'Kasus 3: Menyikapi Tuduhan Viral di Media Sosial Sekolah',
+                dimension: 'Bernalar Kritis + Berakhlak Mulia',
+                story: 'Di akun menfess anonim sekolahmu, muncul unggahan viral yang menuduh salah satu pengurus OSIS menggelapkan dana sumbangan bencana. Unggahan itu hanya menampilkan tangkapan layar percakapan yang dipotong. Grup kelasmu ramai menghujat pengurus tersebut dan mengajak memboikot kegiatan OSIS besok. Bagaimana sikapmu?',
+                choices: [
+                    {
+                        text: 'Menahan diri untuk tidak ikut menyebarkan tuduhan, mengajak teman-teman di grup kelas menunggu audit/klarifikasi resmi, serta mendorong pengurus OSIS membuka laporan transparansi dana secara terbuka.',
+                        score: 4,
+                        badge: 'SKOR 4 — Bernalar Kritis, Objektif & Konstruktif',
+                        feedback: 'Luar biasa! Kamu menerapkan prinsip verifikasi data (anti-hoaks), meredam perundungan siber, dan mendorong solusi berbasis transparansi.'
+                    },
+                    {
+                        text: 'Memilih diam dan keluar sementara dari grup kelas agar tidak terseret dalam perdebatan yang membuang waktu belajar.',
+                        score: 3,
+                        badge: 'SKOR 3 — Aman Pribadi tapi Pasif Sosial',
+                        feedback: 'Kamu memang tidak ikut menyebar fitnah, tetapi belum berperan aktif menjernihkan suasana di lingkungan sosialmu.'
+                    },
+                    {
+                        text: 'Ikut membagikan unggahan tersebut ke grup lain dengan tambahan kalimat "Semoga tidak benar" agar semakin banyak yang mengawasi.',
+                        score: 2,
+                        badge: 'SKOR 2 — Ikut Memperluas Disinformasi',
+                        feedback: 'Menyebarkan informasi yang belum terverifikasi meskipun dengan embel-embel ragu tetap memperburuk penghakiman massa.'
+                    },
+                    {
+                        text: 'Langsung ikut memboikot acara OSIS dan menuntut pengurus tersebut mundur karena "tidak mungkin ada asap kalau tidak ada api".',
+                        score: 1,
+                        badge: 'SKOR 1 — Reaktif & Bias Konfirmasi',
+                        feedback: 'Melanggar asas praduga tak bersalah dan tidak bernalar kritis terhadap bukti anonim.'
+                    }
+                ]
+            }
+        ];
+
+        let currentDilemmaIdx = 0;
+        let selectedDilemmaChoice = null;
+
+        function loadDilemmaScenario(idx) {
+            currentDilemmaIdx = idx;
+            selectedDilemmaChoice = null;
+            document.querySelectorAll('.dilemma-tab-btn').forEach((btn, i) => {
+                btn.className = i === idx
+                    ? 'dilemma-tab-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white'
+                    : 'dilemma-tab-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700';
+            });
+            renderDilemmaSimulator();
+        }
+
+        function chooseDilemmaOption(cIdx) {
+            selectedDilemmaChoice = cIdx;
+            completeMission('m4');
+            renderDilemmaSimulator();
+        }
+
+        function renderDilemmaSimulator() {
+            const sc = dilemmaScenarios[currentDilemmaIdx];
+            const body = document.getElementById('dilemma-simulator-body');
+
+            body.innerHTML = `
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-sm text-slate-900">${sc.title}</span>
+                        <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">${sc.dimension}</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">${sc.story}</p>
+                </div>
+
+                <div class="space-y-2.5">
+                    ${sc.choices.map((c, idx) => {
+                        const isChosen = selectedDilemmaChoice === idx;
+                        const showAll = selectedDilemmaChoice !== null;
+                        let cardClass = 'bg-white hover:bg-emerald-50/50 border-slate-200 text-slate-700';
+                        if (showAll) {
+                            if (c.score === 4) cardClass = 'bg-emerald-50 border-emerald-500 text-emerald-950';
+                            else if (c.score === 3) cardClass = 'bg-blue-50/70 border-blue-300 text-blue-950';
+                            else if (c.score === 2) cardClass = 'bg-amber-50/70 border-amber-300 text-amber-950';
+                            else cardClass = 'bg-rose-50/70 border-rose-300 text-rose-950';
+                        }
+                        return `
+                            <div onclick="chooseDilemmaOption(${idx})" class="p-3.5 rounded-xl border transition cursor-pointer ${cardClass}">
+                                <div class="flex items-start justify-between gap-3">
+                                    <span class="text-xs sm:text-sm font-medium">${c.text}</span>
+                                    ${showAll ? `<span class="shrink-0 px-2.5 py-1 rounded-lg font-mono font-extrabold text-xs ${c.score === 4 ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white'}">+${c.score} Poin</span>` : ''}
+                                </div>
+                                ${showAll ? `
+                                    <div class="mt-2 pt-2 border-t border-black/10 text-xs">
+                                        <strong>${c.badge}:</strong> ${c.feedback}
+                                        ${isChosen ? ' <span class="underline font-bold ml-1">(Pilihanmu)</span>' : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // =================================================================
+        // 11. SUBPAGE 2.3: LATIHAN KASUS TERBIMBING (SURVEI KARAKTER)
+        // =================================================================
+        const karakterPracticeQuestions = [
+            {
+                id: 'kp1',
+                dimension: 'Berkebinekaan Global & Toleransi',
+                question: 'Sekolahmu mengadakan rapat pembentukan panitia kemah bakti lintas kelas. Saat menentukan jadwal kegiatan hari Minggu pagi, seorang siswa yang berbeda agama menyampaikan bahwa pada jam tersebut ia harus mengikuti ibadah rutin, namun anggota lain sudah terlanjur menyepakati jadwal senam bersama dan penjelajahan. Sikap paling tepat yang sebaiknya kamu ambil sebagai ketua rapat adalah...',
+                options: [
+                    { text: 'Mengajak seluruh panitia menyesuaikan kembali susunan acara (rundown) agar waktu ibadah semua agama terfasilitasi dengan baik tanpa mengganggu agenda inti kemah.', score: 4, reason: 'Inklusif, menghormati hak beribadah, dan mencari jalan keluar win-win melalui musyawarah.' },
+                    { text: 'Memberikan izin khusus kepada siswa tersebut untuk tidak mengikuti kegiatan pagi, sementara acara kemah tetap berjalan sesuai jadwal awal.', score: 3, reason: 'Toleran secara pasif, namun membuat siswa tersebut kehilangan kesempatan berpartisipasi penuh dalam kegiatan utama.' },
+                    { text: 'Meminta siswa tersebut menunda ibadahnya sekali saja demi kekompakan acara sekolah yang hanya diadakan setahun sekali.', score: 1, reason: 'Tidak menghormati hak dasar beribadah dan memaksakan kehendak mayoritas.' },
+                    { text: 'Menyerahkan masalah tersebut kepada guru pembina agar panitia siswa tidak perlu berdebat panjang.', score: 2, reason: 'Menghindari tanggung jawab musyawarah dan kepemimpinan.' }
+                ]
+            },
+            {
+                id: 'kp2',
+                dimension: 'Kemandirian & Tanggung Jawab Akademik',
+                question: 'Kamu baru saja menyadari bahwa file presentasi kelompok yang menjadi tanggung jawabmu tertinggal di laptop rumah, padahal giliran presentasi kelompokmu tinggal 20 menit lagi dan jarak rumahmu tidak memungkinkan untuk pulang. Apa tindakan yang kamu lakukan?',
+                options: [
+                    { text: 'Segera mengakui kelalaian kepada anggota kelompok dan guru, lalu berinisiatif membuat poin-poin ringkas di papan tulis atau menggunakan catatan draf di ponsel agar presentasi tetap berjalan.', score: 4, reason: 'Bertanggung jawab penuh, jujur tanpa alasan berbelit, dan langsung fokus pada solusi darurat yang kreatif.' },
+                    { text: 'Meminta maaf kepada anggota kelompok dan memohon kepada guru agar giliran presentasi kelompokmu ditunda ke minggu depan.', score: 3, reason: 'Jujur dan sopan, namun belum mengupayakan solusi maksimal agar target hari itu tetap terlaksana.' },
+                    { text: 'Mengatakan kepada guru bahwa file presentasi tiba-tiba rusak (corrupt) terkena virus agar nilai kelompokmu tidak dikurangi.', score: 1, reason: 'Tidak jujur dan memanipulasi fakta demi menghindari konsekuensi.' },
+                    { text: 'Meminta teman satu kelompok yang paling pintar berbicara untuk melakukan improvisasi tanpa memberitahu guru bahwa filenya tertinggal.', score: 2, reason: 'Melimpahkan beban kepada teman dan kurang transparan.' }
+                ]
+            },
+            {
+                id: 'kp3',
+                dimension: 'Kreativitas & Kepedulian Lingkungan',
+                question: 'Setelah acara bazar sekolah selesai, kamu melihat banyak sekali sampah spanduk plastik (vinyl) dan kardus dekorasi yang ditinggalkan begitu saja oleh berbagai stan kelas di lapangan. Petugas kebersihan sekolah tampak kewalahan karena jumlahnya hanya dua orang. Apa langkah terbaik yang kamu ambil?',
+                options: [
+                    { text: 'Mengajak teman-teman terdekat membantu memilah sampah di lapangan sekaligus mengusulkan ke OSIS agar kardus dan spanduk bekas dikumpulkan untuk didaur ulang menjadi properti ekstrakurikuler.', score: 4, reason: 'Menggabungkan kepedulian nyata (turun tangan langsung), kolaborasi, dan ide kreatif berkelanjutan (upcycling).' },
+                    { text: 'Langsung membantu petugas kebersihan memunguti sampah semampumu hingga lapangan bersih sebelum pulang.', score: 3, reason: 'Sangat peduli dan ringan tangan, namun dampaknya akan lebih besar jika menggerakkan kolaborasi dan solusi sistemik.' },
+                    { text: 'Memotret tumpukan sampah tersebut lalu mengunggahnya ke grup WhatsApp ketua kelas agar masing-masing kelas kembali membersihkan stannya.', score: 2, reason: 'Hanya memberi instruksi dari jauh tanpa turun tangan memulai aksi nyata.' },
+                    { text: 'Segera pulang karena stan kelasmu sendiri sudah dibersihkan dengan rapi sejak sore tadi.', score: 1, reason: 'Bersikap individualistis dan kurang peka terhadap kebersihan lingkungan bersama.' }
+                ]
+            }
+        ];
+
+        let userKarakterAnswers = {};
+
+        function renderKarakterPractice() {
+            const container = document.getElementById('karakter-practice-container');
+            container.innerHTML = karakterPracticeQuestions.map((q, idx) => {
+                const chosen = userKarakterAnswers[q.id];
+                const isAnswered = chosen !== undefined;
+                return `
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs">${q.dimension}</span>
+                            <span class="text-xs font-mono text-slate-400">Kasus SJT #${idx + 1}</span>
+                        </div>
+                        <div class="font-bold text-sm text-slate-900 leading-relaxed">${idx + 1}. ${q.question}</div>
+                        <div class="space-y-2.5">
+                            ${q.options.map((opt, oIdx) => {
+                                const letter = String.fromCharCode(65 + oIdx);
+                                let style = 'bg-white hover:bg-emerald-50/40 border-slate-200 text-slate-700';
+                                if (isAnswered) {
+                                    if (opt.score === 4) style = 'bg-emerald-50 border-emerald-500 text-emerald-950';
+                                    else if (opt.score === 3) style = 'bg-blue-50/70 border-blue-300 text-blue-950';
+                                    else if (opt.score === 2) style = 'bg-amber-50/70 border-amber-300 text-amber-950';
+                                    else style = 'bg-rose-50/70 border-rose-300 text-rose-950';
+                                }
+                                return `
+                                    <div onclick="selectKarakterPractice('${q.id}', ${oIdx})" class="p-3.5 rounded-xl border transition cursor-pointer ${style}">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="flex items-start gap-2.5 text-xs sm:text-sm">
+                                                <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 font-bold flex items-center justify-center shrink-0 text-xs">${letter}</span>
+                                                <span>${opt.text}</span>
+                                            </div>
+                                            ${isAnswered ? `<span class="shrink-0 px-2.5 py-1 rounded-lg font-mono font-extrabold text-xs ${opt.score === 4 ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white'}">Skor ${opt.score}</span>` : ''}
+                                        </div>
+                                        ${isAnswered ? `
+                                            <div class="mt-2 pt-2 border-t border-black/10 text-xs text-slate-700">
+                                                <strong>Analisis Rubrik:</strong> ${opt.reason} ${chosen === oIdx ? '<span class="font-bold text-indigo-700 ml-1">(Pilihanmu)</span>' : ''}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectKarakterPractice(qId, oIdx) {
+            userKarakterAnswers[qId] = oIdx;
+            if (!appState.answeredPracticeIds.includes(qId)) {
+                appState.answeredPracticeIds.push(qId);
+            }
+            saveState();
+            renderKarakterPractice();
+        }
+
+        // =================================================================
+        // 12. TRYOUT & CBT SIMULATION ENGINE (12 COMPREHENSIVE QUESTIONS)
+        // =================================================================
+        const masterTryoutBank = [
+            // 6 Soal Bahasa Indonesia
+            {
+                id: 'to_bi_1',
+                subject: 'bindo',
+                topic: 'Ide Pokok & Struktur Wacana',
+                stimulus: '(1) Pengembangan kawasan pertanian perkotaan (urban farming) kini tidak lagi dipandang sekadar hobi estetika, melainkan strategi ketahanan pangan keluarga di tengah fluktuasi harga komoditas. (2) Data Badan Pangan Nasional tahun 2025 menunjukkan bahwa rumah tangga yang memanfaatkan pekarangan sempit dengan sistem hidroponik mampu menghemat pengeluaran belanja sayur hingga 28 persen per bulan. (3) Di samping efisiensi ekonomi, aktivitas bercocok tanam di sela-sela rutinitas kota terbukti menurunkan tingkat stres warga. (4) Oleh sebab itu, pemerintah kota mulai mengintegrasikan program kebun komunitas ke dalam tata ruang permukiman padat.',
+                question: 'Simpulan yang paling tepat untuk merangkum keseluruhan isi paragraf di atas adalah...',
+                options: [
+                    'Sistem hidroponik di pekarangan sempit mampu menghemat pengeluaran belanja rumah tangga sebesar 28 persen setiap bulan.',
+                    'Pertanian perkotaan merupakan hobi estetika yang kini diwajibkan oleh Badan Pangan Nasional di seluruh permukiman padat.',
+                    'Karena memberikan manfaat ketahanan pangan, penghematan ekonomi, dan kesehatan mental, pertanian perkotaan mulai diintegrasikan pemerintah ke dalam tata ruang permukiman.',
+                    'Penurunan tingkat stres warga perkotaan hanya dapat dicapai melalui program kebun komunitas yang dikelola pemerintah daerah.',
+                    'Fluktuasi harga komoditas pangan di perkotaan disebabkan oleh minimnya lahan pekarangan yang ditanami sayuran hidroponik.'
+                ],
+                correct: 2,
+                explanation: 'Simpulan harus merangkum benang merah sebab-akibat seluruh kalimat: Pertanian perkotaan memberi manfaat ketahanan pangan (kalimat 1), hemat 28% (kalimat 2), dan menurunkan stres (kalimat 3), sehingga diintegrasikan pemerintah ke tata ruang (kalimat 4). Opsi C mencakup seluruh rangkaian logis tersebut.'
+            },
+            {
+                id: 'to_bi_2',
+                subject: 'bindo',
+                topic: 'Fakta vs Opini',
+                stimulus: '(1) Kampanye pengurangan plastik sekali pakai di pasar tradisional masih menghadapi kendala perubahan perilaku konsumen. (2) Berdasarkan hasil pemantauan Dinas Lingkungan Hidup pada 45 pasar tradisional sepanjang tahun lalu, penggunaan kantong kresek hanya turun 6,5 persen. (3) Sebagian besar pedagang mengaku khawatir kehilangan pelanggan apabila tidak menyediakan kantong plastik gratis. (4) Kondisi ini mengindikasikan bahwa sosialisasi tanpa penyediaan alternatif kantong ramah lingkungan yang murah belum cukup efektif.',
+                question: 'Manakah pernyataan yang tepat mengenai status Fakta dan Opini pada kalimat-kalimat dalam paragraf tersebut?',
+                options: [
+                    'Kalimat (1) adalah fakta karena terjadi di pasar tradisional, sedangkan kalimat (2) adalah opini Dinas Lingkungan Hidup.',
+                    'Kalimat (2) adalah fakta terverifikasi data kuantitatif, sedangkan kalimat (4) adalah opini analisis penulis.',
+                    'Kalimat (3) dan (4) keduanya merupakan fakta mutlak karena berkaitan dengan perilaku pedagang.',
+                    'Seluruh kalimat dalam paragraf tersebut merupakan fakta karena membahas isu lingkungan.',
+                    'Hanya kalimat (4) yang merupakan fakta, sedangkan kalimat (1), (2), dan (3) adalah opini.'
+                ],
+                correct: 1,
+                explanation: 'Kalimat (2) adalah fakta karena memuat data hasil pemantauan yang sudah terjadi (45 pasar tradisional, turun 6,5%). Kalimat (4) adalah opini karena merupakan tafsiran/penilaian penulis yang ditandai kata "mengindikasikan" dan "belum cukup efektif".'
+            },
+            {
+                id: 'to_bi_3',
+                subject: 'bindo',
+                topic: 'EYD V & Kata Baku',
+                stimulus: 'Cermati kalimat berikut:\n"Untuk menjaga produktifitas kerja tim, manajer proyek meminta stafnya membuat jadual piket harian dan mengevaluasi resiko keterlambatan pasokan bahan baku."',
+                question: 'Perbaikan terhadap tiga kata tidak baku dalam kalimat tersebut agar sesuai dengan KBBI VI adalah...',
+                options: [
+                    'produktifitas → produktivitas; jadual → jadwal; resiko → risiko',
+                    'produktifitas → produktivitas; jadual → jadwal; resiko → resiko',
+                    'produktifitas → produktifitas; jadual → jadual; resiko → risiko',
+                    'manajer → manager; jadual → jadwal; pasokan → pemasokan',
+                    'produktifitas → produksi; jadual → skedul; resiko → bahaya'
+                ],
+                correct: 0,
+                explanation: 'Kata serapan berakhiran -tivity diserap menjadi -tivitas (produktivitas, aktivitas, kreativitas). Penulisan baku untuk waktu kegiatan adalah "jadwal" (pakai w), dan serapan risk adalah "risiko" (pakai i).'
+            },
+            {
+                id: 'to_bi_4',
+                subject: 'bindo',
+                topic: 'Penulisan Kata Depan & Gabungan Kata',
+                stimulus: 'Manakah kalimat yang menerapkan aturan penulisan kata depan "di" dan imbuhan gabung secara TEPAT menurut EYD V?',
+                options: [
+                    'Laporan pertanggung jawaban kegiatan ekstrakurikuler itu sudah diserahkan di ruang tata usaha.',
+                    'Setiap warga negara yang tinggal diluar negeri wajib melaporkan perubahan data kependudukan secara daring.',
+                    'Usulan program beasiswa tersebut sedang ditindaklanjuti oleh komite sekolah di samping ruang kepala sekolah.',
+                    'Panitia belum memberi tahu peserta mengenai alur pendaftaran ulang yang di tempel di papan pengumuman.',
+                    'Kerja sama antar sekolah di wilayah tersebut perlu ditingkatkan agar supaya mutu pendidikan merata.'
+                ],
+                correct: 2,
+                explanation: 'Pada opsi (C), "ditindaklanjuti" ditulis serangkai karena mendapat awalan di- dan akhiran -i sekaligus, sedangkan "di samping" dipisah karena menunjukkan letak/tempat. Opsi (A) salah pada "pertanggung jawaban" (harus serangkai). Opsi (B) salah pada "diluar" (harus dipisah). Opsi (D) salah pada "di tempel" (harus digabung). Opsi (E) salah pada "antar sekolah" (harus serangkai: antarsekolah) dan "agar supaya" (pleonasme).'
+            },
+            {
+                id: 'to_bi_5',
+                subject: 'bindo',
+                topic: 'Kalimat Efektif',
+                stimulus: 'Cermati kalimat berikut:\n"Melalui pelatihan kewirausahaan digital ini diharapkan dapat meningkatkan keterampilan pemasaran para pelaku-pelaku UMKM di daerah."',
+                question: 'Kalimat tersebut tidak efektif. Perbaikan yang paling tepat agar kalimat tersebut efektif adalah...',
+                options: [
+                    'Melalui pelatihan kewirausahaan digital ini diharapkan mampu meningkatkan keterampilan pemasaran pelaku UMKM di daerah.',
+                    'Pelatihan kewirausahaan digital ini diharapkan dapat meningkatkan keterampilan pemasaran para pelaku UMKM di daerah.',
+                    'Dalam pelatihan kewirausahaan digital ini diharapkan dapat meningkatkan keterampilan pemasaran para pelaku UMKM di daerah.',
+                    'Pelatihan kewirausahaan digital ini mengharapkan dapat ditingkatkannya keterampilan pemasaran para pelaku-pelaku UMKM di daerah.',
+                    'Bagi pelatihan kewirausahaan digital ini diharapkan dapat meningkatkan keterampilan pemasaran pelaku UMKM di daerah.'
+                ],
+                correct: 1,
+                explanation: 'Kalimat asli memiliki 2 kesalahan: (1) Diawali preposisi "Melalui" sehingga kehilangan Subjek; (2) Jamak ganda pada "para pelaku-pelaku". Dengan menghapus "Melalui" dan mengubah "para pelaku-pelaku" menjadi "para pelaku", kalimat memiliki Subjek jelas ("Pelatihan kewirausahaan digital ini") dan hemat kata.'
+            },
+            {
+                id: 'to_bi_6',
+                subject: 'bindo',
+                topic: 'Kepaduan Paragraf & Konjungsi',
+                stimulus: '(1) Pemerintah daerah gencar membangun jalur sepeda terproteksi di sepanjang jalan protokol guna menekan emisi gas buang kendaraan bermotor. (2) Fasilitas parkir sepeda yang aman juga mulai disediakan di berbagai stasiun transit transportasi umum. (3) Namun, tingkat penggunaan jalur sepeda pada jam berangkat kerja tercatat masih di bawah 12 persen. (4) Cuaca panas yang menyengat dan minimnya fasilitas ruang bilas di gedung perkantoran menjadi alasan utama pekerja enggan bersepeda. (5) Batik motif megamendung memiliki filosofi kesabaran yang mendalam bagi masyarakat pesisir.',
+                question: 'Mengapa paragraf di atas menjadi tidak padu (tidak koheren) dan bagaimana cara memperbaikinya?',
+                options: [
+                    'Kalimat (3) menggunakan konjungsi "Namun," yang salah sehingga harus diganti "Oleh karena itu,".',
+                    'Kalimat (5) merupakan kalimat sumbang yang keluar dari topik transportasi sepeda sehingga harus dihilangkan.',
+                    'Kalimat (1) terlalu panjang sehingga harus dipotong menjadi dua kalimat terpisah.',
+                    'Kalimat (2) dan (4) memiliki makna yang sama sehingga salah satunya harus dihapus.',
+                    'Paragraf tersebut sudah padu karena seluruh kalimatnya menggunakan kata baku.'
+                ],
+                correct: 1,
+                explanation: 'Kalimat (1) s.d. (4) membahas pembangunan dan kendala adopsi jalur sepeda di perkotaan. Kalimat (5) tiba-tiba membahas filosofi batik megamendung (kalimat sumbang/tidak padu) sehingga wajib dihilangkan.'
+            },
+
+            // 6 Soal Survei Karakter (Berbobot 1-4)
+            {
+                id: 'to_sk_1',
+                subject: 'karakter',
+                topic: 'Integritas & Kejujuran Akademik',
+                stimulus: 'Saat ujian simulasi tingkat provinsi berlangsung di laboratorium komputer, pengawas ruangan keluar selama 10 menit karena dipanggil kepala sekolah. Teman sebangkumu menyodorkan secarik kertas berisi kunci jawaban bocoran yang ia dapat dari grup luar sekolah dan membisikkan, "Pakai cepat mumpung pengawas keluar, biar nilai rata-rata sekolah kita naik!"',
+                question: 'Tindakan paling tepat yang mencerminkan karakter Berakhlak Mulia dan Mandiri adalah...',
+                options: [
+                    'Menolak kertas bocoran tersebut dengan tegas namun tenang, tetap mengerjakan soal dengan kemampuan sendiri, dan setelah ujian selesai mengingatkan teman secara pribadi tentang bahaya ketidakjujuran.',
+                    'Menolak kertas tersebut dan langsung berteriak di dalam ruangan agar seluruh peserta tahu bahwa teman sebangkumu membawa bocoran.',
+                    'Menerima kertas tersebut hanya untuk mencocokkan dua nomor soal yang paling sulit agar tidak mengecewakan teman sebangku.',
+                    'Menolak kertas tersebut tetapi membiarkan teman sebangkumu menyebarkannya ke teman lain karena itu bukan tanggung jawabmu.'
+                ],
+                weights: [4, 2, 1, 3],
+                correct: 0,
+                explanation: 'Skor 4 (Opsi A): Memegang teguh integritas pribadi (mandiri & jujur) sekaligus melakukan koreksi sosial secara santun tanpa membuat keributan di tengah waktu ujian. Opsi D mendapat Skor 3 (jujur pribadi tapi pasif sosial). Opsi B mendapat Skor 2 (niat baik tapi mengganggu ketertiban ujian seluruh ruangan). Opsi C mendapat Skor 1 (kompromi kecurangan).'
+            },
+            {
+                id: 'to_sk_2',
+                subject: 'karakter',
+                topic: 'Berkebinekaan Global & Anti-Perundungan',
+                stimulus: 'Kelasmu kedatangan siswa baru pindahan dari provinsi timur Indonesia yang memiliki aksen bicara khas. Saat ia maju memperkenalkan diri, beberapa siswa di barisan belakang tertawa kecil dan menirukan cara bicaranya hingga siswa baru tersebut tampak gugup dan menunduk.',
+                question: 'Sebagai ketua kelas, respons yang paling konstruktif dan empatik adalah...',
+                options: [
+                    'Memberi isyarat tegas agar teman-teman yang menertawakan berhenti, menyambut siswa baru dengan ramah, lalu saat jam istirahat mengajak siswa baru berkenalan sambil mengingatkan teman-teman tentang etika menghargai keberagaman.',
+                    'Membiarkan situasi tersebut karena menganggap candaan seperti itu wajar sebagai proses adaptasi awal di sekolah baru.',
+                    'Langsung memarahi teman-teman di barisan belakang dengan nada tinggi di depan guru agar mereka merasa dipermalukan.',
+                    'Menyapa siswa baru tersebut secara pribadi saat jam pulang sekolah dan memintanya bersabar menghadapi kelakuan teman-teman.'
+                ],
+                weights: [4, 1, 2, 3],
+                correct: 0,
+                explanation: 'Skor 4 (Opsi A): Menghentikan perundungan saat itu juga secara proporsional, memulihkan rasa aman korban (inklusif), dan memberikan edukasi keberagaman kepada teman sekelas. Opsi D mendapat Skor 3 (empatik tapi tidak menghentikan perilaku perundungan). Opsi C mendapat Skor 2 (agresif). Opsi B mendapat Skor 1 (menormalisasi perundungan).'
+            },
+            {
+                id: 'to_sk_3',
+                subject: 'karakter',
+                topic: 'Bernalar Kritis & Literasi Informasi',
+                stimulus: 'Menjelang pemilihan Ketua OSIS, beredar poster digital tanpa identitas pembuat di grup angkatan yang mengeklaim bahwa Kandidat nomor urut 2 akan menghapus seluruh kegiatan ekstrakurikuler olahraga jika terpilih. Sebagai pendukung Kandidat nomor urut 1, beberapa temanmu memintamu ikut meneruskan poster tersebut agar kandidat jagoan kalian menang mudah.',
+                question: 'Bagaimana sikap yang paling mencerminkan dimensi Bernalar Kritis dan Berkeadilan Sosial?',
+                options: [
+                    'Menolak menyebarkan poster anonim tersebut, memeriksa kebenarannya langsung pada dokumen visi-misi resmi Kandidat 2, dan mengajak tim suksesmu berkampanye secara sehat melalui adu gagasan.',
+                    'Tidak ikut menyebarkan poster tersebut di akun pribadimu, tetapi membiarkan teman-teman satu tim menyebarkannya karena itu urusan mereka.',
+                    'Meneruskan poster tersebut dengan menambahkan tanda tanya "Apakah ini benar?" agar para pemilih menilai sendiri.',
+                    'Langsung menyebarkan poster tersebut ke grup kelas adik tingkat karena menganggap strategi kampanye hitam adalah hal biasa dalam pemilihan.'
+                ],
+                weights: [4, 3, 2, 1],
+                correct: 0,
+                explanation: 'Skor 4 (Opsi A): Melakukan verifikasi ke sumber primer, menolak kampanye hitam (integritas demokrasi), dan mengarahkan teman ke kompetisi sehat. Opsi B mendapat Skor 3 (pasif). Opsi C mendapat Skor 2 (tetap menyebar disinformasi). Opsi D mendapat Skor 1 (melanggar etika dan nalar kritis).'
+            },
+            {
+                id: 'to_sk_4',
+                subject: 'karakter',
+                topic: 'Gotong Royong & Penyelesaian Konflik',
+                stimulus: 'Dalam rapat persiapan lomba drama antarkelas, terjadi perdebatan sengit antara Seksi Naskah dan Seksi Kostum. Seksi Naskah ingin berlatar kerajaan klasik yang megah, sedangkan Seksi Kostum menolak karena kas kelas sangat terbatas. Suasana rapat mulai memanas dan saling menyalahkan.',
+                question: 'Jika kamu berada di dalam rapat tersebut, langkah mediasi paling efektif yang kamu tawarkan adalah...',
+                options: [
+                    'Menengahi perdebatan dengan mengajak kedua seksi duduk bersama membedah anggaran riil, lalu mengusulkan kreasi kostum kerajaan dari bahan daur ulang/kain perca agar visi cerita tetap tercapai tanpa membebani kas.',
+                    'Meminta Seksi Naskah mengalah total dan mengganti cerita menjadi drama modern biasa agar Seksi Kostum tidak perlu bekerja keras.',
+                    'Mengusulkan agar kelas tidak usah mengikuti lomba drama tahun ini daripada pertemanan sekelas pecah gara-gara biaya.',
+                    'Memihak Seksi Naskah dan mewajibkan seluruh siswa membayar iuran tambahan berapapun jumlahnya.'
+                ],
+                weights: [4, 3, 1, 2],
+                correct: 0,
+                explanation: 'Skor 4 (Opsi A): Menggabungkan mediasi seimbang, transparansi data anggaran, dan solusi kreatif (win-win solution). Opsi B mendapat Skor 3 (menyelesaikan konflik tapi mematikan kreativitas salah satu pihak). Opsi D mendapat Skor 2 (memaksakan beban finansial). Opsi C mendapat Skor 1 (menyerah/apatis).'
+            },
+            {
+                id: 'to_sk_5',
+                subject: 'karakter',
+                topic: 'Kemandirian & Manajemen Diri',
+                stimulus: 'Dua minggu menjelang ujian TKA, kamu merasa sangat cemas karena nilai tryout mata pelajaran kuantitatifmu masih di bawah target, sementara di saat yang sama kamu harus menyelesaikan tugas akhir praktikum sekolah. Kamu mulai sulit tidur dan kehilangan fokus.',
+                question: 'Strategi regulasi diri (Kemandirian) yang paling sehat dan produktif untuk mengatasi situasi tersebut adalah...',
+                options: [
+                    'Memetakan topik yang paling lemah dari hasil evaluasi tryout, menyusun jadwal belajar terfokus (misalnya metode Pomodoro) yang seimbang dengan cicilan tugas praktikum, serta berkonsultasi pada guru/mentor pada materi yang belum dipahami.',
+                    'Fokus menyelesaikan tugas praktikum 100% terlebih dahulu dan baru belajar TKA semalam suntuk menjelang hari ujian.',
+                    'Begadang setiap malam hingga pukul 03.00 pagi untuk menghafal semua buku latihan soal meskipun tubuh kelelahan di sekolah.',
+                    'Mengabaikan tugas praktikum sekolah karena merasa ujian TKA jauh lebih menentukan masa depan.'
+                ],
+                weights: [4, 3, 2, 1],
+                correct: 0,
+                explanation: 'Skor 4 (Opsi A): Menunjukkan regulasi emosi dan manajemen waktu yang matang, berbasis evaluasi diagnostik, serta proaktif mencari bantuan terarah tanpa mengorbankan kesehatan atau kewajiban sekolah.'
+            },
+            {
+                id: 'to_sk_6',
+                subject: 'karakter',
+                topic: 'Kreativitas & Inisiatif Sosial',
+                stimulus: 'Perpustakaan sekolahmu memiliki koleksi buku fiksi dan sains yang sangat bagus, tetapi tingkat kunjungan siswa sangat rendah karena suasananya kaku dan banyak siswa tidak tahu buku apa yang menarik untuk dibaca.',
+                question: 'Sebagai pengurus literasi sekolah, inisiatif kreatif yang paling berdampak untuk menghidupkan minat baca teman-teman adalah...',
+                options: [
+                    'Bekerja sama dengan pustakawan untuk membuat pojok ulasan "Rekomendasi Buku Pekan Ini" karya siswa di mading/media sosial sekolah serta mengadakan diskusi bedah buku santai 15 menit setiap Jumat sore.',
+                    'Mengusulkan kepada kepala sekolah agar setiap siswa yang tidak meminjam buku minimal dua kali sebulan dikenai sanksi pengurangan poin disiplin.',
+                    'Menjaga meja perpustakaan dengan tertib sesuai jadwal piket sambil menunggu siswa yang datang atas kesadaran sendiri.',
+                    'Meminta sekolah membeli sofa mahal dan mesin kopi terlebih dahulu sebelum memulai program literasi apa pun.'
+                ],
+                weights: [4, 2, 3, 1],
+                correct: 0,
+                explanation: 'Skor 4 (Opsi A): Solusi kreatif, kolaboratif, berbiaya rendah, dan menyentuh akar masalah (kurangnya informasi buku menarik & suasana kaku). Opsi C mendapat Skor 3 (disiplin tapi pasif). Opsi B mendapat Skor 2 (pendekatan koersif/hukuman tidak menumbuhkan minat intrinsik). Opsi D mendapat Skor 1 (bergantung pada fasilitas mewah).'
+            }
+        ];
+
+        let activeCbtQuestions = [];
+        let cbtCurrentIndex = 0;
+        let cbtAnswers = {};
+        let cbtDoubts = {};
+        let cbtTimerSeconds = 0;
+        let cbtTimerInterval = null;
+
+        function startTryoutSession(mode) {
+            if (mode === 'bindo') {
+                activeCbtQuestions = masterTryoutBank.filter(q => q.subject === 'bindo');
+                cbtTimerSeconds = 8 * 60;
+            } else if (mode === 'karakter') {
+                activeCbtQuestions = masterTryoutBank.filter(q => q.subject === 'karakter');
+                cbtTimerSeconds = 8 * 60;
+            } else {
+                activeCbtQuestions = [...masterTryoutBank];
+                cbtTimerSeconds = 15 * 60;
+            }
+
+            cbtCurrentIndex = 0;
+            cbtAnswers = {};
+            cbtDoubts = {};
+
+            document.getElementById('tryout-lobby').classList.add('hidden');
+            document.getElementById('tryout-result-screen').classList.add('hidden');
+            document.getElementById('tryout-active-workspace').classList.remove('hidden');
+
+            startCbtTimer();
+            renderCbtWorkspace();
+        }
+
+        function startCbtTimer() {
+            clearInterval(cbtTimerInterval);
+            updateCbtTimerUI();
+            cbtTimerInterval = setInterval(() => {
+                if (cbtTimerSeconds > 0) {
+                    cbtTimerSeconds--;
+                    updateCbtTimerUI();
+                } else {
+                    clearInterval(cbtTimerInterval);
+                    finishTryoutSession(true);
+                }
+            }, 1000);
+        }
+
+        function updateCbtTimerUI() {
+            const m = String(Math.floor(cbtTimerSeconds / 60)).padStart(2, '0');
+            const s = String(cbtTimerSeconds % 60).padStart(2, '0');
+            const el = document.getElementById('cbt-timer-display');
+            if (el) el.textContent = `${m}:${s}`;
+        }
+
+        function renderCbtWorkspace() {
+            const q = activeCbtQuestions[cbtCurrentIndex];
+            document.getElementById('cbt-q-number-badge').textContent = `Soal ${cbtCurrentIndex + 1} / ${activeCbtQuestions.length}`;
+            document.getElementById('cbt-q-topic-badge').textContent = `${q.subject === 'bindo' ? 'B. Indonesia' : 'Survei Karakter'} • ${q.topic}`;
+
+            document.getElementById('cbt-question-content').innerHTML = `
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">${q.stimulus}</div>
+                <div class="font-extrabold text-slate-900 text-sm sm:text-base pt-1">${q.question}</div>
+            `;
+
+            const chosen = cbtAnswers[q.id];
+            document.getElementById('cbt-options-container').innerHTML = q.options.map((opt, idx) => {
+                const letter = String.fromCharCode(65 + idx);
+                const isSelected = chosen === idx;
+                return `
+                    <button onclick="selectCbtOption(${idx})" class="w-full text-left p-3.5 rounded-2xl border-2 transition flex items-start gap-3 text-xs sm:text-sm ${isSelected ? 'bg-indigo-50 border-indigo-600 text-indigo-950 font-bold shadow-sm' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'}">
+                        <span class="w-6 h-6 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'} font-bold flex items-center justify-center shrink-0 text-xs">${letter}</span>
+                        <span>${opt}</span>
+                    </button>
+                `;
+            }).join('');
+
+            // Prev / Next state
+            document.getElementById('cbt-prev-btn').disabled = cbtCurrentIndex === 0;
+            document.getElementById('cbt-prev-btn').style.opacity = cbtCurrentIndex === 0 ? '0.4' : '1';
+            document.getElementById('cbt-next-btn').disabled = cbtCurrentIndex === activeCbtQuestions.length - 1;
+            document.getElementById('cbt-next-btn').style.opacity = cbtCurrentIndex === activeCbtQuestions.length - 1 ? '0.4' : '1';
+
+            // Number grid
+            const grid = document.getElementById('cbt-number-grid');
+            grid.innerHTML = activeCbtQuestions.map((item, idx) => {
+                const ans = cbtAnswers[item.id] !== undefined;
+                const doubt = cbtDoubts[item.id];
+                const isCurrent = idx === cbtCurrentIndex;
+                let bg = 'bg-slate-100 text-slate-700 hover:bg-slate-200';
+                if (doubt) bg = 'bg-amber-400 text-slate-950 font-extrabold';
+                else if (ans) bg = 'bg-indigo-600 text-white font-bold';
+
+                const ring = isCurrent ? 'ring-2 ring-offset-2 ring-slate-900' : '';
+                return `
+                    <button onclick="jumpToCbtQuestion(${idx})" class="h-10 rounded-xl text-xs font-mono transition ${bg} ${ring}">
+                        ${idx + 1}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCbtOption(optIdx) {
+            const q = activeCbtQuestions[cbtCurrentIndex];
+            cbtAnswers[q.id] = optIdx;
+            document.getElementById('cbt-unanswered-warning').classList.add('hidden');
+            renderCbtWorkspace();
+        }
+
+        function toggleCbtDoubt() {
+            const q = activeCbtQuestions[cbtCurrentIndex];
+            cbtDoubts[q.id] = !cbtDoubts[q.id];
+            renderCbtWorkspace();
+        }
+
+        function navigateCbtQuestion(dir) {
+            const next = cbtCurrentIndex + dir;
+            if (next >= 0 && next < activeCbtQuestions.length) {
+                cbtCurrentIndex = next;
+                renderCbtWorkspace();
+            }
+        }
+
+        function jumpToCbtQuestion(idx) {
+            cbtCurrentIndex = idx;
+            renderCbtWorkspace();
+        }
+
+        function cancelTryoutSession() {
+            clearInterval(cbtTimerInterval);
+            document.getElementById('tryout-active-workspace').classList.add('hidden');
+            document.getElementById('tryout-result-screen').classList.add('hidden');
+            document.getElementById('tryout-lobby').classList.remove('hidden');
+        }
+
+        function finishTryoutSession(forcedByTimer = false) {
+            const unansweredCount = activeCbtQuestions.filter(q => cbtAnswers[q.id] === undefined).length;
+            const warningEl = document.getElementById('cbt-unanswered-warning');
+
+            if (!forcedByTimer && unansweredCount > 0 && warningEl.classList.contains('hidden')) {
+                warningEl.classList.remove('hidden');
+                warningEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Masih ada <strong>${unansweredCount} soal belum dijawab</strong>. Klik tombol "Kumpulkan" sekali lagi jika kamu yakin ingin mengakhiri ujian sekarang.`;
+                return;
+            }
+
+            clearInterval(cbtTimerInterval);
+            completeMission('m5');
+
+            // Calculate scores
+            let earnedPoints = 0;
+            let maxPossiblePoints = 0;
+
+            activeCbtQuestions.forEach(q => {
+                const ans = cbtAnswers[q.id];
+                if (q.subject === 'bindo') {
+                    maxPossiblePoints += 100;
+                    if (ans === q.correct) earnedPoints += 100;
+                } else {
+                    maxPossiblePoints += 100; // Scale 1-4 to 25-100
+                    if (ans !== undefined && q.weights) {
+                        earnedPoints += (q.weights[ans] * 25);
+                    }
+                }
+            });
+
+            const finalScore1000 = Math.round((earnedPoints / maxPossiblePoints) * 1000);
+            const pct = Math.round((earnedPoints / maxPossiblePoints) * 100);
+
+            document.getElementById('tryout-active-workspace').classList.add('hidden');
+            const resScreen = document.getElementById('tryout-result-screen');
+            resScreen.classList.remove('hidden');
+
+            resScreen.innerHTML = `
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+                        <div class="space-y-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800">Rapor Evaluasi Simulasi TKA</span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Skor Simulasi TKA Kamu: <span class="text-indigo-600">${finalScore1000}</span> <span class="text-base text-slate-400 font-normal">/ 1000 (${pct}%)</span></h2>
+                            <p class="text-xs sm:text-sm text-slate-600 max-w-2xl">
+                                ${pct >= 80
+                                    ? 'Luar biasa! Penguasaan konsep Literasi Bahasa Indonesia dan kepekaan Survei Karaktermu sudah berada di level siap tempur TKA.'
+                                    : 'Hasil yang bagus sebagai pijakan awal! Pelajari pembahasan detail di bawah ini untuk menutup celah poin yang hilang.'}
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="cancelTryoutSession()" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Coba Paket Simulasi Lain
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="font-extrabold text-slate-900 text-base">Pembahasan Lengkap Nomor demi Nomor:</h3>
+                        ${activeCbtQuestions.map((q, idx) => {
+                            const ans = cbtAnswers[q.id];
+                            const isOptimal = ans === q.correct;
+                            const userLetter = ans !== undefined ? String.fromCharCode(65 + ans) : 'Kosong';
+                            const correctLetter = String.fromCharCode(65 + q.correct);
+                            let statusBadge = '';
+                            if (q.subject === 'bindo') {
+                                statusBadge = isOptimal
+                                    ? '<span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs">✓ Benar (+100)</span>'
+                                    : '<span class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 font-bold text-xs">✗ Kurang Tepat (0)</span>';
+                            } else {
+                                const pts = ans !== undefined ? q.weights[ans] : 0;
+                                statusBadge = `<span class="px-2.5 py-1 rounded-lg ${pts === 4 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-bold text-xs">Skor Karakter: ${pts} / 4</span>`;
+                            }
+
+                            return `
+                                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <span class="font-extrabold text-xs text-indigo-700 uppercase">Soal #${idx + 1} • ${q.topic}</span>
+                                        ${statusBadge}
+                                    </div>
+                                    <p class="text-xs sm:text-sm font-bold text-slate-900">${q.question}</p>
+                                    <div class="text-xs space-y-1 text-slate-700">
+                                        <div><strong>Jawabanmu:</strong> Opsi ${userLetter} ${ans !== undefined ? `— "${q.options[ans]}"` : '(Tidak dijawab)'}</div>
+                                        <div class="text-emerald-800"><strong>Opsi Optimal (Skor Penuh):</strong> Opsi ${correctLetter} — "${q.options[q.correct]}"</div>
+                                    </div>
+                                    <div class="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-600 leading-relaxed">
+                                        <strong class="text-slate-900"><i class="fa-solid fa-graduation-cap text-indigo-600 mr-1"></i> Bedah Mentor:</strong> ${q.explanation}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // =================================================================
+        // 13. FLASHCARD ENGINE & STUDENT NOTES
+        // =================================================================
+        const masterFlashcards = [
+            { id: 'fc1', category: 'Kata Baku', front: 'Manakah yang baku: RISIKO atau RESIKO?', backTitle: 'Baku: RISIKO', backDesc: 'Serapan dari bahasa Inggris "risk" / Belanda "risico". Ingat: semua vokal awalnya adalah huruf i (ri-si-ko).' },
+            { id: 'fc2', category: 'Kata Baku', front: 'Manakah yang baku: PRAKTIK atau PRAKTEK?', backTitle: 'Baku: PRAKTIK (dan MALAPRAKTIK)', backDesc: 'Kata asing berakhiran -ic diserap menjadi -ik dalam bahasa Indonesia.' },
+            { id: 'fc3', category: 'Kata Baku', front: 'Manakah yang baku: APOTEK atau APOTIK?', backTitle: 'Baku: APOTEK (tetapi orangnya: APOTEKER)', backDesc: 'Jangan terkecoh! Tempatnya adalah Apotek (pakai e), sedangkan profesinya adalah Apoteker.' },
+            { id: 'fc4', category: 'Kata Baku', front: 'Manakah yang baku: HIERARKI atau HIRARKI?', backTitle: 'Baku: HIERARKI', backDesc: 'Bentuk baku dalam KBBI VI mempertahankan ejaan "hie-rar-ki".' },
+            { id: 'fc5', category: 'Kata Baku', front: 'Manakah yang baku: MENGUBAH atau MERUBAH?', backTitle: 'Baku: MENGUBAH', backDesc: 'Kata dasarnya adalah "ubah", bukan "rubah" (rubah adalah nama hewan). meN- + ubah = mengubah.' },
+            { id: 'fc6', category: 'Kata Baku', front: 'Manakah yang baku: KUITANSI atau KWITANSI?', backTitle: 'Baku: KUITANSI', backDesc: 'Gugus konsonan "kw" dari bahasa Belanda diserap menjadi "ku-" (kuitansi, kualitas, kuota).' },
+            { id: 'fc7', category: 'Kata Baku', front: 'Manakah yang baku: ANTRE atau ANTRI?', backTitle: 'Baku: ANTRE (Mengantre / Antrean)', backDesc: 'Berasal dari bahasa Belanda "antreden", sehingga vokal akhirnya adalah -e, bukan -i.' },
+            { id: 'fc8', category: 'Kata Baku', front: 'Manakah yang baku: SEKADAR atau SEKEDAR?', backTitle: 'Baku: SEKADAR', backDesc: 'Kata dasarnya adalah "kadar" (ukuran/takaran), sehingga diberi awalan se- menjadi sekadar.' },
+            { id: 'fc9', category: 'Kaidah Bahasa', front: 'Kapan gabungan kata "tanggung jawab" ditulis DIPISAH vs DIGABUNG?', backTitle: 'Bertanggung jawab (Pisah) vs Pertanggungjawaban (Gabung)', backDesc: 'Jika hanya mendapat awalan saja (ber-) tetap dipisah. Jika mendapat awalan DAN akhiran sekaligus (peN-an) wajib serangkai.' },
+            { id: 'fc10', category: 'Kaidah Bahasa', front: 'Apakah sebelum kata "karena" dan "sehingga" boleh diberi tanda koma (,)?', backTitle: 'TIDAK BOLEH pakai koma!', backDesc: 'Konjungsi intrakalimat seperti "karena", "sehingga", dan "bahwa" tidak didahului tanda koma. Yang wajib didahului koma adalah: ", tetapi", ", melainkan", ", sedangkan".' },
+            { id: 'fc11', category: 'Kaidah Bahasa', front: 'Bagaimana cara tercepat membedakan Ide Pokok dan Simpulan?', backTitle: 'Ide Pokok = Inti Kalimat Utama | Simpulan = Benang Merah Seluruh Paragraf', backDesc: 'Untuk mencari Ide Pokok, cukup periksa kalimat pertama atau kalimat terakhir. Untuk mencari Simpulan, gabungkan Sebab + Akibat dari seluruh teks.' },
+            { id: 'fc12', category: 'Kaidah Bahasa', front: 'Mengapa kalimat "Bagi peserta ujian harap hadir tepat waktu" TIDAK EFEKTIF?', backTitle: 'Karena kehilangan Subjek (Diawali Preposisi "Bagi")', backDesc: 'Jangan menaruh kata depan (Bagi, Untuk, Dalam, Di, Pada) di depan Subjek kalimat! Hapus kata "Bagi" agar kalimat memiliki Subjek yang sah.' },
+            { id: 'fc13', category: 'Survei Karakter', front: 'Apa ciri utama opsi jawaban yang mendapat SKOR 4 pada Survei Karakter?', backTitle: 'Empatik + Proaktif + Solutif + Sesuai Aturan', backDesc: 'Skor 4 selalu memilih tindakan nyata yang merangkul pihak terdampak dengan sopan tanpa melanggar integritas/aturan.' },
+            { id: 'fc14', category: 'Survei Karakter', front: 'Apa jebakan paling sering membuat siswa hanya mendapat SKOR 3 di Survei Karakter?', backTitle: 'Jebakan "Anak Baik tapi Pasif / Delegatif"', backDesc: 'Misalnya hanya merasa kasihan dalam hati, memilih diam agar tidak ribut, atau langsung melimpahkan masalah kecil ke guru tanpa berdialog dulu.' },
+            { id: 'fc15', category: 'Survei Karakter', front: 'Bagaimana sikap Skor 4 jika ada anggota kelompok yang pasif karena kendala ekonomi/keluarga?', backTitle: 'Tabayyun (Klarifikasi Pribadi) + Penyesuaian Beban Tugas', backDesc: 'Jangan langsung mencoret namanya (Skor 1) dan jangan pula membebaskannya 100% tanpa tugas (Skor 3). Beri porsi tugas yang sesuai kemampuannya.' },
+            { id: 'fc16', category: 'Survei Karakter', front: 'Bagaimana sikap Skor 4 saat menghadapi kabar viral/tuduhan belum pasti di sekolah?', backTitle: 'Tahan Sebar + Verifikasi Sumber Primer + Dorong Transparansi', backDesc: 'Mencerminkan dimensi Bernalar Kritis. Jangan ikut menyebarkan meskipun dengan kalimat ragu-ragu.' },
+            { id: 'fc17', category: 'Kata Baku', front: 'Manakah yang baku: MENGIMBAU atau MENGHIMBAU?', backTitle: 'Baku: MENGIMBAU (Imbauan)', backDesc: 'Kata dasarnya dalam KBBI adalah "imbau" (tanpa huruf h), sehingga menjadi mengimbau.' },
+            { id: 'fc18', category: 'Kata Baku', front: 'Manakah yang baku: CENDERUNG atau CENDRUNG, dan CENDEKIAWAN atau CENDIKIAWAN?', backTitle: 'Baku: CENDERUNG & CENDEKIAWAN', backDesc: 'Keduanya mempertahankan huruf vokal "e" pada suku kata tengah.' }
+        ];
+
+        let activeFlashcards = [...masterFlashcards];
+        let currentFcIndex = 0;
+        let isFcFlipped = false;
+
+        function filterFlashcards(category) {
+            currentFcIndex = 0;
+            isFcFlipped = false;
+            activeFlashcards = category === 'all'
+                ? [...masterFlashcards]
+                : masterFlashcards.filter(f => f.category === category);
+
+            document.querySelectorAll('.fc-filter-btn').forEach(btn => {
+                btn.className = 'fc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700';
+            });
+            const mapId = {
+                'all': 'fc-filter-all',
+                'Kata Baku': 'fc-filter-baku',
+                'Kaidah Bahasa': 'fc-filter-kaidah',
+                'Survei Karakter': 'fc-filter-karakter'
+            };
+            const btn = document.getElementById(mapId[category]);
+            if (btn) btn.className = 'fc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white';
+
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            const inner = document.getElementById('flashcard-3d-inner');
+            if (isFcFlipped) inner.classList.add('rotate-y-180');
+            else inner.classList.remove('rotate-y-180');
+
+            const card = activeFlashcards[currentFcIndex];
+            document.getElementById('fc-category-badge').textContent = card.category;
+            document.getElementById('fc-counter-badge').textContent = `${currentFcIndex + 1} / ${activeFlashcards.length}`;
+            document.getElementById('fc-front-text').textContent = card.front;
+            document.getElementById('fc-back-title').textContent = card.backTitle;
+            document.getElementById('fc-back-desc').textContent = card.backDesc;
+            document.getElementById('fc-mastered-count').textContent = appState.masteredFlashcards.length;
+        }
+
+        function flipCurrentFlashcard() {
+            isFcFlipped = !isFcFlipped;
+            renderFlashcard();
+        }
+
+        function moveFlashcard(dir) {
+            isFcFlipped = false;
+            currentFcIndex = (currentFcIndex + dir + activeFlashcards.length) % activeFlashcards.length;
+            renderFlashcard();
+        }
+
+        function markFlashcardMastered() {
+            const card = activeFlashcards[currentFcIndex];
+            if (!appState.masteredFlashcards.includes(card.id)) {
+                appState.masteredFlashcards.push(card.id);
+                saveState();
+            }
+            moveFlashcard(1);
+        }
+
+        function saveStudentNotes() {
+            const val = document.getElementById('student-personal-notes').value;
+            appState.notes = val;
+            saveState();
+            const st = document.getElementById('note-save-status');
+            st.textContent = 'Disimpan ✓';
+        }
+
+        // =================================================================
+        // INITIALIZATION ON LOAD
+        // =================================================================
+        window.onload = function () {
+            loadState();
+            renderMissions();
+            updateHeaderReadiness();
+            renderWarmupPair();
+            renderAnalyzerPassage();
+            renderEydInspector();
+            renderSentenceRefactor();
+            renderBindoPractice();
+            renderPancasilaDimensions();
+            renderDilemmaSimulator();
+            renderKarakterPractice();
+            renderFlashcard();
+
+            const notesEl = document.getElementById('student-personal-notes');
+            if (notesEl && appState.notes) {
+                notesEl.value = appState.notes;
+            }
+        };
+    </script>
+</body>
+</html>
