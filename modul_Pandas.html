@@ -1,0 +1,2427 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Praktikum Struktur Data — Modul 11: Pengolahan Data Tabular dengan Pandas</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#131c2e',
+              900: '#0f172a',
+              950: '#070b14'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- SheetJS for real Excel (.xlsx) export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .py-code {
+      background-color: #090d16;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.65;
+    }
+    .kw { color: #ff7b72; font-weight: 600; } /* Python Keywords */
+    .fn { color: #d2a8ff; font-weight: 600; } /* Functions/Methods */
+    .st { color: #a5d6ff; } /* Strings */
+    .nm { color: #79c0ff; } /* Numbers */
+    .cm { color: #8b949e; font-style: italic; } /* Comments */
+    .ln {
+      user-select: none;
+      color: #475569;
+      text-align: right;
+      padding-right: 1rem;
+      min-width: 2.3rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-indigo-500/50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toast-msg">Notifikasi</span>
+  </div>
+
+  <!-- Top Sticky Header -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/95 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
+            <i class="fa-solid fa-table-Columns text-white text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-sm sm:text-base font-bold tracking-tight text-white">Praktikum Struktur Data — Modul 11: Pandas Data Tabular</h1>
+              <span class="hidden md:inline-block px-2 py-0.5 text-[10px] font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-md">Pertemuan 09 / Bab 11</span>
+            </div>
+            <p class="text-xs text-slate-400">Series, DataFrame, Filtering, GroupBy, Merge & Studi Kasus Streamlit BukuKita.id</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Dropdown Download Dataset CSV -->
+          <div class="relative group">
+            <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all">
+              <i class="fa-solid fa-download"></i>
+              <span class="hidden sm:inline">Unduh</span> Dataset CSV
+              <i class="fa-solid fa-chevron-down text-[10px] ml-0.5"></i>
+            </button>
+            <div class="absolute right-0 mt-1 w-56 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl py-1.5 hidden group-hover:block z-50 text-xs font-mono">
+              <button onclick="downloadDataset('penjualan.csv')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-slate-200">
+                <span>🛒 penjualan.csv</span><span class="text-[10px] text-emerald-400">10 baris</span>
+              </button>
+              <button onclick="downloadDataset('nilai_mahasiswa.csv')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-slate-200">
+                <span>🎓 nilai_mahasiswa.csv</span><span class="text-[10px] text-cyan-400">5 baris</span>
+              </button>
+              <button onclick="downloadDataset('coba.csv')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-slate-200">
+                <span>📄 coba.csv</span><span class="text-[10px] text-amber-400">3 baris</span>
+              </button>
+              <div class="border-t border-slate-800 my-1"></div>
+              <button onclick="downloadDataset('profil_mahasiswa.csv')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-amber-300">
+                <span>🔥 profil_mahasiswa.csv</span><span class="text-[10px] text-amber-400">Unguided</span>
+              </button>
+              <button onclick="downloadDataset('nilai_semester.csv')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-amber-300">
+                <span>🔥 nilai_semester.csv</span><span class="text-[10px] text-amber-400">Unguided</span>
+              </button>
+            </div>
+          </div>
+
+          <a href="#unguided-section" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-all">
+            <i class="fa-solid fa-fire text-amber-400"></i>
+            <span>Simulasi Unguided</span>
+          </a>
+          <a href="#bukukita-section" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30 transition-all">
+            <i class="fa-solid fa-store text-rose-400"></i>
+            <span class="hidden sm:inline">Live App</span> BukuKita.id
+          </a>
+        </div>
+      </div>
+
+      <!-- Horizontal Quick Sub-Navigation -->
+      <nav class="flex space-x-1 overflow-x-auto py-2 text-xs font-medium border-t border-slate-800/80">
+        <a href="#konsep-section" class="px-3 py-1.5 rounded-lg bg-slate-800/90 text-indigo-300 hover:bg-slate-700 whitespace-nowrap">📚 11.3.1 Series & DataFrame</a>
+        <a href="#inspeksi-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 whitespace-nowrap">🔍 11.3.1.2 Inspeksi & Akses (loc/iloc)</a>
+        <a href="#modifikasi-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 whitespace-nowrap">🛠️ 11.3.1.3 Modifikasi, GroupBy & Merge</a>
+        <a href="#io-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 whitespace-nowrap">💾 11.3.1.4 File I/O (CSV/Excel/JSON)</a>
+        <a href="#lab-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-cyan-300 whitespace-nowrap">💻 11.4 Latihan Lab (1 s.d. 6)</a>
+        <a href="#bukukita-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-rose-300 whitespace-nowrap">🛒 11.4.7 Toko Buku Streamlit + Diskon</a>
+        <a href="#unguided-section" class="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 whitespace-nowrap">🔥 11.5 Simulasi Unguided (Full Materi)</a>
+        <a href="#quiz-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-emerald-300 whitespace-nowrap">🎯 Kuis Evaluasi</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 flex-1 w-full">
+
+    <!-- HERO BANNER -->
+    <section class="bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div class="lg:col-span-8 space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
+            <i class="fa-brands fa-python"></i>
+            <span>Modul Kuliah Praktikum Struktur Data • Pertemuan 11</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Pengolahan Data Tabular dengan Library <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Pandas</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            <strong>Pandas</strong> (<a href="https://pandas.pydata.org" target="_blank" class="text-cyan-400 underline">pandas.pydata.org</a>) adalah pustaka pihak ketiga Python yang dibangun di atas <strong>NumPy</strong> untuk analisis dan manipulasi data tabular (baris dan kolom) secara cepat, ringan, dan ekspresif. Modul interaktif ini menyajikan seluruh kode program di modul praktikum lengkap dengan penjelasan baris demi baris serta simulator interaktif.
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Struktur 1-Dimensi</div>
+              <div class="font-mono font-bold text-indigo-400 text-sm mt-0.5">pd.Series</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Struktur 2-Dimensi</div>
+              <div class="font-mono font-bold text-cyan-400 text-sm mt-0.5">pd.DataFrame</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Latihan Praktikum Lab</div>
+              <div class="font-mono font-bold text-emerald-400 text-sm mt-0.5">Latihan 1 – 6</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Studi Kasus Web App</div>
+              <div class="font-mono font-bold text-rose-400 text-sm mt-0.5">BukuKita.id</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tujuan Pembelajaran & Alat Bahan -->
+        <div class="lg:col-span-4 bg-slate-950/90 border border-slate-800 rounded-xl p-5 space-y-3 text-xs">
+          <h3 class="font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-bullseye"></i> 11.1 Tujuan Pembelajaran
+          </h3>
+          <ul class="space-y-1.5 text-slate-300 list-disc list-inside leading-relaxed">
+            <li>Dapat memanipulasi data tabular dengan Python.</li>
+            <li>Dapat menginstal library Pandas (otomatis menginstal NumPy).</li>
+            <li>Dapat menggunakan fungsi-fungsi dasar Pandas (<code class="text-cyan-300">head</code>, <code class="text-cyan-300">describe</code>, <code class="text-cyan-300">loc</code>, <code class="text-cyan-300">groupby</code>, <code class="text-cyan-300">merge</code>).</li>
+            <li>Dapat membuat aplikasi analisis data tabular dengan Pandas &amp; Streamlit.</li>
+          </ul>
+          <div class="pt-2 border-t border-slate-800">
+            <div class="font-bold text-slate-400 mb-1">11.2 Instalasi di Terminal / PowerShell:</div>
+            <div class="bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 font-mono text-emerald-400 flex items-center justify-between">
+              <span>pip install pandas --upgrade</span>
+              <button onclick="copyRawText('pip install pandas --upgrade')" class="text-slate-400 hover:text-white"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 1: 11.3.1 KONSEP SERIES & DATAFRAME                             -->
+    <!-- ======================================================================= -->
+    <section id="konsep-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-indigo-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">Sub-bab 11.3.1 &amp; 11.3.1.1</span>
+        <h2 class="text-2xl font-bold text-white">1. Anatomi `Series`, `DatetimeIndex`, dan `DataFrame`</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Pandas mengelola data tabular sebagai baris (<em>row/record</em>) dan kolom (<em>column</em>) yang disebut <strong>DataFrame</strong> (menyerupai matriks/array 2 dimensi). Setiap satu kolom pada DataFrame merupakan objek 1 dimensi yang disebut <strong>Series</strong>.
+        </p>
+      </div>
+
+      <!-- Visualisasi Anatomi Series vs DataFrame -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <h3 class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+            <i class="fa-solid fa-layer-group"></i> Visualisasi Struktur DataFrame vs Series
+          </h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Arahkan atau klik tombol di bawah untuk melihat bagaimana beberapa <code class="text-indigo-300">Series</code> (kolom) bergabung dengan <code class="text-amber-300">Index</code> (label baris) membentuk sebuah <code class="text-cyan-300">DataFrame</code>:
+          </p>
+          <div class="flex flex-wrap gap-2 text-xs font-mono">
+            <button onclick="highlightAnatomy('all')" class="px-3 py-1.5 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">DataFrame Utuh (2D)</button>
+            <button onclick="highlightAnatomy('series')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-cyan-300 border border-slate-700 hover:bg-slate-700">1 Kolom = Series (1D)</button>
+            <button onclick="highlightAnatomy('row')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-emerald-300 border border-slate-700 hover:bg-slate-700">1 Baris = Record / Row</button>
+          </div>
+          <div id="anatomy-desc" class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 font-mono">
+            DataFrame terdiri dari Index Baris (0..3) dan beberapa Kolom (A..F), di mana tiap kolom dapat memiliki tipe data (dtype) yang berbeda.
+          </div>
+
+          <!-- Tabel Visual df2 -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="p-2 border-r border-slate-800 text-amber-400">Index</th>
+                  <th class="p-2 anat-col">A (float64)</th>
+                  <th class="p-2">B (datetime)</th>
+                  <th class="p-2">C (float32)</th>
+                  <th class="p-2">D (int32)</th>
+                  <th class="p-2">E (category)</th>
+                  <th class="p-2">F (object)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/70 bg-slate-900/60">
+                <tr class="anat-row0"><td class="p-2 border-r border-slate-800 text-amber-400 font-bold">0</td><td class="p-2 anat-col">1.0</td><td class="p-2">2013-01-02</td><td class="p-2">1.0</td><td class="p-2">3</td><td class="p-2">test</td><td class="p-2">foo</td></tr>
+                <tr><td class="p-2 border-r border-slate-800 text-amber-400 font-bold">1</td><td class="p-2 anat-col">1.0</td><td class="p-2">2013-01-02</td><td class="p-2">1.0</td><td class="p-2">3</td><td class="p-2">train</td><td class="p-2">foo</td></tr>
+                <tr><td class="p-2 border-r border-slate-800 text-amber-400 font-bold">2</td><td class="p-2 anat-col">1.0</td><td class="p-2">2013-01-02</td><td class="p-2">1.0</td><td class="p-2">3</td><td class="p-2">test</td><td class="p-2">foo</td></tr>
+                <tr><td class="p-2 border-r border-slate-800 text-amber-400 font-bold">3</td><td class="p-2 anat-col">1.0</td><td class="p-2">2013-01-02</td><td class="p-2">1.0</td><td class="p-2">3</td><td class="p-2">train</td><td class="p-2">foo</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Source Code & Bedah Kode 11.3.1.1 -->
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+          <div class="px-4 py-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+            <span class="text-indigo-300 font-semibold"><i class="fa-brands fa-python mr-1.5"></i>11.3.1.1 Pembuatan Series, date_range, dan DataFrame</span>
+            <button onclick="copyCodeBlock('code-11-3-1')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Kode
+            </button>
+          </div>
+          <pre id="code-11-3-1" class="p-4 py-code overflow-x-auto"></pre>
+
+          <!-- Catatan Penting Koreksi Modul df2.dtypes -->
+          <div class="p-4 bg-amber-500/10 border-t border-amber-500/30 text-xs text-slate-200 space-y-1">
+            <div class="font-bold text-amber-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-lightbulb"></i> Catatan Penting Sintaks Pandas (`df2.dtypes` vs `df2.types()`):
+            </div>
+            <p class="leading-relaxed">
+              Pada halaman 124 modul tertulis <code>df2.types()</code>. Di pustaka Pandas yang sebenarnya, untuk memeriksa tipe data dari setiap kolom digunakan atribut properti <strong><code>df2.dtypes</code></strong> (tanpa tanda kurung <code>()</code> dan diawali huruf <code>d</code>). Jika memanggil <code>df2.types()</code>, Python akan memunculkan <em>AttributeError</em>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Penjelasan Baris demi Baris 11.3.1.1 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+        <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">
+          <i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i> Bedah Kode Baris demi Baris (Sub-bab 11.3.1.1)
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <div class="font-mono font-bold text-cyan-300">seri = pd.Series([1, 3, 5, np.nan, 6, 8])</div>
+            <p class="text-slate-300 leading-relaxed">Menciptakan objek 1 kolom (<code>Series</code>) dari sebuah list. Konstanta <code>np.nan</code> (<em>Not a Number</em>) merepresentasikan data kosong/hilang, sehingga Pandas otomatis mempromosikan tipe data seluruh elemen menjadi <code>float64</code>.</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <div class="font-mono font-bold text-cyan-300">dates = pd.date_range("20130101", periods=6)</div>
+            <p class="text-slate-300 leading-relaxed">Membuat deretan indeks tanggal (<code>DatetimeIndex</code>) sebanyak 6 hari berturut-turut (<code>freq='D'</code>) dimulai dari 1 Januari 2013 hingga 6 Januari 2013.</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <div class="font-mono font-bold text-cyan-300">df2 = pd.DataFrame({ "A": 1.0, ..., "F": "foo" })</div>
+            <p class="text-slate-300 leading-relaxed">Membuat <code>DataFrame</code> dari dictionary. Kolom yang hanya diberi 1 nilai skalar tunggal (seperti <code>"A": 1.0</code> atau <code>"F": "foo"</code>) nilainya otomatis diduplikasi (<em>broadcast</em>) ke seluruh 4 baris.</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <div class="font-mono font-bold text-cyan-300">print(df2.dtypes)</div>
+            <p class="text-slate-300 leading-relaxed">Menampilkan tipe data tiap kolom: <code>A (float64)</code>, <code>B (datetime64[ns])</code>, <code>C (float32)</code>, <code>D (int32)</code>, <code>E (category)</code>, dan <code>F (object/string)</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 2: 11.3.1.2 INSPEKSI & AKSES DATAFRAME (HEAD, TAIL, LOC, ILOC)  -->
+    <!-- ======================================================================= -->
+    <section id="inspeksi-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-cyan-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Sub-bab 11.3.1.2</span>
+        <h2 class="text-2xl font-bold text-white">2. Perintah Dasar &amp; Interactive DataFrame Inspector (`head`, `tail`, `describe`, `loc`, `iloc`)</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Klik tombol operasi di bawah ini untuk menyimulasikan bagaimana Pandas mengekstrak baris, kolom, dan ringkasan statistik pada DataFrame <code>df</code> berukuran $6 \times 4$.
+        </p>
+      </div>
+
+      <!-- Interactive Inspector Simulator -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="text-xs font-mono text-slate-300">
+            Dataset Uji: <code class="text-cyan-300">df = pd.DataFrame(np.random.randn(6, 4), index=dates, columns=list("ABCD"))</code>
+          </div>
+          <span id="inspector-badge" class="px-2.5 py-1 rounded-md text-xs font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            Mode Aktif: df (Seluruh 6 Baris)
+          </span>
+        </div>
+
+        <!-- Tombol-Tombol Operasi Tabel 11.3.1.2 -->
+        <div class="flex flex-wrap gap-2 text-xs font-mono">
+          <button onclick="runInspector('all')" class="insp-btn px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400">df (Semua)</button>
+          <button onclick="runInspector('head3')" class="insp-btn px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:border-cyan-400">df.head(3)</button>
+          <button onclick="runInspector('tail3')" class="insp-btn px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:border-cyan-400">df.tail(3)</button>
+          <button onclick="runInspector('colA')" class="insp-btn px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:border-cyan-400">df["A"]</button>
+          <button onclick="runInspector('colAC')" class="insp-btn px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:border-cyan-400">df[["A", "C"]]</button>
+          <button onclick="runInspector('iloc2')" class="insp-btn px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:border-cyan-400">df.iloc[2]</button>
+          <button onclick="runInspector('locCell')" class="insp-btn px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:border-cyan-400">df.loc["2013-01-03", "B"]</button>
+          <button onclick="runInspector('describe')" class="insp-btn px-3 py-1.5 rounded-xl bg-slate-800 text-amber-300 border border-slate-700 hover:border-amber-400">df.describe()</button>
+        </div>
+
+        <!-- Penjelasan Sintaks Aktif -->
+        <div id="inspector-explanation" class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 leading-relaxed"></div>
+
+        <!-- Tabel Visualisasi Inspector -->
+        <div id="inspector-table-container" class="overflow-x-auto rounded-xl border border-slate-800"></div>
+      </div>
+
+      <!-- Tabel Referensi Operasi Dasar (Halaman 126 Modul) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+        <div class="px-5 py-3 bg-slate-950 border-b border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-300">
+          Ringkasan Operasi Dasar Pandas DataFrame (Tabel Halaman 126 Modul)
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-900/90 text-slate-400 font-mono border-b border-slate-800">
+              <tr>
+                <th class="p-3 w-64">Operasi / Sintaks</th>
+                <th class="p-3">Keterangan &amp; Perilaku Teknis</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr><td class="p-3 font-mono font-bold text-cyan-300">df.head(n)</td><td class="p-3">Mengambil <code>n</code> baris pertama dari DataFrame (default <code>n=5</code> jika dikosongkan).</td></tr>
+              <tr><td class="p-3 font-mono font-bold text-cyan-300">df.tail(n)</td><td class="p-3">Mengambil <code>n</code> baris terakhir dari DataFrame (default <code>n=5</code>).</td></tr>
+              <tr><td class="p-3 font-mono font-bold text-cyan-300">df.info()</td><td class="p-3">Menampilkan ringkasan struktur DataFrame: jumlah baris, nama kolom, jumlah nilai non-null, tipe data, dan pemakaian memori.</td></tr>
+              <tr><td class="p-3 font-mono font-bold text-cyan-300">df.describe()</td><td class="p-3">Menghitung statistik deskriptif otomatis untuk seluruh kolom numerik: <code>count</code>, <code>mean</code> (rata-rata), <code>std</code> (simpangan baku), <code>min</code>, kuartil <code>25%</code>, <code>50%</code> (median), <code>75%</code>, dan <code>max</code>.</td></tr>
+              <tr><td class="p-3 font-mono font-bold text-cyan-300">df["Kolom"]</td><td class="p-3">Mengambil 1 kolom spesifik dan mengembalikannya sebagai objek <code>pd.Series</code> (1D).</td></tr>
+              <tr><td class="p-3 font-mono font-bold text-cyan-300">df[["Kolom1", "Kolom2"]]</td><td class="p-3">Mengambil beberapa kolom sekaligus menggunakan <em>list of column names</em> (kurung siku ganda) dan mengembalikannya sebagai <code>pd.DataFrame</code> baru.</td></tr>
+              <tr><td class="p-3 font-mono font-bold text-cyan-300">df.iloc[i]</td><td class="p-3"><strong>Integer-location based indexing:</strong> Mengambil baris berdasarkan urutan posisi indeks numerik integer <code>0, 1, 2, ...</code> tanpa peduli apa nama label barisnya.</td></tr>
+              <tr><td class="p-3 font-mono font-bold text-cyan-300">df.loc[baris, kolom]</td><td class="p-3"><strong>Label-based indexing:</strong> Mengambil data berdasarkan nama label indeks baris dan nama kolom (contoh: <code>df.loc["2013-01-03", "B"]</code>).</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 3: 11.3.1.3 MODIFIKASI, SORTING, GROUPBY, & MERGING             -->
+    <!-- ======================================================================= -->
+    <section id="modifikasi-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-purple-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">Sub-bab 11.3.1.3</span>
+        <h2 class="text-2xl font-bold text-white">3. Modifikasi Kolom, Filtering, Sorting, Grouping, dan Merging DataFrame</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Mempelajari cara menambah/menghapus kolom, menyaring baris dengan kondisi logika, mengurutkan nilai, mengelompokkan statistik per kategori, serta menggabungkan dua DataFrame.
+        </p>
+      </div>
+
+      <!-- Source Code & Penjelasan Modifikasi, Sort, Groupby -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div class="px-4 py-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+            <span class="text-purple-300 font-semibold"><i class="fa-brands fa-python mr-1.5"></i>11.3.1.3 Modifikasi, Drop, Sort, dan GroupBy</span>
+            <button onclick="copyCodeBlock('code-11-3-3')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Kode
+            </button>
+          </div>
+          <pre id="code-11-3-3" class="p-4 py-code overflow-x-auto"></pre>
+        </div>
+
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 text-xs">
+          <h3 class="font-mono font-bold uppercase tracking-wider text-purple-400">
+            <i class="fa-solid fa-code-commit mr-1.5"></i> Penjelasan Tiap Bagian Kode
+          </h3>
+          <div class="space-y-2.5">
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-purple-300">df['E'] = [1, 2, 3, 4, 5, 6]</div>
+              <p class="text-slate-300 mt-1">Menambahkan kolom baru bernama <code>'E'</code> di sisi paling kanan DataFrame. Panjang list wajib sama dengan jumlah baris DataFrame (6 baris).</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-purple-300">df_filtered = df[df["E"] > 2]</div>
+              <p class="text-slate-300 mt-1"><strong>Boolean Indexing:</strong> Ekspresi <code>df["E"] > 2</code> menghasilkan deretan <code>[False, False, True, True, True, True]</code>. Saat dimasukkan ke <code>df[...]</code>, hanya baris yang bernilai <code>True</code> (nilai 3, 4, 5, 6) yang dikembalikan.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-purple-300">df.drop("E", axis=1, inplace=True)</div>
+              <p class="text-slate-300 mt-1">Menghapus kolom <code>"E"</code>. Parameter <strong><code>axis=1</code></strong> menandakan yang dihapus adalah <strong>kolom</strong> (jika <code>axis=0</code> berarti baris). Parameter <strong><code>inplace=True</code></strong> menerapkan penghapusan langsung pada variabel <code>df</code> tanpa perlu membuat variabel penampung baru.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-purple-300">df.sort_values(by="E", ascending=True)</div>
+              <p class="text-slate-300 mt-1">Mengurutkan seluruh baris DataFrame berdasarkan nilai pada kolom <code>"E"</code> dari terkecil ke terbesar (<code>ascending=True</code>). Jika ingin dari terbesar ke terkecil, gunakan <code>ascending=False</code>.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-purple-300">df2.groupby("Kelas")["Nilai"].mean()</div>
+              <p class="text-slate-300 mt-1">Mengelompokkan baris berdasarkan nilai unik di kolom <code>"Kelas"</code> (A, B, C), memilih kolom <code>"Nilai"</code>, lalu menghitung rata-rata (<code>.mean()</code>) untuk tiap kelompok: Kelas A = 82.5, B = 84.0, C = 88.0.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE EXPERIMENT: PERTANYAAN MODUL HALAMAN 129 "APA YANG TERJADI PADA PD.MERGE?" -->
+      <div class="bg-gradient-to-br from-slate-900 via-purple-950/30 to-slate-900 border border-purple-500/40 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              Jawaban Pertanyaan Eksperimen Modul Halaman 129
+            </span>
+            <h3 class="text-lg font-bold text-white mt-1.5">
+              Eksperimen `pd.merge(df1, df2, on="NIM")`: Apa yang terjadi jika jumlah baris berbeda?
+            </h3>
+          </div>
+          <div class="flex flex-wrap gap-1.5 text-xs font-mono">
+            <button onclick="setMergeMode('inner')" id="merge-btn-inner" class="px-3 py-1.5 rounded-xl bg-purple-500/30 text-purple-200 border border-purple-400 font-bold">how="inner" (Default)</button>
+            <button onclick="setMergeMode('outer')" id="merge-btn-outer" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">how="outer"</button>
+            <button onclick="setMergeMode('left')" id="merge-btn-left" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">how="left"</button>
+            <button onclick="setMergeMode('right')" id="merge-btn-right" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">how="right"</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs font-mono">
+          <!-- df1 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="text-cyan-400 font-bold">DataFrame 1 (`df1` — 2 Baris):</div>
+            <div class="text-[11px] text-slate-400">NIM: ["A01", "A02"], Nama: ["Andi", "Budi"]</div>
+            <table class="w-full text-left border border-slate-800">
+              <thead class="bg-slate-900 text-slate-300"><tr><th class="p-2">NIM</th><th class="p-2">Nama</th></tr></thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr><td class="p-2 text-amber-300">A01</td><td class="p-2">Andi</td></tr>
+                <tr><td class="p-2 text-amber-300">A02</td><td class="p-2">Budi</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- df2 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="text-emerald-400 font-bold">DataFrame 2 (`df2` — 3 Baris):</div>
+            <div class="text-[11px] text-slate-400">NIM: ["A01", "A02", "A03"], Nilai: [85, 90, 100]</div>
+            <table class="w-full text-left border border-slate-800">
+              <thead class="bg-slate-900 text-slate-300"><tr><th class="p-2">NIM</th><th class="p-2">Nilai</th></tr></thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr><td class="p-2 text-amber-300">A01</td><td class="p-2">85</td></tr>
+                <tr><td class="p-2 text-amber-300">A02</td><td class="p-2">90</td></tr>
+                <tr class="bg-rose-950/30"><td class="p-2 text-rose-300 font-bold">A03</td><td class="p-2 text-rose-300">100</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Hasil Merge -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-purple-500/40 space-y-2">
+            <div id="merge-result-title" class="text-purple-300 font-bold">Hasil `pd.merge(df1, df2, on="NIM")`:</div>
+            <div id="merge-result-table"></div>
+          </div>
+        </div>
+
+        <div id="merge-explanation-box" class="p-4 rounded-xl bg-slate-950/90 border border-slate-800 text-xs text-slate-200 leading-relaxed font-sans"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 4: 11.3.1.4 MEMBUKA & MENYIMPAN DATA (CSV, EXCEL, JSON, SQL)    -->
+    <!-- ======================================================================= -->
+    <section id="io-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-emerald-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Sub-bab 11.3.1.4</span>
+        <h2 class="text-2xl font-bold text-white">4. Membuka dan Menyimpan Data dengan Pandas (I/O Operations)</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Pandas menyediakan fungsi pembacaan (<code>read_*</code>) dan penyimpanan (<code>to_*</code>) untuk berbagai format file tabular seperti CSV, Microsoft Excel, JSON, hingga koneksi langsung ke database SQL.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Tabel Fungsi Read & Write -->
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <h3 class="text-sm font-bold text-emerald-300">Tabel Fungsi Pembacaan &amp; Penyimpanan Berkas</h3>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-950 text-slate-300 font-mono border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5">Format</th>
+                  <th class="p-2.5">Membaca Data (Input)</th>
+                  <th class="p-2.5">Menyimpan Data (Output)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 font-mono">
+                <tr>
+                  <td class="p-2.5 font-sans font-bold text-emerald-400">CSV</td>
+                  <td class="p-2.5 text-cyan-300">pd.read_csv("file.csv")</td>
+                  <td class="p-2.5 text-amber-300">df.to_csv("output.csv", index=False)</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-sans font-bold text-emerald-400">Excel</td>
+                  <td class="p-2.5 text-cyan-300">pd.read_excel("file.xlsx")</td>
+                  <td class="p-2.5 text-amber-300">df.to_excel("output.xlsx", index=False)</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-sans font-bold text-emerald-400">JSON</td>
+                  <td class="p-2.5 text-cyan-300">pd.read_json("file.json")</td>
+                  <td class="p-2.5 text-amber-300">df.to_json("output.json")</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-sans font-bold text-emerald-400">SQL DB</td>
+                  <td class="p-2.5 text-cyan-300">pd.read_sql(query, conn)</td>
+                  <td class="p-2.5 text-amber-300">df.to_sql("tabel", conn)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+            <strong>Isi berkas contoh <code>coba.csv</code> (Halaman 129):</strong>
+            <pre class="mt-1.5 font-mono text-emerald-300 bg-slate-900 p-2.5 rounded-lg border border-slate-800">NIM,Nama,Nilai,Keterangan
+A01,Andi,85,Lulus
+A02,Budi,90,Lulus
+A03,Citra,78,Tidak Lulus</pre>
+          </div>
+        </div>
+
+        <!-- Source Code I/O & JSON Deserialization -->
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col">
+          <div class="px-4 py-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+            <span class="text-emerald-300 font-semibold"><i class="fa-brands fa-python mr-1.5"></i>11.3.1.4 Konversi coba.csv ke coba.json</span>
+            <button onclick="copyCodeBlock('code-11-3-4')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Kode
+            </button>
+          </div>
+          <pre id="code-11-3-4" class="p-4 py-code overflow-x-auto flex-1"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 5: 11.4 KEGIATAN DI DALAM LAB (LATIHAN 1 S.D. LATIHAN 6)        -->
+    <!-- ======================================================================= -->
+    <section id="lab-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-cyan-400 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Bagian 11.4 Kegiatan Praktikum di Lab</span>
+        <h2 class="text-2xl font-bold text-white">5. Pembahasan Lengkap Latihan 1 s.d. Latihan 6 (Source Code + Bedah Kode Baris demi Baris)</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Setiap latihan di bawah ini dilengkapi dengan kode asli dari modul, penyempurnaan kode, penjelasan mendalam setiap baris sintaks, serta hasil keluaran tabel/terminalnya.
+        </p>
+      </div>
+
+      <!-- Container 7 Kartu Latihan Lab -->
+      <div id="lab-exercises-container" class="space-y-8"></div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 6: 11.4.7 STUDI KASUS TOKO BUKU ONLINE "BUKUKITA.ID" STREAMLIT  -->
+    <!-- ======================================================================= -->
+    <section id="bukukita-section" class="space-y-8 scroll-mt-24">
+      <div class="border-l-4 border-rose-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-rose-400">Sub-bab 11.4.7 &amp; Solusi Latihan Diskon Random</span>
+        <h2 class="text-2xl font-bold text-white">6. Studi Kasus Toko Buku Online `BukuKita.id` dengan Pandas &amp; Streamlit</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Analisis transaksi penjualan dari berkas <code>penjualan.csv</code> (10 buku), perhitungan kolom <code>total_harga</code>, ringkasan <code>groupby("kategori")</code>, visualisasi <code>st.bar_chart</code>, serta <strong>Solusi Latihan: Penambahan Kolom % Diskon Random (5%–20%) &amp; Harga Setelah Diskon</strong>.
+        </p>
+      </div>
+
+      <!-- Dataset penjualan.csv Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-file-csv text-emerald-400"></i> Berkas Dataset: `penjualan.csv` (Halaman 133 Modul)
+            </h3>
+            <p class="text-xs text-slate-400">Simpan teks di bawah ini dengan nama <code>penjualan.csv</code> di folder yang sama dengan file Python Streamlit Anda, atau klik tombol unduh.</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="copyRawText(PENJUALAN_CSV_RAW)" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 border border-slate-700">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Isi CSV
+            </button>
+            <button onclick="downloadDataset('penjualan.csv')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white">
+              <i class="fa-solid fa-download mr-1"></i> Unduh penjualan.csv
+            </button>
+          </div>
+        </div>
+        <pre id="penjualan-csv-preview" class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto"></pre>
+      </div>
+
+      <!-- Full Source Code app_bukukita.py (Termasuk Solusi Latihan Diskon Random 5-20%) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">app_bukukita.py</span>
+              <h3 class="text-base font-bold text-white">Source Code Lengkap Streamlit `BukuKita.id` + Jawaban Latihan Diskon Random (5% - 20%)</h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Jalankan di terminal dengan perintah: <code class="text-amber-300 font-mono">streamlit run app_bukukita.py</code></p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="copyCodeBlock('code-bukukita-full')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Seluruh Kode
+            </button>
+            <button onclick="downloadPythonApp()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white">
+              <i class="fa-brands fa-python mr-1"></i> Unduh app_bukukita.py
+            </button>
+          </div>
+        </div>
+
+        <pre id="code-bukukita-full" class="p-5 py-code overflow-x-auto max-h-[560px]"></pre>
+
+        <!-- Penjelasan Mendalam 5 Blok Kode app_bukukita.py -->
+        <div class="p-6 bg-slate-900/90 border-t border-slate-800 space-y-4">
+          <h4 class="text-sm font-mono font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+            <i class="fa-solid fa-list-check"></i> Penjelasan Mendalam Tiap Bagian Source Code `app_bukukita.py` &amp; Latihan Diskon
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div class="font-mono font-bold text-rose-300">1. Baris 1–16: Import &amp; Menampilkan Data (`st.dataframe` vs `st.write(df.head())`)</div>
+              <p class="text-slate-300 leading-relaxed">
+                <code>pd.read_csv("penjualan.csv")</code> memuat ke-10 baris transaksi ke objek DataFrame <code>df</code>. <code>st.dataframe(df)</code> merender tabel interaktif yang bisa di-scroll dan diurutkan di web, sedangkan <code>st.write(df.head())</code> menampilkan 5 baris pertama (ID buku 1 s.d. 5).
+              </p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div class="font-mono font-bold text-amber-300">2. Baris 19–27: Perkalian Vektorisasi `total_harga` &amp; `sum()`</div>
+              <p class="text-slate-300 leading-relaxed">
+                <code>df["total_harga"] = df["jumlah"] * df["harga_satuan"]</code> mengalikan jumlah buku dengan harga satuan secara serentak untuk seluruh baris tanpa memerlukan perulangan <code>for</code>. Fungsi <code>df["total_harga"].sum()</code> menjumlahkan seluruh elemen kolom tersebut menjadi <strong>Rp 3,668,000</strong>.
+              </p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div class="font-mono font-bold text-cyan-300">3. Baris 30–37: Agregasi `groupby("kategori")` &amp; Visualisasi `st.bar_chart`</div>
+              <p class="text-slate-300 leading-relaxed">
+                <code>df.groupby("kategori")["jumlah"].sum()</code> menghitung total eksemplar buku terjual per kategori (Data Science: 18, Pemrograman: 22, Web Development: 19). Kemudian <code>df.groupby("kategori")["total_harga"].sum()</code> diumpankan langsung ke <code>st.bar_chart()</code> untuk menggambar grafik batang interaktif.
+              </p>
+            </div>
+            <div class="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/40 space-y-1.5">
+              <div class="font-mono font-bold text-emerald-300">4. Baris 40–55: [JAWABAN LATIHAN] Diskon Random 5%–20% &amp; Harga Setelah Diskon</div>
+              <p class="text-slate-200 leading-relaxed">
+                • <code>df["diskon_persen"] = np.random.randint(5, 21, size=len(df))</code> membangkitkan bilangan bulat acak antara <strong>5 hingga 20</strong> (batas atas <code>21</code> pada <code>randint</code> bersifat eksklusif) sebanyak jumlah baris DataFrame (<code>len(df) = 10</code>).<br>
+                • <code>df["harga_setelah_diskon"] = df["total_harga"] * (1 - df["diskon_persen"] / 100)</code> menghitung harga bersih secara otomatis untuk setiap transaksi.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- LIVE INTERACTIVE STREAMLIT SIMULATOR: BUKUKITA.ID                     -->
+      <!-- ===================================================================== -->
+      <div class="bg-slate-900 border-2 border-rose-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-rose-500/20 text-rose-300 text-xs font-mono font-bold">
+              <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+              STREAMLIT LIVE SIMULATOR — BUKUKITA.ID
+            </div>
+            <h3 class="text-2xl font-extrabold text-white mt-2">Analisis Data Penjualan Toko Buku Online</h3>
+            <p class="text-xs text-slate-400">Simulasi interaktif langsung di browser: uji acak diskon 5%–20%, amati perubahan tabel, metrik pendapatan, dan grafik batang secara real-time!</p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button onclick="randomizeBookDiscounts()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs shadow-lg flex items-center gap-2 transition-all">
+              <i class="fa-solid fa-dice text-sm"></i>
+              <span>Acak Diskon (5% - 20%) &amp; Hitung Ulang</span>
+            </button>
+            <button onclick="exportBukuKitaExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all">
+              <i class="fa-solid fa-file-excel"></i>
+              <span>Export Excel (.xlsx)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bagian 1: Membaca dan Menampilkan Data -->
+        <div class="space-y-4">
+          <h4 class="text-lg font-bold text-white border-b border-slate-800 pb-2">1. Membaca dan Menampilkan Data (`penjualan.csv` + Kolom Analisis)</h4>
+          
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-slate-300">Seluruh Data Penjualan (`st.dataframe(df)` — 10 Transaksi):</span>
+            <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
+              <input type="checkbox" id="toggle-head5" onchange="renderBukuKitaSimulator()" class="accent-rose-500">
+              <span>Tampilkan hanya 5 baris pertama (`df.head(5)`)</span>
+            </label>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs border-collapse font-mono">
+              <thead class="bg-slate-950 text-slate-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5">id_buku</th>
+                  <th class="p-2.5">judul</th>
+                  <th class="p-2.5">kategori</th>
+                  <th class="p-2.5 text-right">jumlah</th>
+                  <th class="p-2.5 text-right">harga_satuan</th>
+                  <th class="p-2.5 text-right text-cyan-300">total_harga</th>
+                  <th class="p-2.5 text-right text-amber-300">% diskon (Random)</th>
+                  <th class="p-2.5 text-right text-emerald-300">harga_setelah_diskon</th>
+                </tr>
+              </thead>
+              <tbody id="bukukita-tbody" class="divide-y divide-slate-800/80 bg-slate-950/60 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bagian 2: Analisis dan Visualisasi Data -->
+        <div class="space-y-4 pt-2">
+          <h4 class="text-lg font-bold text-white border-b border-slate-800 pb-2">2. Analisis dan Visualisasi Data (`groupby` &amp; `st.bar_chart`)</h4>
+
+          <!-- Kartu Metrik Pendapatan -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+              <div class="text-xs text-slate-400 font-semibold uppercase">Total Pendapatan Kotor (`sum(total_harga)`)</div>
+              <div id="bk-total-kotor" class="text-2xl font-extrabold text-cyan-400 font-mono mt-1">Rp 3,668,000</div>
+              <div class="text-[11px] text-slate-500 mt-1">Sesuai angka pada screenshot modul halaman 132</div>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+              <div class="text-xs text-slate-400 font-semibold uppercase">Total Potongan Diskon</div>
+              <div id="bk-total-diskon" class="text-2xl font-extrabold text-amber-400 font-mono mt-1">Rp 0</div>
+              <div id="bk-avg-diskon" class="text-[11px] text-slate-500 mt-1">Rata-rata diskon: 0%</div>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30">
+              <div class="text-xs text-emerald-400 font-semibold uppercase">Total Pendapatan Bersih (Setelah Diskon)</div>
+              <div id="bk-total-bersih" class="text-2xl font-extrabold text-emerald-400 font-mono mt-1">Rp 0</div>
+              <div class="text-[11px] text-slate-500 mt-1">Hasil `df["harga_setelah_diskon"].sum()`</div>
+            </div>
+          </div>
+
+          <!-- Tabel Groupby & Bar Chart Visual -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+            <!-- Tabel Ringkasan Jumlah Buku per Kategori -->
+            <div class="lg:col-span-5 p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div class="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Jumlah Buku Terjual per Kategori (`df.groupby("kategori")["jumlah"].sum()`)
+              </div>
+              <div id="bk-groupby-table" class="overflow-x-auto"></div>
+            </div>
+
+            <!-- Bar Chart Visualisasi Pendapatan per Kategori -->
+            <div class="lg:col-span-7 p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Visualisasi Pendapatan per Kategori (`st.bar_chart`)
+                </div>
+                <span class="text-[11px] font-mono text-cyan-400">Biru: Total Harga | Hijau: Setelah Diskon</span>
+              </div>
+              <div id="bk-bar-chart" class="space-y-4 pt-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 6B: SIMULASI UNGUIDED (CAPSTONE CHALLENGE SELURUH MATERI)       -->
+    <!-- ======================================================================= -->
+    <section id="unguided-section" class="space-y-8 scroll-mt-24">
+      <div class="border-l-4 border-amber-500 pl-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">Bagian 11.5 Simulasi Unguided Praktikum</span>
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+            Difficulty: High / Comprehensive Capstone
+          </span>
+        </div>
+        <h2 class="text-2xl font-bold text-white mt-1">
+          Simulasi Soal Unguided: Sistem Analitik Akademik &amp; Seleksi Beasiswa Kampus (Pandas + Streamlit)
+        </h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Studi kasus menantang yang dirancang merangkum <strong>100% materi Modul 11</strong>: pembacaan multi-CSV (<code>read_csv</code>), inspeksi (<code>head</code>, <code>describe</code>, <code>loc</code>/<code>iloc</code>), penggabungan relasional (<code>pd.merge</code> dengan jumlah baris berbeda), agregasi lintas kolom (<code>mean(axis=1)</code>), pembersihan kolom (<code>drop</code>), kalkulasi kondisional beasiswa, pengelompokan statistik prodi (<code>groupby</code>), pengurutan (<code>sort_values</code>), ekspor multi-format (<code>to_csv</code>, <code>to_excel</code>, <code>to_json</code>), serta visualisasi dashboard <strong>Streamlit</strong>.
+        </p>
+      </div>
+
+      <!-- Deskripsi Soal & Spesifikasi Tantangan Unguided -->
+      <div class="bg-gradient-to-br from-slate-900 via-amber-950/20 to-slate-900 border border-amber-500/40 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-800 pb-4">
+          <div class="space-y-1">
+            <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+              <i class="fa-solid fa-file-signature text-amber-400"></i>
+              Deskripsi Kasus &amp; Instruksi Pengerjaan Unguided
+            </h3>
+            <p class="text-xs text-slate-300 leading-relaxed max-w-4xl">
+              Bagian Kemahasiswaan Universitas memiliki <strong>dua berkas CSV terpisah</strong>, yaitu <code>profil_mahasiswa.csv</code> (berisi data identitas, prodi, kelas, dan biaya UKT dari 8 mahasiswa) serta <code>nilai_semester.csv</code> (berisi nilai Algoritma, Struktur_Data, Basis_Data, Statistik, dan Catatan_Temp dari 9 entri, di mana terdapat 1 NIM anomali <code>M09</code> yang belum terdaftar di profil dan 1 mahasiswa <code>M08</code> yang cuti sehingga belum memiliki nilai).
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="downloadDataset('profil_mahasiswa.csv')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs font-mono font-semibold flex items-center gap-1.5">
+              <i class="fa-solid fa-download"></i> profil_mahasiswa.csv
+            </button>
+            <button onclick="downloadDataset('nilai_semester.csv')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs font-mono font-semibold flex items-center gap-1.5">
+              <i class="fa-solid fa-download"></i> nilai_semester.csv
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview 2 Dataset Awal (Before Processing) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between font-mono">
+              <span class="font-bold text-cyan-400">1. Dataset `profil_mahasiswa.csv` (8 Baris: M01 – M08)</span>
+              <button onclick="copyRawText(PROFIL_MHS_CSV_RAW)" class="text-slate-400 hover:text-white"><i class="fa-regular fa-copy"></i> Salin</button>
+            </div>
+            <pre id="unguided-profil-preview" class="font-mono text-[11px] text-slate-300 overflow-x-auto bg-slate-900 p-3 rounded-lg border border-slate-800"></pre>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between font-mono">
+              <span class="font-bold text-emerald-400">2. Dataset `nilai_semester.csv` (8 Baris: M01 – M07, M09)</span>
+              <button onclick="copyRawText(NILAI_SEMESTER_CSV_RAW)" class="text-slate-400 hover:text-white"><i class="fa-regular fa-copy"></i> Salin</button>
+            </div>
+            <pre id="unguided-nilai-preview" class="font-mono text-[11px] text-slate-300 overflow-x-auto bg-slate-900 p-3 rounded-lg border border-slate-800"></pre>
+          </div>
+        </div>
+
+        <!-- Daftar 7 Tugas Unguided yang Mencakup Seluruh Materi -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-amber-300">
+            <i class="fa-solid fa-list-ol mr-1.5"></i> Spesifikasi 7 Langkah Tugas yang Wajib Diselesaikan:
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div class="font-bold text-cyan-300 font-mono">Tugas 1 — Load Data, Inspeksi &amp; Merge (`11.3.1.2` &amp; `11.3.1.3`)</div>
+              <p class="text-slate-300 leading-relaxed">Baca kedua file CSV, tampilkan 3 data pertama (<code>head(3)</code>), lalu gabungkan keduanya berdasarkan kolom <code>"NIM"</code> menggunakan <code>pd.merge(..., on="NIM", how="inner")</code> sehingga hanya mahasiswa aktif yang datanya lengkap di kedua tabel (<code>M01</code>–<code>M07</code>) yang diproses.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div class="font-bold text-purple-300 font-mono">Tugas 2 — Drop Kolom &amp; Hitung Rata-Rata (`axis=1`)</div>
+              <p class="text-slate-300 leading-relaxed">Hapus kolom <code>"Catatan_Temp"</code> secara permanen dengan <code>df.drop("Catatan_Temp", axis=1, inplace=True)</code>. Kemudian hitung rata-rata dari 4 mata kuliah (<code>Algoritma</code>, <code>Struktur_Data</code>, <code>Basis_Data</code>, <code>Statistik</code>) menggunakan <code>.mean(axis=1)</code> dan simpan di kolom baru <code>"Rata_Nilai"</code> (bulatkan 2 desimal).</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div class="font-bold text-emerald-300 font-mono">Tugas 3 — Penentuan Predikat, Potongan Beasiswa &amp; UKT Bersih</div>
+              <p class="text-slate-300 leading-relaxed">Buat kolom <code>"Predikat"</code> &amp; <code>"Persen_Beasiswa"</code> dengan aturan: jika <code>Rata_Nilai &gt;= 88</code> maka <strong>"Cumlaude" (Beasiswa 40%)</strong>; jika <code>80 &lt;= Rata_Nilai &lt; 88</code> maka <strong>"Sangat Memuaskan" (Beasiswa 20%)</strong>; selain itu <strong>"Memuaskan" (Beasiswa 0%)</strong>. Hitung kolom <code>"UKT_Bersih"</code> otomatis.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div class="font-bold text-amber-300 font-mono">Tugas 4 — Sorting, Akses `iloc`/`loc` &amp; Filtering di Atas Rata-rata</div>
+              <p class="text-slate-300 leading-relaxed">Urutkan DataFrame dari <code>Rata_Nilai</code> tertinggi ke terendah (<code>ascending=False</code>). Ambil mahasiswa peringkat ke-1 terbaik menggunakan <code>df_sorted.iloc[0]</code>. Setelah itu, filter hanya mahasiswa yang berhak menerima beasiswa (<code>Persen_Beasiswa &gt; 0</code>).</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div class="font-bold text-rose-300 font-mono">Tugas 5 — Grouping &amp; Multi-Aggregation per Prodi (`11.3.1.3`)</div>
+              <p class="text-slate-300 leading-relaxed">Kelompokkan data berdasarkan <code>"Prodi"</code> dan <code>"Kelas"</code> menggunakan <code>groupby</code> untuk menghitung rata-rata nilai akademik dan total anggaran potongan beasiswa yang dikeluarkan kampus untuk tiap Prodi.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div class="font-bold text-indigo-300 font-mono">Tugas 6 &amp; 7 — Ekspor Multi-Format &amp; Visualisasi Dashboard Streamlit</div>
+              <p class="text-slate-300 leading-relaxed">Simpan laporan akhir ke <code>laporan_beasiswa.csv</code>, <code>laporan_beasiswa.xlsx</code>, dan <code>ringkasan_prodi.json</code>, serta tampilkan metrik dan <code>st.bar_chart</code> pada aplikasi Streamlit.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- INTERACTIVE PIPELINE STEPPER SIMULATOR (STEP 1 S.D. STEP 5)           -->
+      <!-- ===================================================================== -->
+      <div class="bg-slate-900 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 text-xs font-mono font-bold">
+              <i class="fa-solid fa-sliders"></i> INTERACTIVE DATA PIPELINE SIMULATOR (BEFORE &rarr; AFTER)
+            </div>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-white mt-2">
+              Telusuri Transformasi DataFrame Unguided Tahap demi Tahap
+            </h3>
+            <p class="text-xs text-slate-400">Klik setiap tahap di bawah ini untuk melihat perubahan tabel dari dataset mentah hingga laporan akhir beasiswa.</p>
+          </div>
+
+          <button onclick="exportUnguidedExcel()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition-all">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>Unduh Hasil laporan_beasiswa.xlsx</span>
+          </button>
+        </div>
+
+        <!-- Stepper Navigation Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-xs font-mono">
+          <button onclick="setUnguidedStep(1)" id="ug-step-btn-1" class="p-3 rounded-xl border text-left transition-all bg-amber-500/20 text-amber-200 border-amber-400 font-bold">
+            <div class="text-[10px] text-amber-400 uppercase">Tahap 1</div>
+            <div class="mt-0.5">1. Raw CSV &amp; Inner Merge</div>
+          </button>
+          <button onclick="setUnguidedStep(2)" id="ug-step-btn-2" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400 uppercase">Tahap 2</div>
+            <div class="mt-0.5">2. Drop &amp; mean(axis=1)</div>
+          </button>
+          <button onclick="setUnguidedStep(3)" id="ug-step-btn-3" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400 uppercase">Tahap 3</div>
+            <div class="mt-0.5">3. Beasiswa &amp; UKT Bersih</div>
+          </button>
+          <button onclick="setUnguidedStep(4)" id="ug-step-btn-4" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400 uppercase">Tahap 4</div>
+            <div class="mt-0.5">4. Sort, iloc[0] &amp; Filter</div>
+          </button>
+          <button onclick="setUnguidedStep(5)" id="ug-step-btn-5" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400 uppercase">Tahap 5</div>
+            <div class="mt-0.5">5. GroupBy Prodi &amp; Chart</div>
+          </button>
+        </div>
+
+        <!-- Dynamic Content Container for Unguided Stepper -->
+        <div id="unguided-step-content" class="space-y-4"></div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- FULL SOURCE CODE JAWABAN UNGUIDED + PENJELASAN PER BAGIAN             -->
+      <!-- ===================================================================== -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">solusi_unguided.py</span>
+              <h3 class="text-base font-bold text-white">Source Code Lengkap Jawaban Simulasi Unguided (Pandas + Streamlit)</h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Mencakup pembuatan dataset otomatis jika file belum ada, pemrosesan 7 tahap Pandas, ekspor CSV/Excel/JSON, dan dashboard Streamlit.</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="copyCodeBlock('code-unguided-full')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Kode Jawaban
+            </button>
+            <button onclick="downloadUnguidedPython()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white">
+              <i class="fa-brands fa-python mr-1"></i> Unduh solusi_unguided.py
+            </button>
+          </div>
+        </div>
+
+        <pre id="code-unguided-full" class="p-5 py-code overflow-x-auto max-h-[600px]"></pre>
+
+        <!-- Penjelasan Mendalam Per Bagian Kode Solusi Unguided -->
+        <div class="p-6 bg-slate-900/95 border-t border-slate-800 space-y-4">
+          <h4 class="text-sm font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+            Penjelasan Mendalam Per Bagian Source Code `solusi_unguided.py` (Block-by-Block Breakdown)
+          </h4>
+
+          <div class="space-y-3 text-xs">
+            <!-- Bagian 1 -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="font-mono font-bold text-cyan-300">Bagian 1 (Baris 1–37): Inisialisasi Berkas CSV &amp; Pembacaan Data (`pd.read_csv`)</span>
+                <span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 font-mono text-[10px]">Materi 11.3.1.2 &amp; 11.3.1.4</span>
+              </div>
+              <p class="text-slate-300 leading-relaxed">
+                • Menggunakan fungsi <code>pd.read_csv("profil_mahasiswa.csv")</code> dan <code>pd.read_csv("nilai_semester.csv")</code> untuk memuat kedua tabel ke memori sebagai objek <code>DataFrame</code>.<br>
+                • Memanggil <code>df_profil.head(3)</code> dan <code>df_nilai.tail(3)</code> untuk menginspeksi 3 baris awal dan 3 baris akhir dari masing-masing dataset sebelum digabungkan.
+              </p>
+            </div>
+
+            <!-- Bagian 2 -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="font-mono font-bold text-purple-300">Bagian 2 (Baris 40–51): Penggabungan Relasional (`pd.merge`) &amp; Penghapusan Kolom (`df.drop`)</span>
+                <span class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 font-mono text-[10px]">Materi 11.3.1.3 &amp; Latihan 6</span>
+              </div>
+              <p class="text-slate-300 leading-relaxed">
+                • <code>df = pd.merge(df_profil, df_nilai, on="NIM", how="inner")</code> menggabungkan kedua DataFrame berdasarkan kesamaan nilai kunci pada kolom <code>"NIM"</code>. Karena menggunakan <code>how="inner"</code>, mahasiswa <code>M08</code> (Hendra — cuti, hanya ada di profil) dan <code>M09</code> (anomali input nilai, tidak ada di profil) otomatis tersaring keluar sehingga menyisakan <strong>7 mahasiswa valid (M01–M07)</strong>.<br>
+                • <code>df.drop("Catatan_Temp", axis=1, inplace=True)</code> membuang kolom catatan sementara. Argumen <code>axis=1</code> menunjuk pada sumbu kolom dan <code>inplace=True</code> memodifikasi <code>df</code> secara langsung.
+              </p>
+            </div>
+
+            <!-- Bagian 3 -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="font-mono font-bold text-emerald-300">Bagian 3 (Baris 54–78): Agregasi Horizontal (`mean(axis=1)`) &amp; Kalkulasi Beasiswa</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono text-[10px]">Materi 11.4.3 Latihan 4A</span>
+              </div>
+              <p class="text-slate-300 leading-relaxed">
+                • <code>kolom_mk = ["Algoritma", "Struktur_Data", "Basis_Data", "Statistik"]</code> memilih 4 kolom numerik mata kuliah, lalu <code>df[kolom_mk].mean(axis=1).round(2)</code> menghitung nilai rata-rata per baris mahasiswa secara menyamping.<br>
+                • Fungsi bantu <code>tentukan_beasiswa(rata)</code> dipetakan ke setiap baris untuk menentukan <code>Predikat</code> dan <code>Persen_Beasiswa</code> (40% untuk Rata &ge; 88, 20% untuk Rata &ge; 80, dan 0% untuk di bawah 80).<br>
+                • Operasi vektorisasi <code>df["Potongan_Beasiswa"] = df["UKT"] * (df["Persen_Beasiswa"] / 100)</code> dan <code>df["UKT_Bersih"] = df["UKT"] - df["Potongan_Beasiswa"]</code> menghitung nominal rupiah secara instan untuk seluruh mahasiswa.
+              </p>
+            </div>
+
+            <!-- Bagian 4 -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="font-mono font-bold text-amber-300">Bagian 4 (Baris 81–96): Pengurutan (`sort_values`), Akses `iloc`/`loc`, &amp; Boolean Filtering</span>
+                <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 font-mono text-[10px]">Materi 11.3.1.2 &amp; 11.4.4</span>
+              </div>
+              <p class="text-slate-300 leading-relaxed">
+                • <code>df_sorted = df.sort_values(by="Rata_Nilai", ascending=False)</code> mengurutkan peringkat mahasiswa dari nilai rata-rata tertinggi ke terendah.<br>
+                • <code>terbaik = df_sorted.iloc[0]</code> mengambil baris pada urutan posisi teratas (peringkat 1, yaitu <strong>Eka Putri - M05</strong> dengan rata-rata <strong>92.50</strong>).<br>
+                • <code>df_penerima = df_sorted[df_sorted["Persen_Beasiswa"] &gt; 0]</code> menyaring hanya mahasiswa yang berhak mendapatkan potongan beasiswa (5 mahasiswa penerima).
+              </p>
+            </div>
+
+            <!-- Bagian 5 -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="font-mono font-bold text-rose-300">Bagian 5 &amp; 6 (Baris 99–142): Multi-Column `groupby`, Ekspor Berkas, &amp; Dashboard Streamlit</span>
+                <span class="px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 font-mono text-[10px]">Materi 11.4.5 &amp; 11.4.7</span>
+              </div>
+              <p class="text-slate-300 leading-relaxed">
+                • <code>df.groupby("Prodi")[["Rata_Nilai", "Potongan_Beasiswa", "UKT_Bersih"]].agg(...)</code> mengelompokkan data berdasarkan program studi untuk menghitung rata-rata akademik sekaligus total anggaran beasiswa per prodi.<br>
+                • Hasil akhir disimpan ke tiga format sekaligus: <code>to_csv("laporan_beasiswa.csv", index=False)</code>, <code>to_json("ringkasan_prodi.json")</code>, dan <code>to_excel("laporan_beasiswa.xlsx", index=False)</code>, lalu divisualisasikan ke dalam grafik batang <code>st.bar_chart()</code>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 7: KUIS EVALUASI PEMAHAMAN                                      -->
+    <!-- ======================================================================= -->
+    <section id="quiz-section" class="space-y-6 scroll-mt-24">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">Evaluasi Mandiri</span>
+            <h2 class="text-2xl font-bold text-white">7. Kuis Pemahaman Pengolahan Data Tabular dengan Pandas</h2>
+          </div>
+          <div id="quiz-score-box" class="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 font-mono text-sm font-bold text-indigo-400">
+            Skor: Belum Dinilai
+          </div>
+        </div>
+
+        <div id="quiz-questions-wrapper" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+        <div class="pt-2">
+          <button onclick="evaluatePandasQuiz()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-600 hover:from-indigo-400 hover:to-cyan-500 text-white font-bold text-xs sm:text-sm shadow-lg transition-all">
+            <i class="fa-solid fa-check-double mr-1.5"></i> Periksa Jawaban &amp; Tampilkan Pembahasan
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-12 border-t border-slate-800 py-6 bg-slate-950 text-center text-xs text-slate-500">
+    Modul Kuliah Praktikum Struktur Data — Bab 11: Pengolahan Data Tabular dengan Pandas &amp; Streamlit
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT ENGINE: DATASETS, CODE HIGHLIGHTER, SIMULATORS, & QUIZ         -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. BUNDEL DATASET CSV ASLI MODUL
+    const PENJUALAN_CSV_RAW = `id_buku,judul,kategori,jumlah,harga_satuan
+1,Python untuk Pemula,Pemrograman,10,50000
+2,Data Science dengan Python,Data Science,5,75000
+3,Machine Learning Dasar,Data Science,7,80000
+4,Web Development dengan Django,Pemrograman,3,60000
+5,Statistik untuk Data Science,Data Science,4,70000
+6,JavaScript untuk Web,Web Development,8,55000
+7,HTML dan CSS Dasar,Web Development,6,45000
+8,Deep Learning Lanjutan,Data Science,2,90000
+9,Flask untuk Pemula,Pemrograman,9,52000
+10,React.js untuk Web,Web Development,5,65000`;
+
+    const NILAI_MAHASISWA_CSV_RAW = `NIM,Nama,Matematika,Fisika,Kimia
+A01,Andi,80,75,85
+A02,Budi,60,70,65
+A03,Citra,90,88,92
+A04,Dewi,78,85,80
+A05,Eka,95,92,88`;
+
+    const COBA_CSV_RAW = `NIM,Nama,Nilai,Keterangan
+A01,Andi,85,Lulus
+A02,Budi,90,Lulus
+A03,Citra,78,Tidak Lulus`;
+
+    // DATASET SIMULASI UNGUIDED (PROFIL MAHASISWA & NILAI SEMESTER)
+    const PROFIL_MHS_CSV_RAW = `NIM,Nama,Prodi,Kelas,UKT
+M01,Andi Pratama,Informatika,A,6000000
+M02,Budi Santoso,Sistem Informasi,A,5500000
+M03,Citra Lestari,Informatika,B,6000000
+M04,Dewi Anggraini,Sains Data,A,6500000
+M05,Eka Putri,Sains Data,B,6500000
+M06,Fajar Nugroho,Sistem Informasi,B,5500000
+M07,Gita Permata,Informatika,A,6000000
+M08,Hendra Wijaya,Sistem Informasi,A,5500000`;
+
+    const NILAI_SEMESTER_CSV_RAW = `NIM,Algoritma,Struktur_Data,Basis_Data,Statistik,Catatan_Temp
+M01,85,88,82,85,Valid
+M02,72,68,75,73,Valid
+M03,92,90,88,90,Valid
+M04,80,84,82,82,Valid
+M05,95,94,90,91,Valid
+M06,76,78,74,76,Valid
+M07,88,86,90,88,Valid
+M09,60,65,70,65,Anomali_Input`;
+
+    // 2. PYTHON SYNTAX HIGHLIGHTER DENGAN NOMOR BARIS
+    function highlightPython(code) {
+      const escaped = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      return escaped.split('\n').map((line, idx) => {
+        if (line.trim().startsWith('#')) {
+          return `<span class="ln">${idx + 1}</span><span class="cm">${line}</span>`;
+        }
+        // Pisahkan inline comment jika ada
+        let codePart = line;
+        let commentPart = '';
+        const hashIdx = line.indexOf('#');
+        if (hashIdx !== -1 && !line.slice(0, hashIdx).includes('"') && !line.slice(0, hashIdx).includes("'")) {
+          codePart = line.slice(0, hashIdx);
+          commentPart = `<span class="cm">${line.slice(hashIdx)}</span>`;
+        }
+
+        const strings = [];
+        let processed = codePart.replace(/(f?"[^"]*"|f?'[^']*')/g, (m) => {
+          strings.push(m);
+          return `___STR_${strings.length - 1}___`;
+        });
+
+        processed = processed.replace(/\b(import|from|as|def|return|if|else|for|in|with|True|False|None|and|or|not)\b/g, '<span class="kw">$1</span>');
+        processed = processed.replace(/\b(print|len|list|range|open|Series|DataFrame|date_range|Timestamp|Categorical|head|tail|info|describe|iloc|loc|drop|sort_values|groupby|mean|sum|merge|read_csv|read_excel|read_json|read_sql|to_csv|to_excel|to_json|load|title|header|subheader|dataframe|write|bar_chart|randint|seed)\b/g, '<span class="fn">$1</span>');
+        processed = processed.replace(/\b(\d+(\.\d+)?)\b/g, '<span class="nm">$1</span>');
+
+        processed = processed.replace(/___STR_(\d+)___/g, (_, i) => `<span class="st">${strings[Number(i)]}</span>`);
+        return `<span class="ln">${idx + 1}</span>${processed}${commentPart}`;
+      }).join('\n');
+    }
+
+    // 3. KODE MATERI 11.3
+    const CODE_11_3_1 = `import numpy as np
+import pandas as pd
+
+# 1. Membuat Series (1 kolom data dengan nilai NaN)
+seri = pd.Series([1, 3, 5, np.nan, 6, 8])
+print(seri)
+
+# 2. Membuat DatetimeIndex selama 6 hari berturut-turut
+dates = pd.date_range("20130101", periods=6)
+print(dates)
+
+# 3. Membuat DataFrame dengan beragam tipe data kolom
+df2 = pd.DataFrame({
+    "A": 1.0,
+    "B": pd.Timestamp("20130102"),
+    "C": pd.Series(1, index=list(range(4)), dtype="float32"),
+    "D": np.array([3] * 4, dtype="int32"),
+    "E": pd.Categorical(["test", "train", "test", "train"]),
+    "F": "foo",
+})
+print(df2)
+
+# 4. Memeriksa tipe data masing-masing kolom
+print(df2.dtypes)`;
+
+    const CODE_11_3_3 = `# 1. Menambahkan kolom baru 'E' ke DataFrame df
+df["E"] = [1, 2, 3, 4, 5, 6]
+print(df)
+
+# 2. Memfilter baris dengan nilai kolom 'E' > 2
+df_filtered = df[df["E"] > 2]
+print(df_filtered)
+
+# 3. Menghapus kolom 'E' secara permanen (axis=1 = kolom)
+df.drop("E", axis=1, inplace=True)
+
+# 4. Mengurutkan DataFrame berdasarkan kolom 'E' (kecil ke besar)
+df["E"] = [3, 1, 4, 2, 6, 5]
+df_sorted = df.sort_values(by="E", ascending=True)
+
+# 5. Grouping berdasarkan 'Kelas' dan menghitung rata-rata 'Nilai'
+data = {
+    "Kelas": ["A", "A", "B", "B", "C"],
+    "Nilai": [80, 85, 78, 90, 88]
+}
+df_kelas = pd.DataFrame(data)
+print(df_kelas.groupby("Kelas")["Nilai"].mean())`;
+
+    const CODE_11_3_4 = `import pandas as pd
+import json
+
+# 1. Membaca file coba.csv ke dalam DataFrame
+df1 = pd.read_csv("coba.csv")
+print("Isi DataFrame dari coba.csv:")
+print(df1)
+
+# 2. Menyimpan DataFrame ke dalam format file JSON
+df1.to_json("coba.json")
+
+# 3. Membuka dan memeriksa isi file coba.json
+with open("coba.json", "r") as file:
+    data = json.load(file)
+
+print("\\nIsi struktur coba.json:")
+print(data)`;
+
+    // 4. ANATOMY VISUALIZER (11.3.1)
+    function highlightAnatomy(mode) {
+      const desc = document.getElementById('anatomy-desc');
+      document.querySelectorAll('.anat-col').forEach(el => el.classList.remove('bg-cyan-500/30', 'text-white', 'font-bold'));
+      document.querySelectorAll('.anat-row0').forEach(el => el.classList.remove('bg-emerald-500/30', 'text-white'));
+
+      if (mode === 'series') {
+        document.querySelectorAll('.anat-col').forEach(el => el.classList.add('bg-cyan-500/30', 'text-white', 'font-bold'));
+        desc.innerHTML = `<span class="text-cyan-300 font-bold">Series (Kolom "A"):</span> Satu kolom tunggal yang diekstrak dengan <code>df2["A"]</code>. Memiliki 1 tipe data seragam (<code>float64</code>).`;
+      } else if (mode === 'row') {
+        document.querySelectorAll('.anat-row0').forEach(el => el.classList.add('bg-emerald-500/30', 'text-white'));
+        desc.innerHTML = `<span class="text-emerald-300 font-bold">Row / Record (Baris Indeks 0):</span> Satu baris data lengkap yang diakses dengan <code>df2.iloc[0]</code> atau <code>df2.loc[0]</code>.`;
+      } else {
+        desc.innerHTML = `DataFrame terdiri dari Index Baris (0..3) dan beberapa Kolom (A..F), di mana tiap kolom dapat memiliki tipe data (dtype) yang berbeda.`;
+      }
+    }
+
+    // 5. INTERACTIVE DATAFRAME INSPECTOR (11.3.1.2)
+    const SAMPLE_DF_ROWS = [
+      { date: '2013-01-01', A: 1.202195, B: 0.295350, C: -0.344067, D: 0.744838 },
+      { date: '2013-01-02', A: -0.938512, B: -0.619524, C: 1.274696, D: 0.429697 },
+      { date: '2013-01-03', A: -0.331012, B: -0.819643, C: 0.921088, D: -0.247253 },
+      { date: '2013-01-04', A: 0.565441, B: 0.037721, C: 0.680270, D: -0.182521 },
+      { date: '2013-01-05', A: -1.000869, B: -0.577546, C: -1.744474, D: 0.932216 },
+      { date: '2013-01-06', A: -1.418089, B: -0.506161, C: -0.528328, D: 0.035469 }
+    ];
+
+    function runInspector(mode) {
+      const badge = document.getElementById('inspector-badge');
+      const exp = document.getElementById('inspector-explanation');
+      const container = document.getElementById('inspector-table-container');
+
+      if (mode === 'describe') {
+        badge.textContent = 'Mode Aktif: df.describe()';
+        exp.innerHTML = `<strong class="text-amber-300">df.describe():</strong> Menghitung 8 parameter statistik deskriptif untuk setiap kolom numerik (count, mean, std, min, 25%, 50%, 75%, max) seperti pada Halaman 125 Modul.`;
+        const stats = [
+          { stat: 'count', A: 6.000000, B: 6.000000, C: 6.000000, D: 6.000000 },
+          { stat: 'mean',  A: -0.320141, B: -0.364967, C: 0.043198, D: 0.285408 },
+          { stat: 'std',   A: 1.015199, B: 0.432396, C: 1.128320, D: 0.493034 },
+          { stat: 'min',   A: -1.418089, B: -0.819643, C: -1.744474, D: -0.247253 },
+          { stat: '25%',   A: -0.985280, B: -0.609030, C: -0.482262, D: -0.128024 },
+          { stat: '50%',   A: -0.634762, B: -0.541853, C: 0.168101, D: 0.232583 },
+          { stat: '75%',   A: 0.341328, B: -0.098249, C: 0.860884, D: 0.666053 },
+          { stat: 'max',   A: 1.202195, B: 0.295350, C: 1.274696, D: 0.932216 }
+        ];
+        container.innerHTML = `
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="bg-slate-950 text-amber-300 border-b border-slate-800">
+              <tr><th class="p-2.5">Statistik</th><th class="p-2.5">A</th><th class="p-2.5">B</th><th class="p-2.5">C</th><th class="p-2.5">D</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+              ${stats.map(s => `
+                <tr>
+                  <td class="p-2.5 font-bold text-amber-400">${s.stat}</td>
+                  <td class="p-2.5">${s.A.toFixed(6)}</td>
+                  <td class="p-2.5">${s.B.toFixed(6)}</td>
+                  <td class="p-2.5">${s.C.toFixed(6)}</td>
+                  <td class="p-2.5">${s.D.toFixed(6)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>`;
+        return;
+      }
+
+      const explanations = {
+        all: `<strong class="text-cyan-300">df:</strong> Menampilkan keseluruhan 6 baris dan 4 kolom (A, B, C, D) dengan indeks tanggal <code>2013-01-01</code> s.d. <code>2013-01-06</code>.`,
+        head3: `<strong class="text-cyan-300">df.head(3):</strong> Mengambil <strong>3 baris pertama</strong> (indeks ke-0, 1, dan 2). Berguna untuk mengintip struktur awal dataset berukuran besar.`,
+        tail3: `<strong class="text-cyan-300">df.tail(3):</strong> Mengambil <strong>3 baris terakhir</strong> dari bagian bawah DataFrame (indeks ke-3, 4, dan 5).`,
+        colA: `<strong class="text-cyan-300">df["A"]:</strong> Mengambil hanya kolom <code>"A"</code> sebagai objek 1 dimensi <code>pd.Series</code>.`,
+        colAC: `<strong class="text-cyan-300">df[["A", "C"]]:</strong> Mengambil subset beberapa kolom sekaligus (kolom <code>"A"</code> dan <code>"C"</code>) sebagai DataFrame baru.`,
+        iloc2: `<strong class="text-cyan-300">df.iloc[2]:</strong> Mengambil baris pada <strong>posisi urutan indeks integer ke-2</strong> (baris ke-3, yaitu tanggal <code>2013-01-03</code>) karena indeks dimulai dari 0.`,
+        locCell: `<strong class="text-cyan-300">df.loc["2013-01-03", "B"]:</strong> Mengambil satu sel spesifik pada perpotongan label baris <code>"2013-01-03"</code> dan label kolom <code>"B"</code>, menghasilkan nilai <code>-0.819643</code>.`
+      };
+      badge.textContent = `Mode Aktif: ${mode}`;
+      exp.innerHTML = explanations[mode] || explanations.all;
+
+      container.innerHTML = `
+        <table class="w-full text-left text-xs font-mono border-collapse">
+          <thead class="bg-slate-950 text-slate-300 border-b border-slate-800">
+            <tr>
+              <th class="p-2.5 text-amber-400">Index (dates)</th>
+              <th class="p-2.5 ${(mode==='colA'||mode==='colAC')?'bg-cyan-500/20 text-cyan-300':''}">A</th>
+              <th class="p-2.5 ${mode==='locCell'?'bg-cyan-500/20 text-cyan-300':''}">B</th>
+              <th class="p-2.5 ${mode==='colAC'?'bg-cyan-500/20 text-cyan-300':''}">C</th>
+              <th class="p-2.5">D</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 bg-slate-950/50">
+            ${SAMPLE_DF_ROWS.map((r, i) => {
+              const isRowHighlighted = (mode === 'head3' && i < 3) || (mode === 'tail3' && i >= 3) || (mode === 'iloc2' && i === 2);
+              const isDimmed = (mode === 'head3' && i >= 3) || (mode === 'tail3' && i < 3) || (mode === 'iloc2' && i !== 2);
+              return `
+                <tr class="${isRowHighlighted ? 'bg-cyan-500/20 text-white font-bold' : ''} ${isDimmed ? 'opacity-30' : ''}">
+                  <td class="p-2.5 text-amber-400 font-bold">${r.date} <span class="text-[10px] text-slate-500">[iloc:${i}]</span></td>
+                  <td class="p-2.5 ${(mode==='colA'||mode==='colAC')?'bg-cyan-500/20 text-cyan-200 font-bold':''}">${r.A.toFixed(6)}</td>
+                  <td class="p-2.5 ${(mode==='locCell' && i===2)?'bg-rose-500/40 text-white font-extrabold ring-2 ring-rose-400':''}">${r.B.toFixed(6)}</td>
+                  <td class="p-2.5 ${mode==='colAC'?'bg-cyan-500/20 text-cyan-200 font-bold':''}">${r.C.toFixed(6)}</td>
+                  <td class="p-2.5">${r.D.toFixed(6)}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // 6. MERGE EXPERIMENT SIMULATOR (HALAMAN 129 MODUL)
+    function setMergeMode(how) {
+      ['inner', 'outer', 'left', 'right'].forEach(m => {
+        const btn = document.getElementById(`merge-btn-${m}`);
+        if (m === how) {
+          btn.className = 'px-3 py-1.5 rounded-xl bg-purple-500/30 text-purple-200 border border-purple-400 font-bold';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700';
+        }
+      });
+
+      const title = document.getElementById('merge-result-title');
+      const tableBox = document.getElementById('merge-result-table');
+      const expBox = document.getElementById('merge-explanation-box');
+
+      title.textContent = how === 'inner'
+        ? 'Hasil pd.merge(df1, df2, on="NIM"):'
+        : `Hasil pd.merge(df1, df2, on="NIM", how="${how}"):`;
+
+      const rows = [
+        { nim: 'A01', nama: 'Andi', nilai: '85' },
+        { nim: 'A02', nama: 'Budi', nilai: '90' }
+      ];
+      if (how === 'outer' || how === 'right') {
+        rows.push({ nim: 'A03', nama: 'NaN', nilai: '100' });
+      }
+
+      tableBox.innerHTML = `
+        <table class="w-full text-left border border-slate-800 mt-1">
+          <thead class="bg-slate-900 text-purple-300"><tr><th class="p-2">NIM</th><th class="p-2">Nama</th><th class="p-2">Nilai</th></tr></thead>
+          <tbody class="divide-y divide-slate-800">
+            ${rows.map(r => `
+              <tr class="${r.nim === 'A03' ? 'bg-amber-500/15' : ''}">
+                <td class="p-2 text-amber-300 font-bold">${r.nim}</td>
+                <td class="p-2 ${r.nama === 'NaN' ? 'text-rose-400 italic font-bold' : ''}">${r.nama}</td>
+                <td class="p-2 text-emerald-300">${r.nilai}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+
+      if (how === 'inner' || how === 'left') {
+        expBox.innerHTML = `<strong class="text-amber-300"><i class="fa-solid fa-circle-info mr-1"></i>Jawaban Pertanyaan Modul ("Apa yang terjadi?"):</strong> Secara default, <code>pd.merge(df1, df2, on="NIM")</code> menggunakan metode <strong>Inner Join (<code>how="inner"</code>)</strong>. Artinya, Pandas hanya menggabungkan baris yang nilai <code>NIM</code>-nya <strong>ada di kedua DataFrame</strong> (irisan himpunan). Karena <code>"A03"</code> hanya ada di <code>df2</code> tetapi tidak ada di <code>df1</code>, maka baris <strong><code>A03</code> otomatis diabaikan/tidak ditampilkan</strong> sehingga hasil merge tetap hanya 2 baris (A01 dan A02).`;
+      } else {
+        expBox.innerHTML = `<strong class="text-emerald-300"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Solusi Jika Ingin Menampilkan A03 (<code>how="${how}"</code>):</strong> Dengan menambahkan argumen <code>how="${how}"</code>, baris <code>A03</code> dari <code>df2</code> tetap dipertahankan dalam hasil penggabungan, dan karena <code>df1</code> tidak memiliki data nama untuk <code>A03</code>, Pandas mengisinya secara otomatis dengan nilai kosong <strong><code>NaN</code></strong> (<em>Not a Number</em>).`;
+      }
+    }
+
+    // 7. DATA 7 LATIHAN LAB (11.4.1.1 s.d. 11.4.6)
+    const LAB_EXERCISES = [
+      {
+        badge: 'Latihan 1 (11.4.1.1)',
+        title: 'Membuat DataFrame Daftar Mahasiswa (NIM, Nama, Nilai, Keterangan)',
+        task: 'Buatlah sebuah DataFrame berisi daftar mahasiswa (NIM, Nama, Nilai, Keterangan) seperti di bawah ini lalu tampilkan.',
+        code: `import pandas as pd
+
+# Mendefinisikan dictionary data mahasiswa beserta kolom Keterangan
+data = {
+    "NIM": ["A01", "A02", "A03"],
+    "Nama": ["Andi", "Budi", "Citra"],
+    "Nilai": [85, 90, 78],
+    "Keterangan": ["Lulus", "Lulus", "Tidak Lulus"]
+}
+
+# Membuat objek DataFrame dari dictionary
+df = pd.DataFrame(data)
+
+# Menampilkan DataFrame ke layar terminal
+print(df)`,
+        breakdown: [
+          { line: `data = { "NIM": [...], "Nama": [...], "Nilai": [...], "Keterangan": [...] }`, desc: `Menyusun struktur <code>dict</code> Python di mana setiap <em>key</em> menjadi nama kolom dan setiap <em>list</em> menjadi nilai baris secara berurutan (catatan: pada kode jawab di halaman 130 modul, kolom <code>"Keterangan"</code> belum tertulis di dictionary, sehingga di atas telah dilengkapi agar persis sesuai tabel soal).` },
+          { line: `df = pd.DataFrame(data)`, desc: `Mengonversi dictionary menjadi objek tabel 2 dimensi <code>DataFrame</code> dengan indeks baris otomatis <code>0, 1, 2</code>.` },
+          { line: `print(df)`, desc: `Mencetak representasi tabel DataFrame ke terminal.` }
+        ],
+        outputHtml: `
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+              <tr><th class="p-2.5">Index</th><th class="p-2.5">NIM</th><th class="p-2.5">Nama</th><th class="p-2.5">Nilai</th><th class="p-2.5">Keterangan</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr><td class="p-2.5 text-slate-500">0</td><td class="p-2.5 text-amber-300">A01</td><td class="p-2.5">Andi</td><td class="p-2.5">85</td><td class="p-2.5 text-emerald-400">Lulus</td></tr>
+              <tr><td class="p-2.5 text-slate-500">1</td><td class="p-2.5 text-amber-300">A02</td><td class="p-2.5">Budi</td><td class="p-2.5">90</td><td class="p-2.5 text-emerald-400">Lulus</td></tr>
+              <tr><td class="p-2.5 text-slate-500">2</td><td class="p-2.5 text-amber-300">A03</td><td class="p-2.5">Citra</td><td class="p-2.5">78</td><td class="p-2.5 text-rose-400">Tidak Lulus</td></tr>
+            </tbody>
+          </table>`
+      },
+      {
+        badge: 'Latihan 2 (11.4.1.2)',
+        title: 'Membaca File CSV dan Menyimpan ke Format Excel (.xlsx)',
+        task: 'Baca file mahasiswa.csv dan kemudian simpan sebagai mahasiswa.xlsx dari data berikut (A01 s.d. A05) dan tampilkan 5 baris terakhir.',
+        code: `import pandas as pd
+
+# 1. Membaca file mahasiswa.csv ke dalam DataFrame
+df = pd.read_csv("mahasiswa.csv")
+
+# 2. Menyimpan DataFrame ke dalam file Excel mahasiswa.xlsx
+df.to_excel("mahasiswa.xlsx", index=False)
+
+# 3. Membaca kembali file mahasiswa.xlsx
+df2 = pd.read_excel("mahasiswa.xlsx")
+
+# 4. Menampilkan 5 baris terakhir sesuai soal (tail) maupun 5 baris pertama (head)
+print("5 Baris Terakhir Data Mahasiswa:")
+print(df2.tail(5))`,
+        breakdown: [
+          { line: `df = pd.read_csv("mahasiswa.csv")`, desc: `Membaca berkas teks CSV yang berisi kolom <code>NIM, Nama, Matematika, Fisika, Kimia</code> menjadi DataFrame.` },
+          { line: `df.to_excel("mahasiswa.xlsx", index=False)`, desc: `Mengekspor DataFrame menjadi lembar kerja Excel <code>mahasiswa.xlsx</code>. Parameter <code>index=False</code> mencegah angka indeks baris <code>0..4</code> ikut tertulis sebagai kolom tak bernama di Excel.` },
+          { line: `df2 = pd.read_excel("mahasiswa.xlsx")`, desc: `Membaca berkas Excel yang baru saja disimpan ke variabel <code>df2</code>.` },
+          { line: `print(df2.tail(5))`, desc: `Menampilkan 5 baris terakhir dari DataFrame (karena total baris ada 5, baik <code>head(5)</code> maupun <code>tail(5)</code> menampilkan kelima baris A01 s.d. A05).` }
+        ],
+        outputHtml: `
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+              <tr><th class="p-2.5">Index</th><th class="p-2.5">NIM</th><th class="p-2.5">Nama</th><th class="p-2.5">Matematika</th><th class="p-2.5">Fisika</th><th class="p-2.5">Kimia</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr><td class="p-2.5 text-slate-500">0</td><td class="p-2.5 text-amber-300">A01</td><td class="p-2.5">Andi</td><td class="p-2.5">80</td><td class="p-2.5">75</td><td class="p-2.5">85</td></tr>
+              <tr><td class="p-2.5 text-slate-500">1</td><td class="p-2.5 text-amber-300">A02</td><td class="p-2.5">Budi</td><td class="p-2.5">60</td><td class="p-2.5">70</td><td class="p-2.5">65</td></tr>
+              <tr><td class="p-2.5 text-slate-500">2</td><td class="p-2.5 text-amber-300">A03</td><td class="p-2.5">Citra</td><td class="p-2.5">90</td><td class="p-2.5">88</td><td class="p-2.5">92</td></tr>
+              <tr><td class="p-2.5 text-slate-500">3</td><td class="p-2.5 text-amber-300">A04</td><td class="p-2.5">Dewi</td><td class="p-2.5">78</td><td class="p-2.5">85</td><td class="p-2.5">80</td></tr>
+              <tr><td class="p-2.5 text-slate-500">4</td><td class="p-2.5 text-amber-300">A05</td><td class="p-2.5">Eka</td><td class="p-2.5">95</td><td class="p-2.5">92</td><td class="p-2.5">88</td></tr>
+            </tbody>
+          </table>`
+      },
+      {
+        badge: 'Latihan 3 (11.4.2)',
+        title: 'Memfilter Data Mahasiswa dengan Nilai > 80',
+        task: 'Dari data mahasiswa, tampilkan hanya mahasiswa dengan nilai > 80.',
+        code: `import pandas as pd
+
+data = {
+    "NIM": ["A01", "A02", "A03"],
+    "Nama": ["Andi", "Budi", "Citra"],
+    "Nilai": [85, 90, 78],
+    "Keterangan": ["Lulus", "Lulus", "Tidak Lulus"]
+}
+df = pd.DataFrame(data)
+
+# Menyaring baris di mana kolom Nilai lebih besar dari 80
+df_filtered = df[df["Nilai"] > 80]
+print(df_filtered)`,
+        breakdown: [
+          { line: `df["Nilai"] > 80`, desc: `Mengevaluasi setiap baris pada kolom <code>"Nilai"</code> terhadap angka 80, menghasilkan Series boolean: <code>[True, True, False]</code> (karena nilai Citra adalah 78).` },
+          { line: `df_filtered = df[df["Nilai"] > 80]`, desc: `Memilih hanya baris-baris yang bernilai <code>True</code> (Andi dengan nilai 85 dan Budi dengan nilai 90).` }
+        ],
+        outputHtml: `
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+              <tr><th class="p-2.5">Index</th><th class="p-2.5">NIM</th><th class="p-2.5">Nama</th><th class="p-2.5">Nilai</th><th class="p-2.5">Keterangan</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr><td class="p-2.5 text-slate-500">0</td><td class="p-2.5 text-amber-300">A01</td><td class="p-2.5">Andi</td><td class="p-2.5 text-emerald-300 font-bold">85</td><td class="p-2.5">Lulus</td></tr>
+              <tr><td class="p-2.5 text-slate-500">1</td><td class="p-2.5 text-amber-300">A02</td><td class="p-2.5">Budi</td><td class="p-2.5 text-emerald-300 font-bold">90</td><td class="p-2.5">Lulus</td></tr>
+            </tbody>
+          </table>`
+      },
+      {
+        badge: 'Latihan 4A (11.4.3)',
+        title: 'Analisis Dataset Nilai Mahasiswa (`mean(axis=1)` & Filter Rata-rata >= 80)',
+        task: 'Baca nilai_mahasiswa.csv, hitung rata-rata nilai setiap mahasiswa (Matematika, Fisika, Kimia), tambahkan kolom baru "Rata-rata", dan tampilkan mahasiswa dengan rata-rata >= 80.',
+        code: `import pandas as pd
+
+# 1. Membaca data dari file CSV
+df = pd.read_csv("nilai_mahasiswa.csv")
+
+# 2. Menghitung rata-rata setiap mahasiswa lintas 3 kolom (axis=1)
+df["Rata-rata"] = df[["Matematika", "Fisika", "Kimia"]].mean(axis=1)
+
+# 3. Menampilkan DataFrame dengan kolom baru
+print("Data Mahasiswa dengan Rata-rata:")
+print(df)
+
+# 4. Menampilkan hanya mahasiswa dengan nilai rata-rata >= 80
+df_lulus = df[df["Rata-rata"] >= 80]
+print("\\nMahasiswa dengan rata-rata >= 80:")
+print(df_lulus)`,
+        breakdown: [
+          { line: `df[["Matematika", "Fisika", "Kimia"]]`, desc: `Memilih subset 3 kolom nilai mata pelajaran yang bertipe numerik (mengabaikan kolom teks NIM dan Nama).` },
+          { line: `.mean(axis=1)`, desc: `<strong>Konsep Kunci Pandas:</strong> Argumen <code>axis=1</code> memerintahkan Pandas menghitung rata-rata <strong>secara horizontal menyamping antar-kolom untuk setiap baris mahasiswa</strong> (misal Andi: $(80+75+85)/3 = 80.0$). Jika menggunakan default <code>axis=0</code>, Pandas justru menghitung rata-rata vertikal per mata pelajaran.` },
+          { line: `df_lulus = df[df["Rata-rata"] >= 80]`, desc: `Menyaring mahasiswa yang memiliki nilai kolom <code>"Rata-rata"</code> minimal 80.0 (terjaring 4 mahasiswa: Andi, Citra, Dewi, dan Eka; sedangkan Budi dengan rata-rata 65.0 tereliminasi).` }
+        ],
+        outputHtml: `
+          <div class="space-y-2">
+            <div class="text-xs font-mono text-emerald-400">Output df_lulus (Mahasiswa dengan Rata-rata &gt;= 80):</div>
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                <tr><th class="p-2.5">Index</th><th class="p-2.5">NIM</th><th class="p-2.5">Nama</th><th class="p-2.5">Matematika</th><th class="p-2.5">Fisika</th><th class="p-2.5">Kimia</th><th class="p-2.5 text-emerald-300">Rata-rata</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr><td class="p-2.5 text-slate-500">0</td><td class="p-2.5 text-amber-300">A01</td><td class="p-2.5">Andi</td><td class="p-2.5">80</td><td class="p-2.5">75</td><td class="p-2.5">85</td><td class="p-2.5 font-bold text-emerald-300">80.000000</td></tr>
+                <tr><td class="p-2.5 text-slate-500">2</td><td class="p-2.5 text-amber-300">A03</td><td class="p-2.5">Citra</td><td class="p-2.5">90</td><td class="p-2.5">88</td><td class="p-2.5">92</td><td class="p-2.5 font-bold text-emerald-300">90.000000</td></tr>
+                <tr><td class="p-2.5 text-slate-500">3</td><td class="p-2.5 text-amber-300">A04</td><td class="p-2.5">Dewi</td><td class="p-2.5">78</td><td class="p-2.5">85</td><td class="p-2.5">80</td><td class="p-2.5 font-bold text-emerald-300">81.000000</td></tr>
+                <tr><td class="p-2.5 text-slate-500">4</td><td class="p-2.5 text-amber-300">A05</td><td class="p-2.5">Eka</td><td class="p-2.5">95</td><td class="p-2.5">92</td><td class="p-2.5">88</td><td class="p-2.5 font-bold text-emerald-300">91.666667</td></tr>
+              </tbody>
+            </table>
+          </div>`
+      },
+      {
+        badge: 'Latihan 4B (11.4.4)',
+        title: 'Sorting (Tertinggi ke Terendah) dan Filtering Nilai di Atas Rata-rata Kelas',
+        task: 'Dari dataset mahasiswa, tampilkan daftar mahasiswa dengan nilai tertinggi ke terendah, kemudian filter hanya mahasiswa dengan nilai di atas rata-rata.',
+        code: `import pandas as pd
+
+data = {
+    "Nama": ["Andi", "Budi", "Citra", "Dewi", "Eka"],
+    "Nilai": [80, 85, 78, 90, 88]
+}
+df = pd.DataFrame(data)
+
+# 1. Menghitung nilai rata-rata keseluruhan (84.2)
+nilai_rata = df["Nilai"].mean()
+
+# 2. Mengurutkan dari tertinggi ke terendah (ascending=False)
+df_sorted = df.sort_values(by="Nilai", ascending=False)
+
+# 3. Menampilkan mahasiswa dengan nilai di atas rata-rata
+print(f"Rata-rata nilai: {nilai_rata}")
+print("Mahasiswa dengan nilai di atas rata-rata:")
+print(df_sorted[df_sorted["Nilai"] > nilai_rata])`,
+        breakdown: [
+          { line: `nilai_rata = df["Nilai"].mean()`, desc: `Menghitung rata-rata aritmatika dari kolom <code>"Nilai"</code>: $(80+85+78+90+88)/5 = 84.2$.` },
+          { line: `df_sorted = df.sort_values(by="Nilai", ascending=False)`, desc: `Mengurutkan baris berdasarkan kolom <code>"Nilai"</code> secara menurun (<em>descending</em>: 90, 88, 85, 80, 78) karena parameter <code>ascending</code> diset ke <code>False</code>.` },
+          { line: `df_sorted[df_sorted["Nilai"] > nilai_rata]`, desc: `Menyaring DataFrame yang sudah terurut tersebut sehingga hanya menampilkan mahasiswa dengan nilai $> 84.2$ (Dewi: 90, Eka: 88, Budi: 85).` }
+        ],
+        outputHtml: `
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+              <tr><th class="p-2.5">Index</th><th class="p-2.5">Nama</th><th class="p-2.5">Nilai (&gt; Rata-rata 84.2)</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr><td class="p-2.5 text-slate-500">3</td><td class="p-2.5">Dewi</td><td class="p-2.5 font-bold text-emerald-300">90</td></tr>
+              <tr><td class="p-2.5 text-slate-500">4</td><td class="p-2.5">Eka</td><td class="p-2.5 font-bold text-emerald-300">88</td></tr>
+              <tr><td class="p-2.5 text-slate-500">1</td><td class="p-2.5">Budi</td><td class="p-2.5 font-bold text-emerald-300">85</td></tr>
+            </tbody>
+          </table>`
+      },
+      {
+        badge: 'Latihan 5 (11.4.5)',
+        title: 'Grouping Data Berdasarkan Kelas & Menghitung Rata-rata',
+        task: 'Buat dataset nilai mahasiswa dengan kolom Kelas (A, B, C). Hitung rata-rata nilai setiap kelas.',
+        code: `import pandas as pd
+
+data = {
+    "Nama": ["Andi", "Budi", "Citra", "Dewi", "Eka"],
+    "Kelas": ["A", "A", "B", "B", "C"],
+    "Nilai": [80, 85, 78, 90, 88]
+}
+df = pd.DataFrame(data)
+
+# Mengelompokkan berdasarkan Kelas lalu menghitung mean() dari Nilai
+rata_per_kelas = df.groupby("Kelas")["Nilai"].mean()
+print(rata_per_kelas)`,
+        breakdown: [
+          { line: `df.groupby("Kelas")`, desc: `Membagi DataFrame menjadi 3 grup berdasarkan kategori di kolom <code>"Kelas"</code>: Grup A (Andi 80, Budi 85), Grup B (Citra 78, Dewi 90), dan Grup C (Eka 88).` },
+          { line: `["Nilai"].mean()`, desc: `Memilih kolom numerik <code>"Nilai"</code> dari tiap grup lalu menerapkan fungsi agregasi rata-rata <code>.mean()</code>.` }
+        ],
+        outputHtml: `
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+              <tr><th class="p-2.5">Kelas (Group Index)</th><th class="p-2.5">Rata-rata Nilai (mean)</th><th class="p-2.5">Detail Perhitungan</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr><td class="p-2.5 font-bold text-amber-300">A</td><td class="p-2.5 text-emerald-300 font-bold">82.5</td><td class="p-2.5 text-slate-400">(80 + 85) / 2</td></tr>
+              <tr><td class="p-2.5 font-bold text-amber-300">B</td><td class="p-2.5 text-emerald-300 font-bold">84.0</td><td class="p-2.5 text-slate-400">(78 + 90) / 2</td></tr>
+              <tr><td class="p-2.5 font-bold text-amber-300">C</td><td class="p-2.5 text-emerald-300 font-bold">88.0</td><td class="p-2.5 text-slate-400">88 / 1</td></tr>
+            </tbody>
+          </table>`
+      },
+      {
+        badge: 'Latihan 6 (11.4.6)',
+        title: 'Join / Merge Dua DataFrame Berdasarkan Kolom Kunci NIM',
+        task: 'Diberikan dua DataFrame: Data mahasiswa (NIM, Nama) dan Data nilai (NIM, Nilai). Gabungkan keduanya berdasarkan kolom NIM.',
+        code: `import pandas as pd
+
+# DataFrame pertama: Identitas Mahasiswa
+df1 = pd.DataFrame({
+    "NIM": ["A01", "A02"],
+    "Nama": ["Andi", "Budi"]
+})
+
+# DataFrame kedua: Nilai Mahasiswa
+df2 = pd.DataFrame({
+    "NIM": ["A01", "A02"],
+    "Nilai": [85, 90]
+})
+
+# Menggabungkan kedua DataFrame berdasarkan kolom kunci "NIM"
+df_merged = pd.merge(df1, df2, on="NIM")
+print(df_merged)`,
+        breakdown: [
+          { line: `pd.merge(df1, df2, on="NIM")`, desc: `Melakukan operasi relasional <em>join</em> antara <code>df1</code> dan <code>df2</code> dengan mencocokkan nilai yang identik pada kolom kunci <code>on="NIM"</code>, menghasilkan satu DataFrame gabungan dengan 3 kolom (<code>NIM, Nama, Nilai</code>).` }
+        ],
+        outputHtml: `
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+              <tr><th class="p-2.5">Index</th><th class="p-2.5">NIM</th><th class="p-2.5">Nama</th><th class="p-2.5">Nilai</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr><td class="p-2.5 text-slate-500">0</td><td class="p-2.5 text-amber-300">A01</td><td class="p-2.5">Andi</td><td class="p-2.5 text-emerald-300 font-bold">85</td></tr>
+              <tr><td class="p-2.5 text-slate-500">1</td><td class="p-2.5 text-amber-300">A02</td><td class="p-2.5">Budi</td><td class="p-2.5 text-emerald-300 font-bold">90</td></tr>
+            </tbody>
+          </table>`
+      }
+    ];
+
+    function renderLabExercises() {
+      const container = document.getElementById('lab-exercises-container');
+      container.innerHTML = LAB_EXERCISES.map((ex, i) => `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${ex.badge}</span>
+                <h3 class="text-base font-bold text-white">${ex.title}</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1"><strong class="text-amber-300">Soal:</strong> ${ex.task}</p>
+            </div>
+            <button onclick="copyLabCode(${i})" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 border border-slate-700 transition-colors">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Kode
+            </button>
+          </div>
+
+          <div class="p-6 space-y-5">
+            <div class="rounded-xl border border-slate-800 overflow-hidden">
+              <pre class="p-4 py-code overflow-x-auto"><code>${highlightPython(ex.code)}</code></pre>
+            </div>
+
+            <!-- Breakdown -->
+            <div class="space-y-2">
+              <div class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">
+                <i class="fa-solid fa-magnifying-glass-chart mr-1"></i> Penjelasan Tiap Baris / Bagian Kode:
+              </div>
+              <div class="space-y-2">
+                ${ex.breakdown.map((b, idx) => `
+                  <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row gap-3 text-xs">
+                    <div class="sm:w-80 shrink-0">
+                      <code class="px-2 py-1 rounded bg-slate-900 text-cyan-300 font-mono text-[11px] border border-slate-800 block break-all">${idx + 1}. ${b.line}</code>
+                    </div>
+                    <div class="text-slate-300 leading-relaxed flex-1">${b.desc}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Output -->
+            <div class="space-y-2">
+              <div class="text-xs font-mono font-bold text-emerald-400"><i class="fa-solid fa-terminal mr-1"></i> Output Hasil Eksekusi Program:</div>
+              <div class="rounded-xl border border-slate-800 overflow-hidden bg-slate-950/70 p-3">
+                ${ex.outputHtml}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 8. SOURCE CODE LENGKAP & SIMULATOR BUKUKITA.ID (11.4.7 + SOLUSI DISKON RANDOM)
+    const CODE_BUKUKITA_FULL = `import streamlit as st
+import pandas as pd
+import numpy as np
+
+# Judul aplikasi
+st.title("Analisis Data Penjualan Toko Buku Online - BukuKita.id")
+
+# ==============================================================================
+# 1. Membaca dan Menampilkan Data dari penjualan.csv
+# ==============================================================================
+st.header("1. Membaca dan Menampilkan Data")
+df = pd.read_csv("penjualan.csv")  # Membaca dataset CSV
+
+st.subheader("Seluruh Data Penjualan")
+st.dataframe(df)
+
+st.subheader("Lima Baris Pertama adalah:")
+st.write(df.head())
+
+# ==============================================================================
+# 2. Menghitung Kolom total_harga dan Total Pendapatan Toko
+# ==============================================================================
+st.header("2. Analisis dan Visualisasi Data")
+
+# Tambahkan kolom total_harga (jumlah * harga_satuan)
+df["total_harga"] = df["jumlah"] * df["harga_satuan"]
+
+# Hitung total pendapatan toko keseluruhan
+total_pendapatan = df["total_harga"].sum()
+st.subheader("Total Pendapatan Toko")
+st.write(f"Rp {total_pendapatan:,}")
+
+# ==============================================================================
+# 3. Ringkasan Jumlah Buku Terjual per Kategori (groupby)
+# ==============================================================================
+st.subheader("Jumlah Buku Terjual per Kategori")
+st.write(df.groupby("kategori")["jumlah"].sum())
+
+# ==============================================================================
+# 4. Visualisasi Pendapatan per Kategori (Bar Chart)
+# ==============================================================================
+st.subheader("Visualisasi Pendapatan per Kategori")
+pendapatan_kategori = df.groupby("kategori")["total_harga"].sum()
+st.bar_chart(pendapatan_kategori)
+
+# ==============================================================================
+# 5. SOLUSI LATIHAN: Menambahkan Kolom % Diskon Random (5% - 20%)
+#    dan Kolom Harga Setelah Diskon Secara Otomatis
+# ==============================================================================
+st.header("3. Latihan: Simulasi Diskon Random (5% - 20%)")
+
+# Membuat persentase diskon acak bulat antara 5% sampai 20% untuk setiap baris
+df["diskon_persen"] = np.random.randint(5, 21, size=len(df))
+
+# Menghitung harga setelah diskon secara otomatis (tervektorisasi)
+df["harga_setelah_diskon"] = df["total_harga"] * (1 - df["diskon_persen"] / 100)
+
+st.subheader("Tabel Penjualan dengan Diskon & Harga Setelah Diskon")
+st.dataframe(df)
+
+total_setelah_diskon = df["harga_setelah_diskon"].sum()
+st.subheader("Total Pendapatan Bersih Setelah Diskon")
+st.write(f"Rp {total_setelah_diskon:,.2f}")`;
+
+    let bukuKitaData = [
+      { id_buku: 1,  judul: 'Python untuk Pemula',           kategori: 'Pemrograman',     jumlah: 10, harga_satuan: 50000, diskon_persen: 10 },
+      { id_buku: 2,  judul: 'Data Science dengan Python',    kategori: 'Data Science',    jumlah: 5,  harga_satuan: 75000, diskon_persen: 15 },
+      { id_buku: 3,  judul: 'Machine Learning Dasar',        kategori: 'Data Science',    jumlah: 7,  harga_satuan: 80000, diskon_persen: 5  },
+      { id_buku: 4,  judul: 'Web Development dengan Django', kategori: 'Pemrograman',     jumlah: 3,  harga_satuan: 60000, diskon_persen: 12 },
+      { id_buku: 5,  judul: 'Statistik untuk Data Science',  kategori: 'Data Science',    jumlah: 4,  harga_satuan: 70000, diskon_persen: 8  },
+      { id_buku: 6,  judul: 'JavaScript untuk Web',          kategori: 'Web Development', jumlah: 8,  harga_satuan: 55000, diskon_persen: 20 },
+      { id_buku: 7,  judul: 'HTML dan CSS Dasar',            kategori: 'Web Development', jumlah: 6,  harga_satuan: 45000, diskon_persen: 10 },
+      { id_buku: 8,  judul: 'Deep Learning Lanjutan',        kategori: 'Data Science',    jumlah: 2,  harga_satuan: 90000, diskon_persen: 18 },
+      { id_buku: 9,  judul: 'Flask untuk Pemula',            kategori: 'Pemrograman',     jumlah: 9,  harga_satuan: 52000, diskon_persen: 7  },
+      { id_buku: 10, judul: 'React.js untuk Web',            kategori: 'Web Development', jumlah: 5,  harga_satuan: 65000, diskon_persen: 15 }
+    ];
+
+    function renderBukuKitaSimulator() {
+      const onlyHead5 = document.getElementById('toggle-head5').checked;
+      const tbody = document.getElementById('bukukita-tbody');
+
+      let totalKotor = 0;
+      let totalBersih = 0;
+      let sumDiskonPersen = 0;
+
+      const catStats = {};
+
+      bukuKitaData.forEach(r => {
+        r.total_harga = r.jumlah * r.harga_satuan;
+        r.harga_setelah_diskon = r.total_harga * (1 - r.diskon_persen / 100);
+
+        totalKotor += r.total_harga;
+        totalBersih += r.harga_setelah_diskon;
+        sumDiskonPersen += r.diskon_persen;
+
+        if (!catStats[r.kategori]) {
+          catStats[r.kategori] = { jumlah: 0, kotor: 0, bersih: 0 };
+        }
+        catStats[r.kategori].jumlah += r.jumlah;
+        catStats[r.kategori].kotor += r.total_harga;
+        catStats[r.kategori].bersih += r.harga_setelah_diskon;
+      });
+
+      const rowsToShow = onlyHead5 ? bukuKitaData.slice(0, 5) : bukuKitaData;
+
+      tbody.innerHTML = rowsToShow.map(r => `
+        <tr class="hover:bg-slate-900 transition-colors">
+          <td class="p-2.5 text-slate-400">${r.id_buku}</td>
+          <td class="p-2.5 font-sans font-medium text-white">${r.judul}</td>
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${
+            r.kategori === 'Data Science' ? 'bg-indigo-500/20 text-indigo-300' :
+            r.kategori === 'Pemrograman' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/20 text-amber-300'
+          }">${r.kategori}</span></td>
+          <td class="p-2.5 text-right">${r.jumlah}</td>
+          <td class="p-2.5 text-right">Rp ${r.harga_satuan.toLocaleString('id-ID')}</td>
+          <td class="p-2.5 text-right font-bold text-cyan-300">Rp ${r.total_harga.toLocaleString('id-ID')}</td>
+          <td class="p-2.5 text-right font-bold text-amber-300">${r.diskon_persen}%</td>
+          <td class="p-2.5 text-right font-bold text-emerald-300">Rp ${Math.round(r.harga_setelah_diskon).toLocaleString('id-ID')}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('bk-total-kotor').textContent = `Rp ${totalKotor.toLocaleString('id-ID')}`;
+      document.getElementById('bk-total-diskon').textContent = `Rp ${Math.round(totalKotor - totalBersih).toLocaleString('id-ID')}`;
+      document.getElementById('bk-avg-diskon').textContent = `Rata-rata diskon: ${(sumDiskonPersen / bukuKitaData.length).toFixed(1)}% (Rentang 5% - 20%)`;
+      document.getElementById('bk-total-bersih').textContent = `Rp ${Math.round(totalBersih).toLocaleString('id-ID')}`;
+
+      // Render Tabel GroupBy
+      const cats = Object.keys(catStats).sort();
+      document.getElementById('bk-groupby-table').innerHTML = `
+        <table class="w-full text-left text-xs font-mono border-collapse">
+          <thead class="bg-slate-900 text-slate-400 border-b border-slate-800">
+            <tr>
+              <th class="p-2.5">kategori</th>
+              <th class="p-2.5 text-right">jumlah (buku)</th>
+              <th class="p-2.5 text-right">total_harga</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-slate-200">
+            ${cats.map(c => `
+              <tr>
+                <td class="p-2.5 font-bold text-white">${c}</td>
+                <td class="p-2.5 text-right text-amber-300 font-bold">${catStats[c].jumlah}</td>
+                <td class="p-2.5 text-right text-cyan-300">Rp ${catStats[c].kotor.toLocaleString('id-ID')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+
+      // Render Bar Chart
+      const maxKotor = Math.max(...cats.map(c => catStats[c].kotor));
+      document.getElementById('bk-bar-chart').innerHTML = cats.map(c => {
+        const pctKotor = Math.round((catStats[c].kotor / maxKotor) * 100);
+        const pctBersih = Math.round((catStats[c].bersih / maxKotor) * 100);
+        return `
+          <div class="space-y-1.5 text-xs font-mono">
+            <div class="flex justify-between">
+              <span class="font-bold text-white">${c}</span>
+              <span class="text-slate-400">Kotor: <strong class="text-cyan-300">Rp ${catStats[c].kotor.toLocaleString('id-ID')}</strong> | Bersih: <strong class="text-emerald-300">Rp ${Math.round(catStats[c].bersih).toLocaleString('id-ID')}</strong></span>
+            </div>
+            <div class="w-full bg-slate-900 rounded-lg h-4 overflow-hidden border border-slate-800">
+              <div class="bg-cyan-500 h-full transition-all duration-500" style="width: ${pctKotor}%"></div>
+            </div>
+            <div class="w-full bg-slate-900 rounded-lg h-4 overflow-hidden border border-slate-800">
+              <div class="bg-emerald-500 h-full transition-all duration-500" style="width: ${pctBersih}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 8B. ENGINE SIMULASI UNGUIDED (STEPPER 1 - 5 & FULL SOLUTION CODE)
+    // =========================================================================
+    const CODE_UNGUIDED_FULL = `import streamlit as st
+import pandas as pd
+import json
+
+st.set_page_config(page_title="Analitik Akademik & Beasiswa", layout="wide")
+st.title("🎓 Sistem Analitik Akademik & Seleksi Beasiswa Kampus")
+
+# ==============================================================================
+# BAGIAN 1: Membaca Dua Dataset CSV & Inspeksi Dasar (head, tail, describe)
+# ==============================================================================
+df_profil = pd.read_csv("profil_mahasiswa.csv")
+df_nilai = pd.read_csv("nilai_semester.csv")
+
+st.header("1. Inspeksi Dataset Awal")
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("Profil Mahasiswa (3 Baris Pertama - head)")
+    st.dataframe(df_profil.head(3))
+with col2:
+    st.subheader("Nilai Semester (3 Baris Terakhir - tail)")
+    st.dataframe(df_nilai.tail(3))
+
+# ==============================================================================
+# BAGIAN 2: Penggabungan DataFrame (pd.merge) & Pembersihan Kolom (df.drop)
+# ==============================================================================
+# Inner Join berdasarkan NIM: M08 (cuti) & M09 (anomali) otomatis tereliminasi
+df = pd.merge(df_profil, df_nilai, on="NIM", how="inner")
+
+# Menghapus kolom Catatan_Temp yang tidak diperlukan dalam perhitungan
+df.drop("Catatan_Temp", axis=1, inplace=True)
+
+# ==============================================================================
+# BAGIAN 3: Menghitung Rata-rata Lintas Kolom (mean axis=1) & Skema Beasiswa
+# ==============================================================================
+kolom_mk = ["Algoritma", "Struktur_Data", "Basis_Data", "Statistik"]
+df["Rata_Nilai"] = df[kolom_mk].mean(axis=1).round(2)
+
+# Fungsi penentuan Predikat dan Persentase Beasiswa
+def hitung_skema_beasiswa(rata):
+    if rata >= 88:
+        return "Cumlaude", 40
+    elif rata >= 80:
+        return "Sangat Memuaskan", 20
+    else:
+        return "Memuaskan", 0
+
+hasil_skema = df["Rata_Nilai"].apply(hitung_skema_beasiswa)
+df["Predikat"] = [item[0] for item in hasil_skema]
+df["Persen_Beasiswa"] = [item[1] for item in hasil_skema]
+
+# Menghitung nominal potongan beasiswa dan UKT Bersih secara vektorisasi
+df["Potongan_Beasiswa"] = df["UKT"] * (df["Persen_Beasiswa"] / 100)
+df["UKT_Bersih"] = df["UKT"] - df["Potongan_Beasiswa"]
+
+# ==============================================================================
+# BAGIAN 4: Sorting, Akses Peringkat 1 (iloc[0]), & Filtering Penerima Beasiswa
+# ==============================================================================
+df_sorted = df.sort_values(by="Rata_Nilai", ascending=False)
+
+# Mengambil mahasiswa terbaik peringkat 1 menggunakan iloc[0]
+mhs_terbaik = df_sorted.iloc[0]
+st.success(
+    f"🏆 Mahasiswa Terbaik: {mhs_terbaik['Nama']} ({mhs_terbaik['NIM']}) - "
+    f"Prodi {mhs_terbaik['Prodi']} | Rata-rata: {mhs_terbaik['Rata_Nilai']}"
+)
+
+# Menyaring hanya mahasiswa yang berhak menerima beasiswa (Persen_Beasiswa > 0)
+df_penerima = df_sorted[df_sorted["Persen_Beasiswa"] > 0]
+
+st.header("2. Daftar Penerima Beasiswa (Terurut Nilai Tertinggi)")
+st.dataframe(df_penerima)
+
+# ==============================================================================
+# BAGIAN 5: Grouping & Aggregation per Program Studi (groupby)
+# ==============================================================================
+st.header("3. Ringkasan Statistik & Anggaran Beasiswa per Prodi")
+
+ringkasan_prodi = df.groupby("Prodi").agg(
+    Jumlah_Mhs=("NIM", "count"),
+    Rata_Akademik=("Rata_Nilai", "mean"),
+    Total_Beasiswa=("Potongan_Beasiswa", "sum"),
+    Total_UKT_Bersih=("UKT_Bersih", "sum")
+).round(2)
+
+st.dataframe(ringkasan_prodi)
+
+# Visualisasi Bar Chart Total Beasiswa per Prodi
+st.subheader("Visualisasi Total Anggaran Beasiswa per Prodi")
+st.bar_chart(df.groupby("Prodi")["Potongan_Beasiswa"].sum())
+
+# ==============================================================================
+# BAGIAN 6: Menyimpan Hasil Analisis ke CSV, Excel, dan JSON
+# ==============================================================================
+df_sorted.to_csv("laporan_beasiswa.csv", index=False)
+df_sorted.to_excel("laporan_beasiswa.xlsx", index=False)
+ringkasan_prodi.to_json("ringkasan_prodi.json", orient="index", indent=2)`;
+
+    const UNGUIDED_MERGED_DATA = [
+      { NIM: 'M01', Nama: 'Andi Pratama',   Prodi: 'Informatika',      Kelas: 'A', UKT: 6000000, Algoritma: 85, Struktur_Data: 88, Basis_Data: 82, Statistik: 85 },
+      { NIM: 'M02', Nama: 'Budi Santoso',   Prodi: 'Sistem Informasi', Kelas: 'A', UKT: 5500000, Algoritma: 72, Struktur_Data: 68, Basis_Data: 75, Statistik: 73 },
+      { NIM: 'M03', Nama: 'Citra Lestari',  Prodi: 'Informatika',      Kelas: 'B', UKT: 6000000, Algoritma: 92, Struktur_Data: 90, Basis_Data: 88, Statistik: 90 },
+      { NIM: 'M04', Nama: 'Dewi Anggraini', Prodi: 'Sains Data',       Kelas: 'A', UKT: 6500000, Algoritma: 80, Struktur_Data: 84, Basis_Data: 82, Statistik: 82 },
+      { NIM: 'M05', Nama: 'Eka Putri',      Prodi: 'Sains Data',       Kelas: 'B', UKT: 6500000, Algoritma: 95, Struktur_Data: 94, Basis_Data: 90, Statistik: 91 },
+      { NIM: 'M06', Nama: 'Fajar Nugroho',  Prodi: 'Sistem Informasi', Kelas: 'B', UKT: 5500000, Algoritma: 76, Struktur_Data: 78, Basis_Data: 74, Statistik: 76 },
+      { NIM: 'M07', Nama: 'Gita Permata',   Prodi: 'Informatika',      Kelas: 'A', UKT: 6000000, Algoritma: 88, Struktur_Data: 86, Basis_Data: 90, Statistik: 88 }
+    ].map(r => {
+      const rata = Number(((r.Algoritma + r.Struktur_Data + r.Basis_Data + r.Statistik) / 4).toFixed(2));
+      let predikat = 'Memuaskan';
+      let persen = 0;
+      if (rata >= 88) { predikat = 'Cumlaude'; persen = 40; }
+      else if (rata >= 80) { predikat = 'Sangat Memuaskan'; persen = 20; }
+      const potongan = r.UKT * (persen / 100);
+      const uktBersih = r.UKT - potongan;
+      return { ...r, Rata_Nilai: rata, Predikat: predikat, Persen_Beasiswa: persen, Potongan_Beasiswa: potongan, UKT_Bersih: uktBersih };
+    });
+
+    function setUnguidedStep(step) {
+      [1, 2, 3, 4, 5].forEach(s => {
+        const btn = document.getElementById(`ug-step-btn-${s}`);
+        if (!btn) return;
+        if (s === step) {
+          btn.className = 'p-3 rounded-xl border text-left transition-all bg-amber-500/20 text-amber-200 border-amber-400 font-bold';
+        } else {
+          btn.className = 'p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40';
+        }
+      });
+
+      const box = document.getElementById('unguided-step-content');
+      if (!box) return;
+
+      if (step === 1) {
+        box.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+            <div class="font-mono font-bold text-amber-300">Tahap 1: Hasil \`pd.merge(df_profil, df_nilai, on="NIM", how="inner")\`</div>
+            <p class="text-slate-300 leading-relaxed">
+              Perhatikan bahwa baris <strong>M08 (Hendra Wijaya)</strong> yang hanya ada di <code>profil_mahasiswa.csv</code> dan baris <strong>M09 (Anomali_Input)</strong> yang hanya ada di <code>nilai_semester.csv</code> secara otomatis <strong>tereliminasi</strong> oleh mekanisme <em>Inner Join</em>, menghasilkan 7 baris mahasiswa aktif yang valid:
+            </p>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-950 text-cyan-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5">NIM</th><th class="p-2.5">Nama</th><th class="p-2.5">Prodi</th><th class="p-2.5">Kelas</th>
+                  <th class="p-2.5 text-right">UKT</th><th class="p-2.5 text-right">Algoritma</th><th class="p-2.5 text-right">Struktur_Data</th>
+                  <th class="p-2.5 text-right">Basis_Data</th><th class="p-2.5 text-right">Statistik</th><th class="p-2.5 text-rose-400">Catatan_Temp</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                ${UNGUIDED_MERGED_DATA.map(r => `
+                  <tr>
+                    <td class="p-2.5 font-bold text-amber-300">${r.NIM}</td>
+                    <td class="p-2.5 font-sans text-white">${r.Nama}</td>
+                    <td class="p-2.5">${r.Prodi}</td>
+                    <td class="p-2.5">${r.Kelas}</td>
+                    <td class="p-2.5 text-right">Rp ${r.UKT.toLocaleString('id-ID')}</td>
+                    <td class="p-2.5 text-right">${r.Algoritma}</td>
+                    <td class="p-2.5 text-right">${r.Struktur_Data}</td>
+                    <td class="p-2.5 text-right">${r.Basis_Data}</td>
+                    <td class="p-2.5 text-right">${r.Statistik}</td>
+                    <td class="p-2.5 text-rose-400 line-through">Valid</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      } else if (step === 2) {
+        box.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+            <div class="font-mono font-bold text-purple-300">Tahap 2: Penghapusan \`Catatan_Temp\` (\`drop(axis=1)\`) &amp; Perhitungan \`Rata_Nilai\` (\`mean(axis=1)\`)</div>
+            <p class="text-slate-300 leading-relaxed">
+              Kolom <code>Catatan_Temp</code> telah dihapus dari DataFrame, dan rata-rata nilai ke-4 mata kuliah setiap mahasiswa dihitung secara horizontal menyamping dengan <code>df[kolom_mk].mean(axis=1).round(2)</code>:
+            </p>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-950 text-purple-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5">NIM</th><th class="p-2.5">Nama</th><th class="p-2.5 text-right">Algoritma</th>
+                  <th class="p-2.5 text-right">Struktur_Data</th><th class="p-2.5 text-right">Basis_Data</th>
+                  <th class="p-2.5 text-right">Statistik</th><th class="p-2.5 text-right bg-purple-500/20 text-white">Rata_Nilai (mean axis=1)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                ${UNGUIDED_MERGED_DATA.map(r => `
+                  <tr>
+                    <td class="p-2.5 font-bold text-amber-300">${r.NIM}</td>
+                    <td class="p-2.5 font-sans text-white">${r.Nama}</td>
+                    <td class="p-2.5 text-right">${r.Algoritma}</td>
+                    <td class="p-2.5 text-right">${r.Struktur_Data}</td>
+                    <td class="p-2.5 text-right">${r.Basis_Data}</td>
+                    <td class="p-2.5 text-right">${r.Statistik}</td>
+                    <td class="p-2.5 text-right font-bold bg-purple-500/15 text-emerald-300">${r.Rata_Nilai.toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      } else if (step === 3) {
+        box.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+            <div class="font-mono font-bold text-emerald-300">Tahap 3: Penentuan Predikat, Persentase Beasiswa, Potongan Rupiah &amp; UKT Bersih</div>
+            <p class="text-slate-300 leading-relaxed">
+              Berdasarkan kolom <code>Rata_Nilai</code>, sistem memberikan beasiswa <strong>40% (Cumlaude, Rata &ge; 88)</strong>, <strong>20% (Sangat Memuaskan, 80 &le; Rata &lt; 88)</strong>, atau <strong>0% (Memuaskan, Rata &lt; 80)</strong>, lalu memotong tagihan UKT secara otomatis:
+            </p>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-950 text-emerald-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5">NIM</th><th class="p-2.5">Nama</th><th class="p-2.5">Prodi</th>
+                  <th class="p-2.5 text-right">Rata_Nilai</th><th class="p-2.5">Predikat</th>
+                  <th class="p-2.5 text-right">UKT Awal</th><th class="p-2.5 text-right text-amber-300">Beasiswa (%)</th>
+                  <th class="p-2.5 text-right text-cyan-300">Potongan (Rp)</th><th class="p-2.5 text-right text-emerald-300">UKT_Bersih</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                ${UNGUIDED_MERGED_DATA.map(r => `
+                  <tr>
+                    <td class="p-2.5 font-bold text-amber-300">${r.NIM}</td>
+                    <td class="p-2.5 font-sans text-white">${r.Nama}</td>
+                    <td class="p-2.5">${r.Prodi}</td>
+                    <td class="p-2.5 text-right font-bold">${r.Rata_Nilai.toFixed(2)}</td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${
+                      r.Predikat === 'Cumlaude' ? 'bg-emerald-500/20 text-emerald-300' :
+                      r.Predikat === 'Sangat Memuaskan' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400'
+                    }">${r.Predikat}</span></td>
+                    <td class="p-2.5 text-right">Rp ${r.UKT.toLocaleString('id-ID')}</td>
+                    <td class="p-2.5 text-right font-bold text-amber-300">${r.Persen_Beasiswa}%</td>
+                    <td class="p-2.5 text-right text-cyan-300">Rp ${r.Potongan_Beasiswa.toLocaleString('id-ID')}</td>
+                    <td class="p-2.5 text-right font-bold text-emerald-300">Rp ${r.UKT_Bersih.toLocaleString('id-ID')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      } else if (step === 4) {
+        const sortedPenerima = [...UNGUIDED_MERGED_DATA]
+          .sort((a, b) => b.Rata_Nilai - a.Rata_Nilai)
+          .filter(r => r.Persen_Beasiswa > 0);
+        const top1 = sortedPenerima[0];
+
+        box.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            <div class="lg:col-span-5 p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/40 space-y-1.5 text-xs">
+              <div class="text-[11px] font-mono font-bold text-emerald-400 uppercase">Hasil Akses \`df_sorted.iloc[0]\` (Peringkat 1 Terbaik)</div>
+              <div class="text-base font-extrabold text-white">🏆 ${top1.Nama} (${top1.NIM})</div>
+              <div class="text-slate-300 font-mono">Prodi: ${top1.Prodi} (Kelas ${top1.Kelas}) | Rata-rata: <strong class="text-emerald-300">${top1.Rata_Nilai.toFixed(2)}</strong></div>
+              <div class="text-slate-400 font-mono">Beasiswa 40%: Potongan Rp ${top1.Potongan_Beasiswa.toLocaleString('id-ID')}</div>
+            </div>
+            <div class="lg:col-span-7 p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
+              <div class="font-mono font-bold text-amber-300">Tahap 4: Sorting (\`ascending=False\`) &amp; Filtering Penerima Beasiswa (\`Persen_Beasiswa &gt; 0\`)</div>
+              <p class="text-slate-300 leading-relaxed">
+                Dari 7 mahasiswa aktif, sebanyak <strong>5 mahasiswa</strong> memenuhi syarat rata-rata &ge; 80.00 dan diurutkan dari nilai tertinggi ke terendah (sedangkan Fajar 76.00 dan Budi 72.00 tereliminasi dari daftar penerima beasiswa):
+              </p>
+            </div>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-950 text-amber-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5">Peringkat (iloc)</th><th class="p-2.5">NIM</th><th class="p-2.5">Nama</th>
+                  <th class="p-2.5">Prodi</th><th class="p-2.5 text-right">Rata_Nilai</th>
+                  <th class="p-2.5">Predikat</th><th class="p-2.5 text-right">Potongan_Beasiswa</th><th class="p-2.5 text-right">UKT_Bersih</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                ${sortedPenerima.map((r, i) => `
+                  <tr class="${i === 0 ? 'bg-emerald-500/15 font-bold' : ''}">
+                    <td class="p-2.5 text-amber-400">#${i + 1} (iloc[${i}])</td>
+                    <td class="p-2.5 text-white">${r.NIM}</td>
+                    <td class="p-2.5 font-sans text-white">${r.Nama}</td>
+                    <td class="p-2.5">${r.Prodi}</td>
+                    <td class="p-2.5 text-right text-emerald-300">${r.Rata_Nilai.toFixed(2)}</td>
+                    <td class="p-2.5">${r.Predikat} (${r.Persen_Beasiswa}%)</td>
+                    <td class="p-2.5 text-right text-cyan-300">Rp ${r.Potongan_Beasiswa.toLocaleString('id-ID')}</td>
+                    <td class="p-2.5 text-right text-emerald-300">Rp ${r.UKT_Bersih.toLocaleString('id-ID')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      } else {
+        // Step 5: GroupBy Prodi & Bar Chart
+        const prodiMap = {};
+        UNGUIDED_MERGED_DATA.forEach(r => {
+          if (!prodiMap[r.Prodi]) {
+            prodiMap[r.Prodi] = { count: 0, sumRata: 0, sumBeasiswa: 0, sumUktBersih: 0 };
+          }
+          prodiMap[r.Prodi].count += 1;
+          prodiMap[r.Prodi].sumRata += r.Rata_Nilai;
+          prodiMap[r.Prodi].sumBeasiswa += r.Potongan_Beasiswa;
+          prodiMap[r.Prodi].sumUktBersih += r.UKT_Bersih;
+        });
+
+        const prodiList = Object.keys(prodiMap).sort();
+        const maxBeasiswa = Math.max(...prodiList.map(p => prodiMap[p].sumBeasiswa));
+
+        box.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-7 space-y-3">
+              <div class="text-xs font-mono font-bold text-rose-300">
+                Hasil Agregasi \`df.groupby("Prodi").agg(...)\`:
+              </div>
+              <div class="overflow-x-auto rounded-xl border border-slate-800">
+                <table class="w-full text-left text-xs font-mono border-collapse">
+                  <thead class="bg-slate-950 text-rose-300 border-b border-slate-800">
+                    <tr>
+                      <th class="p-2.5">Prodi (Index)</th>
+                      <th class="p-2.5 text-right">Jumlah_Mhs</th>
+                      <th class="p-2.5 text-right">Rata_Akademik</th>
+                      <th class="p-2.5 text-right text-amber-300">Total_Beasiswa</th>
+                      <th class="p-2.5 text-right text-emerald-300">Total_UKT_Bersih</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                    ${prodiList.map(p => {
+                      const st = prodiMap[p];
+                      return `
+                        <tr>
+                          <td class="p-2.5 font-bold text-white">${p}</td>
+                          <td class="p-2.5 text-right">${st.count}</td>
+                          <td class="p-2.5 text-right text-cyan-300">${(st.sumRata / st.count).toFixed(2)}</td>
+                          <td class="p-2.5 text-right font-bold text-amber-300">Rp ${st.sumBeasiswa.toLocaleString('id-ID')}</td>
+                          <td class="p-2.5 text-right font-bold text-emerald-300">Rp ${st.sumUktBersih.toLocaleString('id-ID')}</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="lg:col-span-5 p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+              <div class="text-xs font-mono font-bold text-amber-300">
+                Visualisasi \`st.bar_chart(df.groupby("Prodi")["Potongan_Beasiswa"].sum())\`:
+              </div>
+              <div class="space-y-3 pt-1">
+                ${prodiList.map(p => {
+                  const val = prodiMap[p].sumBeasiswa;
+                  const pct = maxBeasiswa > 0 ? Math.max(8, Math.round((val / maxBeasiswa) * 100)) : 8;
+                  return `
+                    <div class="space-y-1 text-xs font-mono">
+                      <div class="flex justify-between">
+                        <span class="text-white font-bold">${p}</span>
+                        <span class="text-amber-300 font-bold">Rp ${val.toLocaleString('id-ID')}</span>
+                      </div>
+                      <div class="w-full bg-slate-900 rounded-lg h-5 overflow-hidden border border-slate-800">
+                        <div class="bg-gradient-to-r from-amber-500 to-rose-500 h-full transition-all duration-500" style="width: ${pct}%"></div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>`;
+      }
+    }
+
+    function exportUnguidedExcel() {
+      if (typeof XLSX === 'undefined') {
+        showToast('Library SheetJS belum siap.');
+        return;
+      }
+      const sortedAll = [...UNGUIDED_MERGED_DATA].sort((a, b) => b.Rata_Nilai - a.Rata_Nilai);
+      const ws = XLSX.utils.json_to_sheet(sortedAll);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Laporan_Beasiswa');
+      XLSX.writeFile(wb, 'laporan_beasiswa.xlsx');
+      showToast('File laporan_beasiswa.xlsx berhasil diunduh!');
+    }
+
+    function downloadUnguidedPython() {
+      downloadFileBlob(CODE_UNGUIDED_FULL, 'solusi_unguided.py', 'text/x-python;charset=utf-8;');
+    }
+
+    function randomizeBookDiscounts() {
+      bukuKitaData.forEach(r => {
+        // Bilangan bulat acak antara 5 hingga 20 inklusif
+        r.diskon_persen = Math.floor(Math.random() * (20 - 5 + 1)) + 5;
+      });
+      renderBukuKitaSimulator();
+      showToast('Persentase diskon acak (5% - 20%) berhasil diperbarui!');
+    }
+
+    function exportBukuKitaExcel() {
+      if (typeof XLSX === 'undefined') {
+        showToast('Library SheetJS belum siap.');
+        return;
+      }
+      const ws = XLSX.utils.json_to_sheet(bukuKitaData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Analisis_BukuKita');
+      XLSX.writeFile(wb, 'analisis_penjualan_bukukita.xlsx');
+      showToast('File analisis_penjualan_bukukita.xlsx berhasil diunduh!');
+    }
+
+    // 9. KUIS EVALUASI (5 SOAL)
+    const PANDAS_QUIZ = [
+      {
+        q: '1. Manakah sintaks yang benar untuk memeriksa tipe data dari setiap kolom pada DataFrame df2?',
+        options: ['df2.types()', 'df2.dtypes', 'df2.typeof()', 'df2.columns.type()'],
+        correct: 1,
+        exp: 'Pada Pandas, tipe data tiap kolom disimpan di dalam atribut properti <code>df2.dtypes</code> (bukan pemanggilan fungsi <code>df2.types()</code>).'
+      },
+      {
+        q: '2. Pada Latihan 4A, mengapa kita menggunakan parameter axis=1 pada df[["Matematika", "Fisika", "Kimia"]].mean(axis=1)?',
+        options: [
+          'Agar rata-rata dihitung secara horizontal menyamping lintas mata pelajaran untuk setiap baris mahasiswa.',
+          'Agar nilai diurutkan dari terbesar ke terkecil.',
+          'Agar baris yang bernilai NaN dihapus terlebih dahulu.',
+          'Karena axis=1 hanya mengambil kolom pertama saja.'
+        ],
+        correct: 0,
+        exp: 'Parameter <code>axis=1</code> menghitung agregasi menyamping antar-kolom untuk setiap baris (per mahasiswa), sedangkan <code>axis=0</code> menghitung vertikal ke bawah per kolom.'
+      },
+      {
+        q: '3. Apa yang terjadi pada pd.merge(df1, df2, on="NIM") jika NIM "A03" ada di df2 tetapi tidak ada di df1?',
+        options: [
+          'Program langsung berhenti dengan KeyError.',
+          'Baris A03 tidak ikut ditampilkan karena pd.merge secara default melakukan Inner Join (how="inner").',
+          'Baris A03 otomatis ditambahkan ke df1.',
+          'Semua nilai pada kolom Nilai berubah menjadi 0.'
+        ],
+        correct: 1,
+        exp: 'Secara default <code>pd.merge()</code> menggunakan <code>how="inner"</code> yang hanya mengambil irisan kunci NIM yang terdapat di kedua DataFrame.'
+      },
+      {
+        q: '4. Perintah manakah yang tepat pada Studi Kasus BukuKita.id untuk menghitung jumlah buku yang terjual per kategori?',
+        options: [
+          'df.sort_values(by="kategori")["jumlah"].sum()',
+          'df.groupby("kategori")["jumlah"].sum()',
+          'df.merge("kategori")["jumlah"].mean()',
+          'df.describe("kategori")'
+        ],
+        correct: 1,
+        exp: '<code>df.groupby("kategori")["jumlah"].sum()</code> mengelompokkan baris berdasarkan kategori lalu menjumlahkan kolom <code>jumlah</code>.'
+      },
+      {
+        q: '5. Bagaimana cara membuat kolom diskon_persen berisi angka bulat acak antara 5% sampai 20% sebanyak jumlah baris DataFrame df menggunakan NumPy?',
+        options: [
+          'df["diskon_persen"] = np.random.randint(5, 21, size=len(df))',
+          'df["diskon_persen"] = np.random.randn(5, 20)',
+          'df["diskon_persen"] = pd.Series(5, 20)',
+          'df["diskon_persen"] = df.sample(20)'
+        ],
+        correct: 0,
+        exp: 'Fungsi <code>np.random.randint(low, high, size)</code> memiliki batas atas eksklusif, sehingga <code>randint(5, 21, size=len(df))</code> menghasilkan bilangan bulat acak dari 5 hingga 20.'
+      }
+    ];
+
+    function renderQuizSection() {
+      const wrapper = document.getElementById('quiz-questions-wrapper');
+      wrapper.innerHTML = PANDAS_QUIZ.map((item, qIdx) => `
+        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div class="font-bold text-xs sm:text-sm text-white leading-relaxed">${item.q}</div>
+          <div class="space-y-2 text-xs font-mono">
+            ${item.options.map((opt, oIdx) => `
+              <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-indigo-500/50 transition-colors">
+                <input type="radio" name="pquiz-${qIdx}" value="${oIdx}" class="accent-indigo-500">
+                <span class="text-slate-200">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="pquiz-exp-${qIdx}" class="hidden p-3 rounded-xl text-xs leading-relaxed"></div>
+        </div>
+      `).join('');
+    }
+
+    function evaluatePandasQuiz() {
+      let score = 0;
+      PANDAS_QUIZ.forEach((item, qIdx) => {
+        const chosen = document.querySelector(`input[name="pquiz-${qIdx}"]:checked`);
+        const expEl = document.getElementById(`pquiz-exp-${qIdx}`);
+        expEl.classList.remove('hidden');
+        if (chosen && parseInt(chosen.value) === item.correct) {
+          score++;
+          expEl.className = 'p-3 rounded-xl text-xs leading-relaxed bg-emerald-950/50 border border-emerald-500/40 text-emerald-200';
+          expEl.innerHTML = `<strong class="text-emerald-400">✓ Benar!</strong> ${item.exp}`;
+        } else {
+          expEl.className = 'p-3 rounded-xl text-xs leading-relaxed bg-rose-950/50 border border-rose-500/40 text-rose-200';
+          expEl.innerHTML = `<strong class="text-rose-400">✗ Kurang Tepat.</strong> Jawaban benar: <code class="text-amber-300">${item.options[item.correct]}</code>.<br>${item.exp}`;
+        }
+      });
+      document.getElementById('quiz-score-box').textContent = `Skor: ${score} / ${PANDAS_QUIZ.length} (${Math.round((score/PANDAS_QUIZ.length)*100)}%)`;
+      showToast(`Kuis selesai dinilai! Skor Anda: ${score}/${PANDAS_QUIZ.length}`);
+    }
+
+    // 10. DOWNLOAD & CLIPBOARD HELPERS
+    function copyRawText(text) {
+      if (!text) return;
+      const fallbackCopy = (str) => {
+        const ta = document.createElement('textarea');
+        ta.value = str;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast('Kode berhasil disalin ke clipboard!');
+        } catch (err) {
+          showToast('Gagal menyalin kode.');
+        }
+        document.body.removeChild(ta);
+      };
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('Kode berhasil disalin ke clipboard!'))
+          .catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function copyLabCode(index) {
+      if (LAB_EXERCISES[index] && LAB_EXERCISES[index].code) {
+        copyRawText(LAB_EXERCISES[index].code);
+      }
+    }
+
+    function copyCodeBlock(elId) {
+      const map = {
+        'code-11-3-1': CODE_11_3_1,
+        'code-11-3-3': CODE_11_3_3,
+        'code-11-3-4': CODE_11_3_4,
+        'code-bukukita-full': CODE_BUKUKITA_FULL,
+        'code-unguided-full': CODE_UNGUIDED_FULL
+      };
+      if (map[elId]) {
+        copyRawText(map[elId]);
+      } else {
+        const el = document.getElementById(elId);
+        if (el) {
+          const cleaned = el.innerText
+            .split('\n')
+            .map(line => line.replace(/^\s*\d+\s*/, ''))
+            .join('\n');
+          copyRawText(cleaned);
+        }
+      }
+    }
+
+    function downloadFileBlob(content, filename, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`File ${filename} berhasil diunduh!`);
+    }
+
+    function downloadDataset(name) {
+      if (name === 'penjualan.csv') downloadFileBlob(PENJUALAN_CSV_RAW, 'penjualan.csv', 'text/csv;charset=utf-8;');
+      if (name === 'nilai_mahasiswa.csv') downloadFileBlob(NILAI_MAHASISWA_CSV_RAW, 'nilai_mahasiswa.csv', 'text/csv;charset=utf-8;');
+      if (name === 'coba.csv') downloadFileBlob(COBA_CSV_RAW, 'coba.csv', 'text/csv;charset=utf-8;');
+      if (name === 'profil_mahasiswa.csv') downloadFileBlob(PROFIL_MHS_CSV_RAW, 'profil_mahasiswa.csv', 'text/csv;charset=utf-8;');
+      if (name === 'nilai_semester.csv') downloadFileBlob(NILAI_SEMESTER_CSV_RAW, 'nilai_semester.csv', 'text/csv;charset=utf-8;');
+    }
+
+    function downloadPythonApp() {
+      downloadFileBlob(CODE_BUKUKITA_FULL, 'app_bukukita.py', 'text/x-python;charset=utf-8;');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 2600);
+    }
+
+    // INITIALIZE PAGE ON LOAD
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('code-11-3-1').innerHTML = `<code>${highlightPython(CODE_11_3_1)}</code>`;
+      document.getElementById('code-11-3-3').innerHTML = `<code>${highlightPython(CODE_11_3_3)}</code>`;
+      document.getElementById('code-11-3-4').innerHTML = `<code>${highlightPython(CODE_11_3_4)}</code>`;
+      document.getElementById('code-bukukita-full').innerHTML = `<code>${highlightPython(CODE_BUKUKITA_FULL)}</code>`;
+      document.getElementById('code-unguided-full').innerHTML = `<code>${highlightPython(CODE_UNGUIDED_FULL)}</code>`;
+      document.getElementById('penjualan-csv-preview').textContent = PENJUALAN_CSV_RAW;
+      document.getElementById('unguided-profil-preview').textContent = PROFIL_MHS_CSV_RAW;
+      document.getElementById('unguided-nilai-preview').textContent = NILAI_SEMESTER_CSV_RAW;
+
+      runInspector('all');
+      setMergeMode('inner');
+      renderLabExercises();
+      renderBukuKitaSimulator();
+      setUnguidedStep(1);
+      renderQuizSection();
+    });
+  </script>
+</body>
+</html>
