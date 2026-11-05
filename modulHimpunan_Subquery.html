@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Praktikum Sistem Basis Data — Modul 9/11: Himpunan dan Subquery</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#131c2e',
+              900: '#0f172a',
+              950: '#070b14'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .sql-code {
+      background-color: #090d16;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.65;
+    }
+    .kw { color: #38bdf8; font-weight: 600; } /* SQL Keywords */
+    .fn { color: #c084fc; font-weight: 600; } /* Functions / Operators */
+    .st { color: #34d399; } /* Strings */
+    .nm { color: #fbbf24; } /* Numbers */
+    .cm { color: #64748b; font-style: italic; } /* Comments */
+    .ln {
+      user-select: none;
+      color: #475569;
+      text-align: right;
+      padding-right: 1rem;
+      min-width: 2.3rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-cyan-500/50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toast-msg">Berhasil disalin!</span>
+  </div>
+
+  <!-- Top Sticky Header -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/95 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-md shadow-cyan-500/20">
+            <i class="fa-solid fa-layer-group text-white text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-sm sm:text-base font-bold tracking-tight text-white">Praktikum Sistem Basis Data — Modul 9 / 11: Himpunan &amp; Subquery</h1>
+              <span class="hidden md:inline-block px-2 py-0.5 text-[10px] font-mono font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-md">165 Menit</span>
+            </div>
+            <p class="text-xs text-slate-400">UNION, MINUS, INTERSECT, Single/Multi-Row Subquery (ANY, ALL, IN, EXISTS) + 3 File SQL Asli</p>
+          </div>
+        </div>
+
+        <!-- Dropdown Download 3 File SQL -->
+        <div class="flex items-center gap-2">
+          <div class="relative group">
+            <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all">
+              <i class="fa-solid fa-download"></i>
+              <span class="hidden sm:inline">Unduh</span> 3 File .SQL
+              <i class="fa-solid fa-chevron-down text-[10px] ml-0.5"></i>
+            </button>
+            <div class="absolute right-0 mt-1 w-64 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl py-1.5 hidden group-hover:block z-50 text-xs font-mono">
+              <button onclick="downloadSqlDump('himpunan')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-slate-200">
+                <span>📐 Modul 9 - Himpunan.sql</span><span class="text-[10px] text-cyan-400">Bab A</span>
+              </button>
+              <button onclick="downloadSqlDump('mhs')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-slate-200">
+                <span>🎓 Modul 9 - Subquery_mhs.sql</span><span class="text-[10px] text-purple-400">Materi B</span>
+              </button>
+              <button onclick="downloadSqlDump('emp')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-slate-200">
+                <span>🏢 Modul 9 - Subquery_emp.sql</span><span class="text-[10px] text-amber-400">Latihan B</span>
+              </button>
+            </div>
+          </div>
+
+          <a href="#unguided-section" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-all">
+            <i class="fa-solid fa-fire text-amber-400"></i>
+            <span>Simulasi Posttest</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Sub-Navigation Bar -->
+      <nav class="flex space-x-1 overflow-x-auto py-2 text-xs font-medium border-t border-slate-800/80">
+        <a href="#db-explorer" class="px-3 py-1.5 rounded-lg bg-slate-800 text-cyan-300 hover:bg-slate-700 whitespace-nowrap">🗄️ 0. Database &amp; 3 File SQL</a>
+        <a href="#himpunan-teori" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-slate-300 whitespace-nowrap">⭕ A. Teori &amp; Venn Simulator Himpunan</a>
+        <a href="#latihan-a-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-emerald-300 whitespace-nowrap">💻 Latihan A (1–5: PJJ &amp; Reguler)</a>
+        <a href="#subquery-teori" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-purple-300 whitespace-nowrap">🔍 B. Teori &amp; Simulator Subquery (Star Wars)</a>
+        <a href="#latihan-b-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-amber-300 whitespace-nowrap">🏢 Latihan B (1–7: Karyawan &amp; Dept)</a>
+        <a href="#unguided-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-rose-300 whitespace-nowrap">🔥 Simulasi Unguided / Posttest</a>
+        <a href="#quiz-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-indigo-300 whitespace-nowrap">🎯 Kuis Evaluasi</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 flex-1 w-full">
+
+    <!-- HERO BANNER -->
+    <section class="bg-gradient-to-br from-slate-900 via-cyan-950/30 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div class="lg:col-span-8 space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
+            <i class="fa-solid fa-database"></i>
+            <span>Praktikum Sistem Basis Data • Modul 9 / 11 (Database: [nama]_p9)</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Operasi <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">Himpunan</span> &amp; <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-amber-400">Subquery Bersarang</span> pada SQL
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Pelajari cara menggabungkan, memotong, dan mencari irisan antar-tabel menggunakan prinsip matematika himpunan (<strong>UNION</strong>, <strong>MINUS</strong>, <strong>INTERSECT</strong>) serta cara menyusun query di dalam query (<strong>Subquery</strong> dengan operator <code>=</code>, <code>IN</code>, <code>ANY/SOME</code>, <code>ALL</code>, dan <code>EXISTS</code>). Seluruh pembahasan dilengkapi tabel kondisi <strong>Before vs After</strong>, source code lengkap, dan penjelasan tiap baris klausa.
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Operasi Himpunan</div>
+              <div class="font-mono font-bold text-cyan-400 text-sm mt-0.5">UNION / MINUS / INTERSECT</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Latihan A (Himpunan)</div>
+              <div class="font-mono font-bold text-emerald-400 text-sm mt-0.5">5 Kasus (PJJ &amp; Reguler)</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Contoh Materi B</div>
+              <div class="font-mono font-bold text-purple-400 text-sm mt-0.5">7 Query (Star Wars DB)</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Latihan B (Subquery)</div>
+              <div class="font-mono font-bold text-amber-400 text-sm mt-0.5">7 Kasus (Emp &amp; Dept)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tujuan & Pembagian Waktu -->
+        <div class="lg:col-span-4 bg-slate-950/90 border border-slate-800 rounded-xl p-5 space-y-3 text-xs">
+          <h3 class="font-bold text-cyan-400 uppercase tracking-wider flex items-center justify-between">
+            <span><i class="fa-regular fa-clock mr-1.5"></i> Pembagian Waktu</span>
+            <span class="font-mono text-amber-300">165 Menit</span>
+          </h3>
+          <div class="space-y-1.5 font-mono">
+            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-300">1. Pretest</span><span class="text-slate-400">15 menit</span></div>
+            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-cyan-300">2. Operasi Himpunan</span><span class="text-cyan-300 font-bold">60 menit</span></div>
+            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-purple-300">3. Operasi Subquery</span><span class="text-purple-300 font-bold">30 menit</span></div>
+            <div class="flex justify-between py-1"><span class="text-amber-300 font-bold">4. Posttest</span><span class="text-amber-300 font-bold">60 menit</span></div>
+          </div>
+          <div class="pt-2 border-t border-slate-800 text-slate-300 space-y-1">
+            <div class="font-bold text-slate-200">Tujuan Praktikum:</div>
+            <p class="leading-relaxed text-[11px]">Menjelaskan konsep, menuliskan sintaks dengan benar, dan menerapkan operasi himpunan &amp; subquery untuk analisis data multi-tabel.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 0: DATABASE EXPLORER (3 FILE SQL ASLI)                          -->
+    <!-- ======================================================================= -->
+    <section id="db-explorer" class="space-y-5 scroll-mt-24">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Persiapan Dataset Praktikum (`[nama]_p9`)</span>
+          <h2 class="text-xl font-bold text-white mt-0.5">Penjelajah Tabel dari 3 Berkas SQL Praktikum (Kondisi Awal / Before Query)</h2>
+        </div>
+        <div class="flex flex-wrap gap-2 text-xs font-mono">
+          <button onclick="switchDbTab('himpunan')" id="db-btn-himpunan" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400 font-bold">1. Himpunan.sql (Prima, Genap, PJJ, Reguler)</button>
+          <button onclick="switchDbTab('mhs')" id="db-btn-mhs" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">2. Subquery_mhs.sql (Star Wars Akademik)</button>
+          <button onclick="switchDbTab('emp')" id="db-btn-emp" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">3. Subquery_emp.sql (Karyawan &amp; Departemen)</button>
+        </div>
+      </div>
+
+      <div id="db-explorer-content" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl"></div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION A: TEORI OPERASI HIMPUNAN & INTERACTIVE VENN SIMULATOR          -->
+    <!-- ======================================================================= -->
+    <section id="himpunan-teori" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-cyan-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Bagian A • Alokasi Waktu: 60 Menit</span>
+        <h2 class="text-2xl font-bold text-white">A. Operasi Himpunan: `UNION`, `UNION ALL`, `MINUS`, dan `INTERSECT`</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Operasi himpunan menggabungkan hasil dari dua atau lebih statemen <code>SELECT</code>. Syarat utamanya: setiap statemen <code>SELECT</code> yang digabungkan wajib memiliki <strong>jumlah kolom yang sama</strong> dengan <strong>tipe data yang serumpun</strong>, dan nama kolom hasil akhir akan mengikuti nama kolom dari <code>SELECT</code> yang pertama.
+        </p>
+      </div>
+
+      <!-- Ringkasan 3 Operasi Himpunan & Kompatibilitas MySQL/MariaDB -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-mono font-bold text-sm text-cyan-300">A.1. UNION vs UNION ALL</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px]">Didukung MySQL</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed">
+            Menggabungkan baris dari dua himpunan ($A \cup B$). <code>UNION</code> otomatis <strong>menghapus duplikat</strong> (data kembar hanya muncul 1 kali), sedangkan <code>UNION ALL</code> <strong>mempertahankan semua duplikat</strong>.
+          </p>
+          <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-cyan-200">
+            SELECT * FROM prima<br>UNION [ALL]<br>SELECT * FROM genap;
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-mono font-bold text-sm text-rose-300">A.2. MINUS (Selisih $A - B$)</span>
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">Emulasi LEFT JOIN</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed">
+            Memotong himpunan pertama dengan elemen yang ada di himpunan kedua ($A - B$). Keyword <code>MINUS</code> ada di Oracle (atau <code>EXCEPT</code> di MariaDB 10.3+), namun di MySQL standar dilakukan dengan <strong><code>LEFT JOIN ... WHERE tabel2.id IS NULL</code></strong>.
+          </p>
+          <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-rose-200">
+            SELECT p.bilangan FROM prima p<br>LEFT JOIN genap g ON p.bilangan = g.bilangan<br>WHERE g.bilangan IS NULL;
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-mono font-bold text-sm text-emerald-300">A.3. INTERSECT (Irisan $A \cap B$)</span>
+            <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px]">MariaDB / INNER JOIN</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed">
+            Mengambil hanya elemen yang ada di kedua himpunan sekaligus ($A \cap B$). Didukung oleh MariaDB dengan keyword <code>INTERSECT</code>, atau menggunakan <strong><code>INNER JOIN ... USING(...)</code></strong> maupun <strong><code>WHERE EXISTS (...)</code></strong>.
+          </p>
+          <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-emerald-200">
+            SELECT DISTINCT * FROM prima<br>INNER JOIN genap USING(bilangan);
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE VENN DIAGRAM & SET OPERATION SIMULATOR -->
+      <div class="bg-slate-900 border-2 border-cyan-500/30 rounded-3xl p-6 shadow-2xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">🎛️ Simulator Visual Diagram Venn &amp; Himpunan SQL</span>
+            <h3 class="text-xl font-bold text-white mt-0.5">Uji Operasi Himpunan Secara Visual (Before &rarr; After)</h3>
+          </div>
+          <!-- Pilih Dataset Simulator -->
+          <div class="flex items-center gap-2 text-xs font-mono">
+            <span class="text-slate-400">Pilih Dataset:</span>
+            <button onclick="setVennDataset('angka')" id="venn-ds-angka" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400 font-bold">Tabel `prima` &amp; `genap`</button>
+            <button onclick="setVennDataset('mhs')" id="venn-ds-mhs" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">Tabel `pjj` &amp; `reguler` (Latihan A)</button>
+          </div>
+        </div>
+
+        <!-- Tombol Operasi Himpunan -->
+        <div class="flex flex-wrap gap-2 text-xs font-mono">
+          <button onclick="runVennOp('union')" id="venn-op-union" class="px-3.5 py-2 rounded-xl bg-cyan-600 text-white font-bold">A ∪ B (UNION)</button>
+          <button onclick="runVennOp('union_all')" id="venn-op-union_all" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">A ∪ B (UNION ALL)</button>
+          <button onclick="runVennOp('intersect')" id="venn-op-intersect" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">A ∩ B (INTERSECT / Merangkap)</button>
+          <button onclick="runVennOp('minus_ab')" id="venn-op-minus_ab" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">A − B (MINUS: Hanya A)</button>
+          <button onclick="runVennOp('minus_ba')" id="venn-op-minus_ba" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">B − A (MINUS: Hanya B)</button>
+        </div>
+
+        <!-- Area Visualisasi Venn SVG + Kode SQL + Hasil -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Diagram Venn SVG -->
+          <div class="lg:col-span-5 bg-slate-950 border border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+            <svg viewBox="0 0 360 210" class="w-full max-w-sm">
+              <!-- Circle A (Left) -->
+              <circle id="svg-circle-a" cx="135" cy="105" r="78" fill="rgba(6, 182, 212, 0.25)" stroke="#06b6d4" stroke-width="2.5" />
+              <!-- Circle B (Right) -->
+              <circle id="svg-circle-b" cx="225" cy="105" r="78" fill="rgba(168, 85, 247, 0.25)" stroke="#a855f7" stroke-width="2.5" />
+              <!-- Labels -->
+              <text id="svg-label-a" x="90" y="38" fill="#67e8f9" font-size="11" font-family="monospace" font-weight="bold" text-anchor="middle">Himpunan A</text>
+              <text id="svg-label-b" x="270" y="38" fill="#d8b4fe" font-size="11" font-family="monospace" font-weight="bold" text-anchor="middle">Himpunan B</text>
+              <text x="180" y="200" fill="#94a3b8" font-size="10" font-family="monospace" text-anchor="middle" id="svg-op-caption">Operasi: A ∪ B (UNION)</text>
+              <!-- Dynamic Elements Inside Regions -->
+              <g id="svg-items-left" fill="#e2e8f0" font-size="9.5" font-family="monospace" text-anchor="middle"></g>
+              <g id="svg-items-mid" fill="#fef08a" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="middle"></g>
+              <g id="svg-items-right" fill="#e2e8f0" font-size="9.5" font-family="monospace" text-anchor="middle"></g>
+            </svg>
+          </div>
+
+          <!-- Query & Result Box -->
+          <div class="lg:col-span-7 space-y-3">
+            <div class="rounded-xl border border-slate-800 overflow-hidden">
+              <div class="px-4 py-2 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+                <span id="venn-sql-title" class="text-cyan-300 font-bold">Query SQL &amp; Alternatif MySQL</span>
+                <button onclick="copyVennSql()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200">
+                  <i class="fa-regular fa-copy mr-1"></i> Salin Query
+                </button>
+              </div>
+              <pre id="venn-sql-code" class="p-4 sql-code overflow-x-auto"></pre>
+            </div>
+
+            <div id="venn-explanation" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed"></div>
+
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-2">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-emerald-400 font-bold">Hasil Eksekusi Himpunan (After):</span>
+                <span id="venn-result-count" class="text-slate-400"></span>
+              </div>
+              <div id="venn-result-badges" class="flex flex-wrap gap-1.5 font-mono text-xs"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION LATIHAN A: PEMBAHASAN LENGKAP SOAL 1 S.D. 5                     -->
+    <!-- ======================================================================= -->
+    <section id="latihan-a-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-emerald-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Pembahasan Latihan A (Halaman 3 Modul)</span>
+        <h2 class="text-2xl font-bold text-white">Pembahasan Lengkap Latihan A (Nomor 1 s.d. 5) — Mahasiswa PJJ &amp; Reguler</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Berdasarkan soal pada Halaman 3 Modul, terdapat dua himpunan mahasiswa: <strong>Mahasiswa PJJ</strong> (8 orang: <em>Amadeus, Angela, Cahyono, Erika, Joshua, Kevin, Michael, Patricia</em>) dan <strong>Mahasiswa Reguler</strong> (5 orang: <em>Amadeus, Elisabeth, Erika, Joshua, Lucas</em>). Berikut adalah skrip pembuatan tabel, source code solusi setiap nomor, penjelasan per klausa, serta hasil eksekusinya.
+        </p>
+      </div>
+
+      <!-- Tabel Before: PJJ vs Reguler Berdampingan -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="text-cyan-400 font-bold flex justify-between">
+            <span>Tabel 1 (BEFORE): `pjj` (8 Mahasiswa)</span>
+            <span class="text-slate-400">SELECT nama FROM pjj;</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold" title="Merangkap Reguler">Amadeus (Kembar)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 text-slate-200 border border-slate-800">Angela</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 text-slate-200 border border-slate-800">Cahyono</span>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold" title="Merangkap Reguler">Erika (Kembar)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold" title="Merangkap Reguler">Joshua (Kembar)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 text-slate-200 border border-slate-800">Kevin</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 text-slate-200 border border-slate-800">Michael</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 text-slate-200 border border-slate-800">Patricia</span>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="text-purple-400 font-bold flex justify-between">
+            <span>Tabel 2 (BEFORE): `reguler` (5 Mahasiswa)</span>
+            <span class="text-slate-400">SELECT nama FROM reguler;</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold" title="Merangkap PJJ">Amadeus (Kembar)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 text-slate-200 border border-slate-800">Elisabeth</span>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold" title="Merangkap PJJ">Erika (Kembar)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold" title="Merangkap PJJ">Joshua (Kembar)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950 text-slate-200 border border-slate-800">Lucas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Container Kartu Latihan A (1 - 5) -->
+      <div id="latihan-a-cards" class="space-y-6"></div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION B: TEORI SUBQUERY & INTERACTIVE SUBQUERY SIMULATOR (STAR WARS)  -->
+    <!-- ======================================================================= -->
+    <section id="subquery-teori" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-purple-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">Bagian B • Alokasi Waktu: 30 Menit</span>
+        <h2 class="text-2xl font-bold text-white">B. Konsep Subquery (Inner Query vs Outer Query) &amp; Operator Pembanding</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          <strong>Subquery</strong> adalah statemen <code>SELECT</code> yang disarangkan (*nested*) di dalam statemen utama (*outer query*) dan wajib ditulis di dalam tanda kurung <code>(SELECT ...)</code>. Mesin basis data akan mengeksekusi <strong>Inner Query (Subquery)</strong> terlebih dahulu, lalu hasilnya disubstitusikan ke <strong>Outer Query</strong>.
+        </p>
+      </div>
+
+      <!-- 5 Aturan Subquery & Tabel Operator Pembanding (Halaman 4 Modul) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 text-xs">
+          <h3 class="font-bold text-purple-300 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-scale-balanced"></i> 5 Aturan Penting Subquery (Halaman 4)
+          </h3>
+          <ol class="space-y-2 text-slate-300 list-decimal list-inside leading-relaxed">
+            <li>Klausa <code>ORDER BY</code> <strong>tidak boleh</strong> digunakan di dalam subquery, namun boleh digunakan pada <em>outer query</em> (query induk).</li>
+            <li>Jika diletakkan di klausa <code>SELECT</code>, hasil subquery harus berupa satu nilai skalar/kolom.</li>
+            <li>Jika diletakkan di klausa <code>FROM</code> (<em>Derived Table</em>), hasil subquery berupa tabel dan wajib diberi alias.</li>
+            <li>Jika diletakkan di klausa <code>WHERE</code>, hasil subquery harus selaras melengkapi kondisi filter.</li>
+            <li>Dalam operasi pembandingan, subquery <strong>wajib diletakkan di sisi kanan</strong> operator pembanding.</li>
+          </ol>
+        </div>
+
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div class="px-5 py-3 bg-slate-950 border-b border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-300">
+            Tabel 1. Operator Pembanding Subquery (Single-Row vs Multiple-Rows)
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-900 text-slate-400 font-mono border-b border-slate-800">
+                <tr>
+                  <th class="p-3 w-36">Operator</th>
+                  <th class="p-3 w-36">Bentuk Hasil Subquery</th>
+                  <th class="p-3">Cara Kerja &amp; Logika Evaluasi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr>
+                  <td class="p-3 font-mono font-bold text-cyan-300">=, !=, &lt;&gt;, &gt;, &lt;, &gt;=, &lt;=</td>
+                  <td class="p-3 font-mono text-amber-300">Single row (1 nilai skalar)</td>
+                  <td class="p-3">Membandingkan kolom dengan <strong>tepat 1 nilai tunggal</strong> hasil subquery. Jika subquery menghasilkan lebih dari 1 baris, MySQL akan mengeluarkan error <em>Subquery returns more than 1 row</em>.</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-mono font-bold text-purple-300">IN, = ANY, SOME</td>
+                  <td class="p-3 font-mono text-emerald-300">Multiple rows / columns</td>
+                  <td class="p-3">Bernilai TRUE jika nilai cocok dengan <strong>salah satu</strong> elemen di dalam daftar hasil subquery.<br>• <code>&gt; ANY (72, 78)</code> berarti lebih besar dari nilai terkecil (<code>&gt; 72</code>).</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-mono font-bold text-rose-300">ALL (diawali =, &gt;, &lt;, dll.)</td>
+                  <td class="p-3 font-mono text-emerald-300">Multiple rows / columns</td>
+                  <td class="p-3">Membandingkan sebuah nilai terhadap <strong>SEMUA</strong> nilai hasil subquery.<br>• <code>&gt; ALL (72, 78)</code> berarti wajib lebih besar dari nilai terbesar sekalipun (<code>&gt; 78</code>).<br>• <code>&lt; ALL (2jt, 4jt, 5jt)</code> berarti wajib lebih kecil dari nilai terkecil (<code>&lt; 2jt</code>).</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-mono font-bold text-amber-300">EXISTS / NOT EXISTS</td>
+                  <td class="p-3 font-mono text-slate-300">Boolean (Ada/Tidak ada baris)</td>
+                  <td class="p-3">Menguji apakah subquery mengembalikan minimal 1 baris data. <code>EXISTS</code> bernilai TRUE jika subquery tidak kosong.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE SUBQUERY STEP-BY-STEP SIMULATOR (CONTOH SUBQUERY_MHS.SQL STAR WARS) -->
+      <div class="bg-slate-900 border-2 border-purple-500/30 rounded-3xl p-6 shadow-2xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">⚡ Simulator Eksekusi Bertahap: Inner Query &rarr; Outer Query</span>
+            <h3 class="text-xl font-bold text-white mt-0.5">7 Contoh Subquery Modul (`Modul 9 - Subquery_mhs.sql` — Dataset Star Wars)</h3>
+          </div>
+          <span class="px-3 py-1 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30 text-xs font-mono">
+            Klik contoh untuk melihat bagaimana Inner Query dievaluasi lebih dulu!
+          </span>
+        </div>
+
+        <!-- Pilihan 7 Contoh Materi B -->
+        <div id="mhs-example-buttons" class="flex flex-wrap gap-2 text-xs font-mono"></div>
+
+        <!-- Kontainer Visualisasi Step 1 (Inner) -> Step 2 (Substitusi) -> Step 3 (Outer Result) -->
+        <div id="mhs-example-viewer" class="space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION LATIHAN B: PEMBAHASAN LENGKAP 7 SOAL KARYAWAN & DEPARTEMEN      -->
+    <!-- ======================================================================= -->
+    <section id="latihan-b-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-amber-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">Pembahasan Latihan B (Halaman 5–6 Modul)</span>
+        <h2 class="text-2xl font-bold text-white">Pembahasan Lengkap Latihan B (Nomor 1 s.d. 7) — `Modul 9 - Subquery_emp.sql`</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Setiap nomor latihan di bawah ini menampilkan kondisi tabel awal (<strong>Before</strong>), hasil evaluasi <strong>Inner Query (Subquery)</strong>, source code SQL lengkap beserta alternatifnya, penjelasan baris demi baris, serta tabel hasil akhir (<strong>After</strong>).
+        </p>
+      </div>
+
+      <!-- Tabel Referensi Cepat: karyawan & departemen (Before) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 text-xs font-mono">
+        <div class="lg:col-span-7 p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="text-amber-300 font-bold flex justify-between">
+            <span>Tabel 1 (BEFORE): `karyawan` (7 Baris)</span>
+            <span class="text-slate-400">Rata-rata gaji = Rp 3.214.285,71</span>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                <tr><th class="p-2">id_karyawan</th><th class="p-2">nama_depan</th><th class="p-2">nama_belakang</th><th class="p-2 text-right">gaji</th><th class="p-2 text-center">id_departemen</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/50">
+                <tr><td class="p-2 text-cyan-300">110</td><td class="p-2 text-white font-bold">Emil</td><td class="p-2">Artanti</td><td class="p-2 text-right text-emerald-300">4,000,000</td><td class="p-2 text-center text-amber-300">1</td></tr>
+                <tr><td class="p-2 text-cyan-300">111</td><td class="p-2 text-white font-bold">Rino</td><td class="p-2">Cheros</td><td class="p-2 text-right text-emerald-300">3,000,000</td><td class="p-2 text-center text-amber-300">4</td></tr>
+                <tr><td class="p-2 text-cyan-300">112</td><td class="p-2 text-white font-bold">Regina</td><td class="p-2">Bella</td><td class="p-2 text-right text-emerald-300">5,000,000</td><td class="p-2 text-center text-amber-300">1</td></tr>
+                <tr><td class="p-2 text-cyan-300">113</td><td class="p-2 text-white font-bold">Richard</td><td class="p-2">Adinata</td><td class="p-2 text-right text-emerald-300">3,500,000</td><td class="p-2 text-center text-amber-300">3</td></tr>
+                <tr><td class="p-2 text-cyan-300">114</td><td class="p-2 text-white font-bold">Angeline</td><td class="p-2">Novi</td><td class="p-2 text-right text-emerald-300">3,500,000</td><td class="p-2 text-center text-amber-300">2</td></tr>
+                <tr><td class="p-2 text-cyan-300">115</td><td class="p-2 text-white font-bold">Tomi</td><td class="p-2">Sudiro</td><td class="p-2 text-right text-emerald-300">2,000,000</td><td class="p-2 text-center text-amber-300">1</td></tr>
+                <tr><td class="p-2 text-cyan-300">116</td><td class="p-2 text-white font-bold">Setiawan</td><td class="p-2">Setiawan</td><td class="p-2 text-right text-emerald-300">1,500,000</td><td class="p-2 text-center text-amber-300">2</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="text-purple-300 font-bold flex justify-between">
+            <span>Tabel 2 (BEFORE): `departemen` (4 Baris)</span>
+            <span class="text-slate-400">Relasi FK: id_departemen</span>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                <tr><th class="p-2">id_departemen</th><th class="p-2">nama_departemen</th><th class="p-2 text-center">region</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/50">
+                <tr><td class="p-2 text-amber-300 font-bold">1</td><td class="p-2 text-white">Finance</td><td class="p-2 text-center text-cyan-300">2</td></tr>
+                <tr><td class="p-2 text-amber-300 font-bold">2</td><td class="p-2 text-white">IT</td><td class="p-2 text-center text-cyan-300">2</td></tr>
+                <tr><td class="p-2 text-amber-300 font-bold">3</td><td class="p-2 text-white">Marketing</td><td class="p-2 text-center text-rose-300">1</td></tr>
+                <tr><td class="p-2 text-amber-300 font-bold">4</td><td class="p-2 text-white">HRD</td><td class="p-2 text-center text-rose-300">1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-sans text-slate-300 leading-relaxed">
+            <strong>Ringkasan Cepat untuk Verifikasi Subquery:</strong><br>
+            • Gaji Dept Finance (id=1): Emil (4jt), Regina (5jt), Tomi (2jt).<br>
+            • Dept di Region 1: Marketing (3) &amp; HRD (4).<br>
+            • Dept di Region 2: Finance (1) &amp; IT (2).
+          </div>
+        </div>
+      </div>
+
+      <!-- Container Kartu Latihan B (1 - 7) -->
+      <div id="latihan-b-cards" class="space-y-6"></div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION SIMULASI UNGUIDED / POSTTEST CHALLENGE (GABUNGAN HIMPUNAN+SUBQ) -->
+    <!-- ======================================================================= -->
+    <section id="unguided-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-rose-500 pl-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-rose-400">Persiapan Posttest (60 Menit)</span>
+          <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">Advanced Challenge</span>
+        </div>
+        <h2 class="text-2xl font-bold text-white mt-0.5">Simulasi Soal Unguided / Posttest: Kombinasi Himpunan &amp; Subquery Bersarang</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Tiga studi kasus mandiri ditambah <strong>1 Kasus Sekuensial Berkesinambungan (6 Tahap End-to-End)</strong> yang mengintegrasikan seluruh materi <strong>Operasi Himpunan</strong> (<code>UNION</code>, <code>UNION ALL</code>, <code>INTERSECT</code>, <code>MINUS</code>) dan <strong>Subquery</strong> (Single-Row, <code>IN</code>, <code>ANY</code>, <code>ALL</code>, <code>EXISTS</code>).
+        </p>
+      </div>
+
+      <div id="unguided-cards-container" class="space-y-6"></div>
+
+      <!-- ===================================================================== -->
+      <!-- KASUS BARU: SIMULASI POSTTEST SEKUENSIAL BERKESINAMBUNGAN (6 TAHAP)   -->
+      <!-- ===================================================================== -->
+      <div class="bg-gradient-to-br from-slate-900 via-indigo-950/30 to-slate-900 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-800 pb-5">
+          <div class="space-y-1.5">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold">
+              <i class="fa-solid fa-diagram-next"></i>
+              <span>KASUS POSTTEST BERURUT &amp; BERKESINAMBUNGAN (6 TAHAP FULL MATERI)</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-white">
+              Studi Kasus Terpadu: "Audit Seleksi Beasiswa &amp; Asisten Laboratorium FTI"
+            </h3>
+            <p class="text-xs text-slate-300 leading-relaxed max-w-4xl">
+              Fakultas Teknologi Informasi sedang melakukan audit terpadu dengan menggabungkan database akademik (<code>mahasiswa</code>, <code>registrasi</code>, <code>kelas</code>, <code>matakuliah</code>, <code>dosen</code>) dan dua tabel pendaftaran baru: <strong><code>kandidat_beasiswa</code></strong> serta <strong><code>asisten_lab</code></strong>. Setiap tahap di bawah ini saling berkesinambungan dan menguji <strong>seluruh materi Modul 9/11</strong> dari awal hingga akhir!
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="copySequentialFullSql()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold flex items-center gap-1.5 transition-all">
+              <i class="fa-regular fa-copy"></i> Salin Seluruh Script 6 Tahap
+            </button>
+            <button onclick="downloadSequentialSql()" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg transition-all">
+              <i class="fa-solid fa-download"></i> Unduh posttest_sekuensial.sql
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabel Referensi Kondisi Awal (Before) untuk Kasus Berkesinambungan -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-cyan-400 font-bold">
+              <span>Tabel A (BEFORE): `kandidat_beasiswa` (5 Mahasiswa)</span>
+              <span class="text-[10px] text-slate-400">Pendaftar Beasiswa Prestasi</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">71210001 - OBI WAN KENOBI (Rangkap)</span>
+              <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-slate-200 border border-slate-800">71210002 - ANAKIN SKYWALKER</span>
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">71210006 - JAR JAR BINKS (Rangkap)</span>
+              <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-slate-200 border border-slate-800">71210007 - LEIA ORGANA</span>
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">71210008 - LUKE SKYWALKER (Rangkap)</span>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-purple-400 font-bold">
+              <span>Tabel B (BEFORE): `asisten_lab` (5 Mahasiswa)</span>
+              <span class="text-[10px] text-slate-400">Pendaftar Asisten Praktikum</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">71210001 - OBI WAN KENOBI (Rangkap)</span>
+              <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-slate-200 border border-slate-800">71210003 - HAN SOLO</span>
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">71210006 - JAR JAR BINKS (Rangkap)</span>
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">71210008 - LUKE SKYWALKER (Rangkap)</span>
+              <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40">71210009 - CASSIAN ANDOR (0 SKS)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigasi Stepper 6 Tahap Berurutan -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs font-mono">
+          <button onclick="selectSeqStep(0)" id="seq-btn-0" class="p-3 rounded-xl border text-left transition-all bg-amber-500/20 text-amber-200 border-amber-400 font-bold">
+            <div class="text-[10px] text-amber-400">TAHAP 1</div>
+            <div class="mt-0.5 truncate">UNION &amp; No ORDER BY</div>
+          </button>
+          <button onclick="selectSeqStep(1)" id="seq-btn-1" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400">TAHAP 2</div>
+            <div class="mt-0.5 truncate">INTERSECT &amp; MINUS</div>
+          </button>
+          <button onclick="selectSeqStep(2)" id="seq-btn-2" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400">TAHAP 3</div>
+            <div class="mt-0.5 truncate">Single-Row (=, &gt;, AVG)</div>
+          </button>
+          <button onclick="selectSeqStep(3)" id="seq-btn-3" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400">TAHAP 4</div>
+            <div class="mt-0.5 truncate">Multi-Row (IN / NOT IN)</div>
+          </button>
+          <button onclick="selectSeqStep(4)" id="seq-btn-4" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400">TAHAP 5</div>
+            <div class="mt-0.5 truncate">&gt; ANY vs &gt; ALL</div>
+          </button>
+          <button onclick="selectSeqStep(5)" id="seq-btn-5" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400">TAHAP 6</div>
+            <div class="mt-0.5 truncate">EXISTS + Final UNION</div>
+          </button>
+        </div>
+
+        <!-- Area Konten Dinamis Tahap Sekuensial -->
+        <div id="seq-step-viewer" class="space-y-5"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION KUIS EVALUASI PEMAHAMAN                                         -->
+    <!-- ======================================================================= -->
+    <section id="quiz-section" class="space-y-6 scroll-mt-24">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">Evaluasi Mandiri</span>
+            <h2 class="text-2xl font-bold text-white">Kuis Pemahaman Himpunan &amp; Subquery SQL</h2>
+          </div>
+          <div id="quiz-score-badge" class="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 font-mono text-sm font-bold text-cyan-400">
+            Skor: Belum Dinilai
+          </div>
+        </div>
+
+        <div id="quiz-questions-box" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+        <div class="pt-2">
+          <button onclick="gradeSetSubqueryQuiz()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg transition-all">
+            <i class="fa-solid fa-check-double mr-1.5"></i> Periksa Jawaban &amp; Lihat Pembahasan
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-12 border-t border-slate-800 py-6 bg-slate-950 text-center text-xs text-slate-500">
+    Praktikum Sistem Basis Data — Modul 9 / 11: Himpunan dan Subquery (MySQL / MariaDB)
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT ENGINE: 3 SQL DUMPS, VENN SIMULATOR, EXERCISES A & B, & QUIZ   -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. TIGA FILE SQL ASLI DARI MODUL PRAKTIKUM
+    const SQL_DUMP_HIMPUNAN = `-- Modul 9 - Himpunan.sql (Database: prak_sbd_09_himpunan / [nama]_p9)
+CREATE TABLE genap (
+  bilangan int(11) NOT NULL PRIMARY KEY
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO genap (bilangan) VALUES (2), (4), (6), (8), (10);
+
+CREATE TABLE prima (
+  bilangan int(11) NOT NULL PRIMARY KEY
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO prima (bilangan) VALUES (2), (3), (5), (7), (11), (13), (17), (19);
+
+-- Tambahan Tabel untuk Latihan A (Mahasiswa PJJ & Reguler sesuai Halaman 3 Modul):
+CREATE TABLE pjj (
+  nama varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO pjj (nama) VALUES
+('Amadeus'), ('Angela'), ('Cahyono'), ('Erika'),
+('Joshua'), ('Kevin'), ('Michael'), ('Patricia');
+
+CREATE TABLE reguler (
+  nama varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO reguler (nama) VALUES
+('Amadeus'), ('Elisabeth'), ('Erika'), ('Joshua'), ('Lucas');`;
+
+    const SQL_DUMP_MHS = `-- Modul 9 - Subquery_mhs.sql (Database: pr-sbd-ddl / [nama]_p9)
+CREATE TABLE dosen (
+  nik_dosen varchar(7) NOT NULL PRIMARY KEY,
+  nama_dosen varchar(50) NOT NULL,
+  telp_dosen varchar(13) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO dosen (nik_dosen, nama_dosen, telp_dosen) VALUES
+('DS001', 'LUKAS CHRISANTYO', '311'),
+('DS002', 'ANTONIUS RACHMAT CHRISMANTO', '314'),
+('DS003', 'ROSA DELIMA', '318'),
+('DS004', 'LAURENTIUS KUNCORO PROBO', '313'),
+('DS005', 'YUAN LUKITO', '314');
+
+CREATE TABLE matakuliah (
+  kode_matakuliah varchar(6) NOT NULL PRIMARY KEY,
+  nama_matakuliah varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO matakuliah (kode_matakuliah, nama_matakuliah) VALUES
+('TI01', 'SISTEM BASIS DATA'),
+('TI02', 'ALGORITMA DAN PEMROGRAMAN'),
+('TI03', 'STRUKTUR DATA'),
+('TI04', 'ARSITEKTUR DAN ORGANISASI KOMPUTER'),
+('TI05', 'PEMROGRAMAN BERBASIS OBJEK'),
+('TI06', 'RISET OPERASI'),
+('TI07', 'PEMROGRAMAN WEB');
+
+CREATE TABLE mahasiswa (
+  nim varchar(8) NOT NULL PRIMARY KEY,
+  nama varchar(50) NOT NULL,
+  tgl_lahir date NOT NULL,
+  beratbadan decimal(5,2) NOT NULL,
+  gender enum('L','P') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO mahasiswa (nim, nama, tgl_lahir, beratbadan, gender) VALUES
+('71210008', 'LUKE SKYWALKER', '2000-01-01', 60.00, 'L'),
+('71210007', 'LEIA ORGANA', '2000-01-01', 50.00, 'P'),
+('71210003', 'HAN SOLO', '1999-06-06', 78.00, 'L'),
+('71210002', 'ANAKIN SKYWALKER', '1975-02-03', 66.20, 'L'),
+('71210001', 'OBI WAN KENOBI', '1951-10-05', 73.50, 'L'),
+('71210005', 'JYN ERSO', '1960-09-09', 55.80, 'P'),
+('71210004', 'PADME AMIDALA', '1970-03-24', 45.90, 'P'),
+('71210006', 'JAR JAR BINKS', '1975-05-05', 35.70, 'L'),
+('71210009', 'CASSIAN ANDOR', '1960-05-01', 65.70, 'L');
+
+CREATE TABLE kelas (
+  kode_kelas varchar(7) NOT NULL PRIMARY KEY,
+  kode_matakuliah varchar(6) NOT NULL,
+  grup varchar(1) NOT NULL,
+  nik_dosen varchar(7) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO kelas (kode_kelas, kode_matakuliah, grup, nik_dosen) VALUES
+('TI01A', 'TI01', 'A', 'DS001'), ('TI01B', 'TI01', 'B', 'DS001'),
+('TI02A', 'TI02', 'A', 'DS002'), ('TI02B', 'TI02', 'B', 'DS002'),
+('TI03A', 'TI03', 'A', 'DS003'), ('TI03B', 'TI03', 'B', 'DS003'),
+('TI03C', 'TI03', 'C', 'DS005'), ('TI04A', 'TI04', 'A', 'DS004'),
+('TI05A', 'TI05', 'A', 'DS005'), ('TI05B', 'TI05', 'B', 'DS002'),
+('TI07A', 'TI07', 'A', 'DS005');
+
+CREATE TABLE registrasi (
+  kode_kelas varchar(7) NOT NULL,
+  nim varchar(8) NOT NULL,
+  nilai varchar(2) NOT NULL,
+  nilai_angka decimal(4,2) NOT NULL,
+  PRIMARY KEY (kode_kelas, nim)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO registrasi (kode_kelas, nim, nilai, nilai_angka) VALUES
+('TI01A', '71210001', 'A', 90.00),
+('TI01B', '71210002', 'A-', 84.50),
+('TI02A', '71210003', 'B+', 78.77),
+('TI02B', '71210004', 'B', 72.12),
+('TI02B', '71210005', 'C+', 64.00),
+('TI03A', '71210001', 'A-', 83.83),
+('TI03B', '71210006', 'A', 85.55),
+('TI03C', '71210007', 'B', 71.10),
+('TI04A', '71210005', 'B+', 78.70),
+('TI05B', '71210007', 'C', 59.90),
+('TI05B', '71210008', 'A', 99.90);`;
+
+    const SQL_DUMP_EMP = `-- Modul 9 - Subquery_emp.sql (Database: prak_sbd_09_subquery / [nama]_p9)
+CREATE TABLE departemen (
+  id_departemen int(11) NOT NULL PRIMARY KEY,
+  nama_departemen varchar(255) NOT NULL,
+  region int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO departemen (id_departemen, nama_departemen, region) VALUES
+(1, 'Finance', 2),
+(2, 'IT', 2),
+(3, 'Marketing', 1),
+(4, 'HRD', 1);
+
+CREATE TABLE karyawan (
+  id_karyawan int(11) NOT NULL PRIMARY KEY,
+  nama_depan varchar(50) NOT NULL,
+  nama_belakang varchar(50) NOT NULL,
+  gaji int(11) NOT NULL,
+  id_departemen int(11) NOT NULL,
+  CONSTRAINT fk_dept FOREIGN KEY (id_departemen) REFERENCES departemen (id_departemen)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO karyawan (id_karyawan, nama_depan, nama_belakang, gaji, id_departemen) VALUES
+(110, 'Emil', 'Artanti', 4000000, 1),
+(111, 'Rino', 'Cheros', 3000000, 4),
+(112, 'Regina', 'Bella', 5000000, 1),
+(113, 'Richard', 'Adinata', 3500000, 3),
+(114, 'Angeline', 'Novi', 3500000, 2),
+(115, 'Tomi', 'Sudiro', 2000000, 1),
+(116, 'Setiawan', 'Setiawan', 1500000, 2);`;
+
+    // 2. SQL SYNTAX HIGHLIGHTER DENGAN NOMOR BARIS
+    function highlightSQL(sql) {
+      const escaped = sql
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      return escaped.split('\n').map((line, idx) => {
+        if (line.trim().startsWith('--')) {
+          return `<span class="ln">${idx + 1}</span><span class="cm">${line}</span>`;
+        }
+        let codePart = line;
+        let commentPart = '';
+        const dashIdx = line.indexOf('--');
+        if (dashIdx !== -1) {
+          codePart = line.slice(0, dashIdx);
+          commentPart = `<span class="cm">${line.slice(dashIdx)}</span>`;
+        }
+
+        const strings = [];
+        let processed = codePart.replace(/('[^']*'|"[a-zA-Z0-9_%]+")/g, (m) => {
+          strings.push(m);
+          return `___STR_${strings.length - 1}___`;
+        });
+
+        processed = processed.replace(/\b(SELECT|FROM|WHERE|UNION|ALL|MINUS|EXCEPT|INTERSECT|LEFT|INNER|JOIN|ON|USING|IS|NULL|NOT|DISTINCT|ORDER|BY|GROUP|ASC|DESC|AS|IN|ANY|SOME|EXISTS|AND|OR|BETWEEN|LIKE|HAVING)\b/g, '<span class="kw">$1</span>');
+        processed = processed.replace(/\b(AVG|MIN|MAX|SUM|COUNT|CONCAT)\b/g, '<span class="fn">$1</span>');
+        processed = processed.replace(/\b(\d+(\.\d+)?)\b/g, '<span class="nm">$1</span>');
+
+        processed = processed.replace(/___STR_(\d+)___/g, (_, i) => `<span class="st">${strings[Number(i)]}</span>`);
+        return `<span class="ln">${idx + 1}</span>${processed}${commentPart}`;
+      }).join('\n');
+    }
+
+    // 3. DATABASE EXPLORER SWITCHER
+    function switchDbTab(tab) {
+      ['himpunan', 'mhs', 'emp'].forEach(t => {
+        const btn = document.getElementById(`db-btn-${t}`);
+        if (t === tab) {
+          btn.className = 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400 font-bold';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700';
+        }
+      });
+
+      const box = document.getElementById('db-explorer-content');
+      if (tab === 'himpunan') {
+        box.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-xs font-mono text-cyan-300 font-bold">Berkas 1: Modul 9 - Himpunan.sql (Tabel \`prima\`, \`genap\`, serta \`pjj\` &amp; \`reguler\`)</div>
+              <div class="flex gap-2">
+                <button onclick="copyRawText(SQL_DUMP_HIMPUNAN)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700"><i class="fa-regular fa-copy mr-1"></i>Salin Dump SQL</button>
+                <button onclick="downloadSqlDump('himpunan')" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white"><i class="fa-solid fa-download mr-1"></i>Unduh .sql</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-cyan-400 font-bold mb-1">Tabel \`prima\` (8 baris)</div>
+                <div class="text-slate-300">{ 2, 3, 5, 7, 11, 13, 17, 19 }</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-purple-400 font-bold mb-1">Tabel \`genap\` (5 baris)</div>
+                <div class="text-slate-300">{ 2, 4, 6, 8, 10 }</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-emerald-400 font-bold mb-1">Tabel \`pjj\` (8 baris)</div>
+                <div class="text-slate-300">Amadeus, Angela, Cahyono, Erika, Joshua, Kevin, Michael, Patricia</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="text-amber-400 font-bold mb-1">Tabel \`reguler\` (5 baris)</div>
+                <div class="text-slate-300">Amadeus, Elisabeth, Erika, Joshua, Lucas</div>
+              </div>
+            </div>
+          </div>`;
+      } else if (tab === 'mhs') {
+        box.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-xs font-mono text-purple-300 font-bold">Berkas 2: Modul 9 - Subquery_mhs.sql (Tabel \`mahasiswa\`, \`registrasi\`, \`kelas\`, \`matakuliah\`, \`dosen\`)</div>
+              <div class="flex gap-2">
+                <button onclick="copyRawText(SQL_DUMP_MHS)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700"><i class="fa-regular fa-copy mr-1"></i>Salin Dump SQL</button>
+                <button onclick="downloadSqlDump('mhs')" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white"><i class="fa-solid fa-download mr-1"></i>Unduh .sql</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs font-mono">
+              <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950 p-3">
+                <div class="text-cyan-400 font-bold mb-2">Tabel \`mahasiswa\` (9 Tokoh Star Wars — Rata-rata BB: 58.98 kg)</div>
+                <table class="w-full text-left border-collapse">
+                  <thead class="text-slate-400 border-b border-slate-800"><tr><th class="p-1.5">nim</th><th class="p-1.5">nama</th><th class="p-1.5">beratbadan</th><th class="p-1.5">gender</th></tr></thead>
+                  <tbody class="divide-y divide-slate-800/70">
+                    <tr><td class="p-1.5 text-amber-300">71210001</td><td class="p-1.5">OBI WAN KENOBI</td><td class="p-1.5 text-emerald-300">73.50</td><td class="p-1.5">L</td></tr>
+                    <tr><td class="p-1.5 text-amber-300">71210002</td><td class="p-1.5">ANAKIN SKYWALKER</td><td class="p-1.5 text-emerald-300">66.20</td><td class="p-1.5">L</td></tr>
+                    <tr><td class="p-1.5 text-amber-300">71210003</td><td class="p-1.5">HAN SOLO</td><td class="p-1.5 text-emerald-300">78.00</td><td class="p-1.5">L</td></tr>
+                    <tr><td class="p-1.5 text-amber-300">71210004</td><td class="p-1.5">PADME AMIDALA</td><td class="p-1.5 text-emerald-300">45.90</td><td class="p-1.5">P</td></tr>
+                    <tr><td class="p-1.5 text-amber-300">71210005</td><td class="p-1.5">JYN ERSO</td><td class="p-1.5 text-emerald-300">55.80</td><td class="p-1.5">P</td></tr>
+                    <tr><td class="p-1.5 text-amber-300">71210006</td><td class="p-1.5">JAR JAR BINKS</td><td class="p-1.5 text-emerald-300">35.70</td><td class="p-1.5">L</td></tr>
+                    <tr><td class="p-1.5 text-amber-300">71210007</td><td class="p-1.5">LEIA ORGANA</td><td class="p-1.5 text-emerald-300">50.00</td><td class="p-1.5">P</td></tr>
+                    <tr><td class="p-1.5 text-amber-300">71210008</td><td class="p-1.5">LUKE SKYWALKER</td><td class="p-1.5 text-emerald-300">60.00</td><td class="p-1.5">L</td></tr>
+                    <tr><td class="p-1.5 text-amber-300">71210009</td><td class="p-1.5">CASSIAN ANDOR</td><td class="p-1.5 text-emerald-300">65.70</td><td class="p-1.5">L</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950 p-3">
+                <div class="text-purple-400 font-bold mb-2">Tabel \`registrasi\` (11 Baris Pengambilan Kelas &amp; Nilai)</div>
+                <table class="w-full text-left border-collapse">
+                  <thead class="text-slate-400 border-b border-slate-800"><tr><th class="p-1.5">kode_kelas</th><th class="p-1.5">nim</th><th class="p-1.5">nilai</th><th class="p-1.5">nilai_angka</th></tr></thead>
+                  <tbody class="divide-y divide-slate-800/70">
+                    <tr><td class="p-1.5">TI01A</td><td class="p-1.5 text-amber-300">71210001</td><td class="p-1.5">A</td><td class="p-1.5 text-cyan-300">90.00</td></tr>
+                    <tr><td class="p-1.5">TI01B</td><td class="p-1.5 text-amber-300">71210002</td><td class="p-1.5">A-</td><td class="p-1.5 text-cyan-300">84.50</td></tr>
+                    <tr><td class="p-1.5">TI02A</td><td class="p-1.5 text-amber-300">71210003</td><td class="p-1.5">B+</td><td class="p-1.5 text-cyan-300">78.77</td></tr>
+                    <tr><td class="p-1.5">TI02B</td><td class="p-1.5 text-amber-300">71210004</td><td class="p-1.5">B</td><td class="p-1.5 text-cyan-300">72.12</td></tr>
+                    <tr><td class="p-1.5">TI02B</td><td class="p-1.5 text-amber-300">71210005</td><td class="p-1.5">C+</td><td class="p-1.5 text-cyan-300">64.00</td></tr>
+                    <tr><td class="p-1.5">TI03A</td><td class="p-1.5 text-amber-300">71210001</td><td class="p-1.5">A-</td><td class="p-1.5 text-cyan-300">83.83</td></tr>
+                    <tr><td class="p-1.5">TI03B</td><td class="p-1.5 text-amber-300">71210006</td><td class="p-1.5">A</td><td class="p-1.5 text-cyan-300">85.55</td></tr>
+                    <tr><td class="p-1.5">TI03C</td><td class="p-1.5 text-amber-300">71210007</td><td class="p-1.5">B</td><td class="p-1.5 text-cyan-300">71.10</td></tr>
+                    <tr><td class="p-1.5">TI04A</td><td class="p-1.5 text-amber-300">71210005</td><td class="p-1.5">B+</td><td class="p-1.5 text-cyan-300">78.70</td></tr>
+                    <tr><td class="p-1.5">TI05B</td><td class="p-1.5 text-amber-300">71210007</td><td class="p-1.5">C</td><td class="p-1.5 text-cyan-300">59.90</td></tr>
+                    <tr><td class="p-1.5">TI05B</td><td class="p-1.5 text-amber-300">71210008</td><td class="p-1.5">A</td><td class="p-1.5 text-cyan-300">99.90</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>`;
+      } else {
+        box.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-xs font-mono text-amber-300 font-bold">Berkas 3: Modul 9 - Subquery_emp.sql (Tabel \`karyawan\` &amp; \`departemen\` untuk Latihan B)</div>
+              <div class="flex gap-2">
+                <button onclick="copyRawText(SQL_DUMP_EMP)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700"><i class="fa-regular fa-copy mr-1"></i>Salin Dump SQL</button>
+                <button onclick="downloadSqlDump('emp')" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white"><i class="fa-solid fa-download mr-1"></i>Unduh .sql</button>
+              </div>
+            </div>
+            <pre class="p-4 sql-code rounded-xl border border-slate-800 overflow-x-auto max-h-64"><code>${highlightSQL(SQL_DUMP_EMP)}</code></pre>
+          </div>`;
+      }
+    }
+
+    // 4. INTERACTIVE VENN SIMULATOR ENGINE
+    let currentVennDs = 'angka';
+    let currentVennOp = 'union';
+    let currentVennSqlText = '';
+
+    const VENN_DATASETS = {
+      angka: {
+        labelA: 'prima (8)',
+        labelB: 'genap (5)',
+        onlyA: ['3', '5', '7', '11', '13', '17', '19'],
+        both: ['2'],
+        onlyB: ['4', '6', '8', '10'],
+        allA: ['2', '3', '5', '7', '11', '13', '17', '19'],
+        allB: ['2', '4', '6', '8', '10']
+      },
+      mhs: {
+        labelA: 'pjj (8)',
+        labelB: 'reguler (5)',
+        onlyA: ['Angela', 'Cahyono', 'Kevin', 'Michael', 'Patricia'],
+        both: ['Amadeus', 'Erika', 'Joshua'],
+        onlyB: ['Elisabeth', 'Lucas'],
+        allA: ['Amadeus', 'Angela', 'Cahyono', 'Erika', 'Joshua', 'Kevin', 'Michael', 'Patricia'],
+        allB: ['Amadeus', 'Elisabeth', 'Erika', 'Joshua', 'Lucas']
+      }
+    };
+
+    function setVennDataset(ds) {
+      currentVennDs = ds;
+      document.getElementById('venn-ds-angka').className = ds === 'angka'
+        ? 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400 font-bold'
+        : 'px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700';
+      document.getElementById('venn-ds-mhs').className = ds === 'mhs'
+        ? 'px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400 font-bold'
+        : 'px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700';
+      runVennOp(currentVennOp);
+    }
+
+    function runVennOp(op) {
+      currentVennOp = op;
+      ['union', 'union_all', 'intersect', 'minus_ab', 'minus_ba'].forEach(k => {
+        const b = document.getElementById(`venn-op-${k}`);
+        b.className = k === op
+          ? 'px-3.5 py-2 rounded-xl bg-cyan-600 text-white font-bold'
+          : 'px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700';
+      });
+
+      const ds = VENN_DATASETS[currentVennDs];
+      const tA = currentVennDs === 'angka' ? 'prima' : 'pjj';
+      const tB = currentVennDs === 'angka' ? 'genap' : 'reguler';
+      const col = currentVennDs === 'angka' ? 'bilangan' : 'nama';
+
+      document.getElementById('svg-label-a').textContent = ds.labelA;
+      document.getElementById('svg-label-b').textContent = ds.labelB;
+
+      // Render items inside SVG regions
+      const leftG = document.getElementById('svg-items-left');
+      const midG = document.getElementById('svg-items-mid');
+      const rightG = document.getElementById('svg-items-right');
+
+      leftG.innerHTML = ds.onlyA.slice(0, 6).map((v, i) => `<text x="102" y="${68 + i * 14}">${v}</text>`).join('');
+      midG.innerHTML = ds.both.map((v, i) => `<text x="180" y="${92 + i * 15}">${v}</text>`).join('');
+      rightG.innerHTML = ds.onlyB.map((v, i) => `<text x="258" y="${78 + i * 16}">${v}</text>`).join('');
+
+      // Highlight circle opacity
+      const cA = document.getElementById('svg-circle-a');
+      const cB = document.getElementById('svg-circle-b');
+
+      let sql = '';
+      let exp = '';
+      let res = [];
+
+      if (op === 'union') {
+        cA.setAttribute('fill', 'rgba(6, 182, 212, 0.38)');
+        cB.setAttribute('fill', 'rgba(168, 85, 247, 0.38)');
+        document.getElementById('svg-op-caption').textContent = `Operasi: ${tA} ∪ ${tB} (UNION — Tanpa Duplikat)`;
+        sql = `SELECT ${col} FROM ${tA}\nUNION\nSELECT ${col} FROM ${tB};`;
+        exp = `<strong>UNION:</strong> Menggabungkan seluruh baris dari tabel <code>${tA}</code> dan <code>${tB}</code>, serta secara otomatis <strong>menghapus duplikat</strong> sehingga elemen irisan (${ds.both.join(', ')}) hanya muncul <strong>1 kali</strong>.`;
+        res = [...ds.allA, ...ds.onlyB];
+      } else if (op === 'union_all') {
+        cA.setAttribute('fill', 'rgba(6, 182, 212, 0.45)');
+        cB.setAttribute('fill', 'rgba(168, 85, 247, 0.45)');
+        document.getElementById('svg-op-caption').textContent = `Operasi: ${tA} ∪ ${tB} (UNION ALL — Duplikat Muncul 2x)`;
+        sql = `SELECT ${col} FROM ${tA}\nUNION ALL\nSELECT ${col} FROM ${tB};`;
+        exp = `<strong>UNION ALL:</strong> Menggabungkan semua baris apa adanya tanpa proses deduplikasi. Elemen kembar (${ds.both.join(', ')}) akan muncul <strong>2 kali</strong> di hasil akhir.`;
+        res = [...ds.allA, ...ds.allB];
+      } else if (op === 'intersect') {
+        cA.setAttribute('fill', 'rgba(15, 23, 42, 0.4)');
+        cB.setAttribute('fill', 'rgba(15, 23, 42, 0.4)');
+        document.getElementById('svg-op-caption').textContent = `Operasi: ${tA} ∩ ${tB} (INTERSECT — Irisan Keduanya)`;
+        sql = `-- Cara 1 (MariaDB 10.3+):\nSELECT ${col} FROM ${tA}\nINTERSECT\nSELECT ${col} FROM ${tB};\n\n-- Cara 2 (Kompatibel Semua MySQL - INNER JOIN):\nSELECT DISTINCT a.${col}\nFROM ${tA} a\nINNER JOIN ${tB} b USING (${col});\n\n-- Cara 3 (Menggunakan Subquery EXISTS):\nSELECT ${col} FROM ${tA} a\nWHERE EXISTS (SELECT 1 FROM ${tB} b WHERE a.${col} = b.${col});`;
+        exp = `<strong>INTERSECT (Irisan):</strong> Hanya menampilkan data yang terdaftar di <code>${tA}</code> <strong>sekaligus</strong> terdaftar di <code>${tB}</code>.`;
+        res = [...ds.both];
+      } else if (op === 'minus_ab') {
+        cA.setAttribute('fill', 'rgba(6, 182, 212, 0.45)');
+        cB.setAttribute('fill', 'rgba(15, 23, 42, 0.6)');
+        document.getElementById('svg-op-caption').textContent = `Operasi: ${tA} − ${tB} (MINUS — Hanya di ${tA})`;
+        sql = `-- Cara 1 (Menggunakan LEFT JOIN ... IS NULL di MySQL):\nSELECT a.${col}\nFROM ${tA} a\nLEFT JOIN ${tB} b ON a.${col} = b.${col}\nWHERE b.${col} IS NULL;\n\n-- Cara 2 (Menggunakan Subquery NOT IN / NOT EXISTS):\nSELECT ${col} FROM ${tA}\nWHERE ${col} NOT IN (SELECT ${col} FROM ${tB});`;
+        exp = `<strong>MINUS (${tA} − ${tB}):</strong> Memotong himpunan <code>${tA}</code> dengan elemen yang juga ada di <code>${tB}</code>, sehingga menyisakan anggota murni <code>${tA}</code> yang tidak merangkap di <code>${tB}</code>.`;
+        res = [...ds.onlyA];
+      } else {
+        cA.setAttribute('fill', 'rgba(15, 23, 42, 0.6)');
+        cB.setAttribute('fill', 'rgba(168, 85, 247, 0.45)');
+        document.getElementById('svg-op-caption').textContent = `Operasi: ${tB} − ${tA} (MINUS — Hanya di ${tB})`;
+        sql = `-- Cara 1 (Menggunakan LEFT JOIN ... IS NULL di MySQL):\nSELECT b.${col}\nFROM ${tB} b\nLEFT JOIN ${tA} a ON b.${col} = a.${col}\nWHERE a.${col} IS NULL;\n\n-- Cara 2 (Menggunakan Subquery NOT IN):\nSELECT ${col} FROM ${tB}\nWHERE ${col} NOT IN (SELECT ${col} FROM ${tA});`;
+        exp = `<strong>MINUS (${tB} − ${tA}):</strong> Memotong himpunan <code>${tB}</code> dengan elemen yang ada di <code>${tA}</code>, sehingga menyisakan anggota murni <code>${tB}</code> saja.`;
+        res = [...ds.onlyB];
+      }
+
+      currentVennSqlText = sql;
+      document.getElementById('venn-sql-code').innerHTML = `<code>${highlightSQL(sql)}</code>`;
+      document.getElementById('venn-explanation').innerHTML = exp;
+      document.getElementById('venn-result-count').textContent = `${res.length} baris dihasilkan`;
+      document.getElementById('venn-result-badges').innerHTML = res.map(item => `
+        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-emerald-500/40 text-emerald-300">${item}</span>
+      `).join('');
+    }
+
+    function copyVennSql() {
+      copyRawText(currentVennSqlText);
+    }
+
+    // 5. DATA & RENDERER LATIHAN A (NOMOR 1 S.D. 5)
+    const LATIHAN_A_DATA = [
+      {
+        no: 'Latihan A.1',
+        title: 'Menampilkan Seluruh Mahasiswa PJJ Maupun Reguler (Data Kembar Tampil 1 Kali)',
+        question: 'Impor file "Modul 9 - Himpunan.sql" di sini. Kemudian tampilkan seluruh mahasiswa baik yang PJJ maupun yang reguler. Data kembar cukup ditampilkan satu kali saja.',
+        sql: `SELECT nama FROM pjj\nUNION\nSELECT nama FROM reguler;`,
+        breakdown: [
+          { code: `SELECT nama FROM pjj`, desc: `Mengambil 8 baris nama mahasiswa dari tabel <code>pjj</code>.` },
+          { code: `UNION`, desc: `Menggabungkan hasil query pertama dan kedua sekaligus melakukan deduplikasi otomatis (menghapus baris kembar <em>Amadeus, Erika, Joshua</em> agar masing-masing cukup tampil satu kali).` },
+          { code: `SELECT nama FROM reguler;`, desc: `Mengambil 5 baris nama mahasiswa dari tabel <code>reguler</code>. Total akhir adalah $8 + 5 - 3 = 10$ mahasiswa unik.` }
+        ],
+        result: ['Amadeus', 'Angela', 'Cahyono', 'Erika', 'Joshua', 'Kevin', 'Michael', 'Patricia', 'Elisabeth', 'Lucas']
+      },
+      {
+        no: 'Latihan A.2',
+        title: 'Mengurutkan Nama Mahasiswa Gabungan PJJ & Reguler TANPA Klausa ORDER BY',
+        question: 'Tampilkan nama mahasiswa baik yang PJJ maupun yang reguler. Urutkan berdasarkan nama namun tidak menggunakan klausa ORDER BY.',
+        sql: `-- Trik 1: Menggunakan GROUP BY nama pada Derived Table hasil UNION\nSELECT nama\nFROM (\n    SELECT nama FROM pjj\n    UNION\n    SELECT nama FROM reguler\n) AS gabungan\nGROUP BY nama;\n\n-- Trik 2: Jika kolom 'nama' diberi indeks PRIMARY KEY / UNIQUE, penggabungan\n-- dengan GROUP BY atau agregasi memicu pengurutan B-Tree Index otomatis.`,
+        breakdown: [
+          { code: `Mengapa tidak boleh memakai ORDER BY?`, desc: `Soal menguji pemahaman mekanisme internal SQL yang melakukan pengurutan implisit atau pengelompokan terurut tanpa menulis keyword <code>ORDER BY</code>.` },
+          { code: `FROM (SELECT nama FROM pjj UNION SELECT nama FROM reguler) AS gabungan`, desc: `Subquery di dalam klausa <code>FROM</code> (<em>Derived Table</em>) menyatukan ke-10 nama mahasiswa unik terlebih dahulu.` },
+          { code: `GROUP BY nama;`, desc: `Pada MySQL/MariaDB, klausa <code>GROUP BY nama</code> secara tradisional melakukan pengelompokan sekaligus pengurutan leksikografis (A–Z) pada kolom pengelompokan, sehingga menghasilkan urutan alfabetis tanpa perlu menulis <code>ORDER BY nama</code>.` }
+        ],
+        result: ['Amadeus', 'Angela', 'Cahyono', 'Elisabeth', 'Erika', 'Joshua', 'Kevin', 'Lucas', 'Michael', 'Patricia']
+      },
+      {
+        no: 'Latihan A.3',
+        title: 'Menampilkan Mahasiswa yang Merangkap PJJ Sekaligus Reguler (INTERSECT)',
+        question: 'Tampilkan mahasiswa hanya mahasiswa yang merangkap PJJ dan reguler. Mahasiswa yang PJJ saja atau reguler saja tidak ditampilkan.',
+        sql: `-- Cara 1 (Menggunakan INNER JOIN - Kompatibel di semua versi MySQL):\nSELECT DISTINCT p.nama\nFROM pjj p\nINNER JOIN reguler r USING (nama);\n\n-- Cara 2 (Menggunakan operator INTERSECT di MariaDB):\nSELECT nama FROM pjj\nINTERSECT\nSELECT nama FROM reguler;\n\n-- Cara 3 (Menggunakan Subquery EXISTS / IN):\nSELECT nama FROM pjj\nWHERE nama IN (SELECT nama FROM reguler);`,
+        breakdown: [
+          { code: `INNER JOIN reguler r USING (nama)`, desc: `Mencari irisan ($\text{PJJ} \cap \text{Reguler}$) dengan mencocokkan baris yang nilai kolom <code>nama</code>-nya sama persis di kedua tabel.` },
+          { code: `SELECT DISTINCT p.nama`, desc: `Menjamin setiap nama mahasiswa yang merangkap kedua jalur hanya ditampilkan satu kali.` }
+        ],
+        result: ['Amadeus', 'Erika', 'Joshua']
+      },
+      {
+        no: 'Latihan A.4',
+        title: 'Menampilkan Mahasiswa PJJ yang TIDAK Merangkap Reguler (MINUS: PJJ − Reguler)',
+        question: 'Tampilkan mahasiswa PJJ yang tidak merangkap reguler.',
+        sql: `-- Cara 1 (Emulasi MINUS menggunakan LEFT JOIN ... IS NULL sesuai Modul A.2):\nSELECT p.nama\nFROM pjj p\nLEFT JOIN reguler r ON p.nama = r.nama\nWHERE r.nama IS NULL;\n\n-- Cara 2 (Menggunakan Subquery NOT IN / NOT EXISTS):\nSELECT nama FROM pjj\nWHERE nama NOT IN (SELECT nama FROM reguler);`,
+        breakdown: [
+          { code: `FROM pjj p LEFT JOIN reguler r ON p.nama = r.nama`, desc: `Mengambil seluruh mahasiswa <code>pjj</code> di sisi kiri, lalu mencoba memasangkannya dengan tabel <code>reguler</code>. Jika seorang mahasiswa PJJ tidak terdaftar di reguler, maka kolom <code>r.nama</code> akan bernilai <code>NULL</code>.` },
+          { code: `WHERE r.nama IS NULL;`, desc: `Menyaring hanya baris yang <code>r.nama</code>-nya kosong (<code>NULL</code>), yaitu 5 mahasiswa yang murni PJJ saja ($8 - 3 = 5$).` }
+        ],
+        result: ['Angela', 'Cahyono', 'Kevin', 'Michael', 'Patricia']
+      },
+      {
+        no: 'Latihan A.5',
+        title: 'Menampilkan Mahasiswa Reguler yang TIDAK Merangkap PJJ (MINUS: Reguler − PJJ)',
+        question: 'Tampilkan mahasiswa reguler yang tidak merangkap PJJ.',
+        sql: `-- Cara 1 (Emulasi MINUS menggunakan LEFT JOIN ... IS NULL dengan tabel dibalik):\nSELECT r.nama\nFROM reguler r\nLEFT JOIN pjj p ON r.nama = p.nama\nWHERE p.nama IS NULL;\n\n-- Cara 2 (Menggunakan Subquery NOT IN):\nSELECT nama FROM reguler\nWHERE nama NOT IN (SELECT nama FROM pjj);`,
+        breakdown: [
+          { code: `FROM reguler r LEFT JOIN pjj p ON r.nama = p.nama`, desc: `Sekarang tabel <code>reguler</code> diletakkan di sisi kiri sebagai himpunan utama yang ingin dipotong oleh tabel <code>pjj</code> ($\text{Reguler} - \text{PJJ}$).` },
+          { code: `WHERE p.nama IS NULL;`, desc: `Menyaring mahasiswa reguler yang tidak memiliki pasangan di tabel PJJ, menyisakan 2 orang ($5 - 3 = 2$).` }
+        ],
+        result: ['Elisabeth', 'Lucas']
+      }
+    ];
+
+    function renderLatihanA() {
+      const container = document.getElementById('latihan-a-cards');
+      container.innerHTML = LATIHAN_A_DATA.map((item, idx) => `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${item.no}</span>
+                <h3 class="text-base font-bold text-white">${item.title}</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1"><strong class="text-amber-300">Soal:</strong> "${item.question}"</p>
+            </div>
+            <button onclick="copyLatihanACode(${idx})" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 border border-slate-700">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Kode
+            </button>
+          </div>
+          <div class="p-6 space-y-4">
+            <pre class="p-4 sql-code rounded-xl border border-slate-800 overflow-x-auto"><code>${highlightSQL(item.sql)}</code></pre>
+            <div class="space-y-2">
+              <div class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Penjelasan Tiap Bagian Kode:</div>
+              ${item.breakdown.map((b, i) => `
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row gap-3 text-xs">
+                  <div class="sm:w-72 shrink-0"><code class="px-2 py-1 rounded bg-slate-900 text-emerald-300 font-mono text-[11px] border border-slate-800 block">${i + 1}. ${b.code}</code></div>
+                  <div class="text-slate-300 leading-relaxed flex-1">${b.desc}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-2">
+              <div class="text-xs font-mono font-bold text-emerald-400">Hasil Output Tabel \`nama\` (After — ${item.result.length} baris):</div>
+              <div class="flex flex-wrap gap-1.5 font-mono text-xs">
+                ${item.result.map((r, rIdx) => `<span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200"><span class="text-slate-500 mr-1">${rIdx + 1}.</span>${r}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function copyLatihanACode(idx) {
+      if (LATIHAN_A_DATA[idx]) copyRawText(LATIHAN_A_DATA[idx].sql);
+    }
+
+    // 6. SIMULATOR 7 CONTOH SUBQUERY_MHS.SQL (STAR WARS DATASET)
+    const MHS_SUBQUERY_EXAMPLES = [
+      {
+        label: '1. Single-Row (= 90)',
+        title: 'Contoh 1: Menampilkan nama mahasiswa yang memiliki nilai_angka = 90',
+        sql: `SELECT nama\nFROM mahasiswa\nWHERE nim = (SELECT nim FROM registrasi WHERE nilai_angka = 90);`,
+        innerSql: `SELECT nim FROM registrasi WHERE nilai_angka = 90`,
+        innerResult: `'71210001' (1 nilai skalar tunggal)`,
+        substitutedSql: `SELECT nama FROM mahasiswa WHERE nim = '71210001';`,
+        exp: `Subquery mencari di tabel <code>registrasi</code> siapa yang memiliki <code>nilai_angka = 90</code>, menghasilkan NIM <code>'71210001'</code>. Outer query kemudian mengambil nama pemilik NIM tersebut di tabel <code>mahasiswa</code>.`,
+        output: [{ nama: 'OBI WAN KENOBI' }]
+      },
+      {
+        label: '2. Single-Row (> LUKE)',
+        title: 'Contoh 2: Mahasiswa dengan berat badan lebih berat daripada LUKE SKYWALKER',
+        sql: `SELECT nama, beratbadan\nFROM mahasiswa\nWHERE beratbadan > (SELECT beratbadan FROM mahasiswa WHERE nama LIKE 'LUKE%');`,
+        innerSql: `SELECT beratbadan FROM mahasiswa WHERE nama LIKE 'LUKE%'`,
+        innerResult: `60.00 (Berat badan Luke Skywalker)`,
+        substitutedSql: `SELECT nama, beratbadan FROM mahasiswa WHERE beratbadan > 60.00;`,
+        exp: `Subquery mengambil berat badan Luke Skywalker (<code>60.00</code> kg). Outer query kemudian menyaring seluruh mahasiswa yang berat badannya di atas 60.00 kg.`,
+        output: [
+          { nama: 'HAN SOLO', beratbadan: '78.00' },
+          { nama: 'ANAKIN SKYWALKER', beratbadan: '66.20' },
+          { nama: 'OBI WAN KENOBI', beratbadan: '73.50' },
+          { nama: 'CASSIAN ANDOR', beratbadan: '65.70' }
+        ]
+      },
+      {
+        label: '3. Single-Row (< AVG)',
+        title: 'Contoh 3: Mahasiswa dengan berat badan di bawah rata-rata',
+        sql: `SELECT nama, beratbadan\nFROM mahasiswa\nWHERE beratbadan < (SELECT AVG(beratbadan) FROM mahasiswa);`,
+        innerSql: `SELECT AVG(beratbadan) FROM mahasiswa`,
+        innerResult: `58.977778 (Rata-rata berat badan 9 mahasiswa)`,
+        substitutedSql: `SELECT nama, beratbadan FROM mahasiswa WHERE beratbadan < 58.9778;`,
+        exp: `Subquery menghitung rata-rata berat badan seluruh mahasiswa dengan fungsi agregasi <code>AVG(beratbadan)</code> yaitu <code>58.98 kg</code>. Outer query menampilkan 4 mahasiswa yang beratnya di bawah angka tersebut.`,
+        output: [
+          { nama: 'LEIA ORGANA', beratbadan: '50.00' },
+          { nama: 'JYN ERSO', beratbadan: '55.80' },
+          { nama: 'PADME AMIDALA', beratbadan: '45.90' },
+          { nama: 'JAR JAR BINKS', beratbadan: '35.70' }
+        ]
+      },
+      {
+        label: '4. Multi-Column (= ANY / IN)',
+        title: 'Contoh 4: Multi-Column Subquery dengan = ANY atau IN (Berat < 55 kg)',
+        sql: `SELECT nama\nFROM mahasiswa\nWHERE (nim, beratbadan) = ANY (\n    SELECT nim, beratbadan FROM mahasiswa WHERE beratbadan < 55\n);\n-- Ekuivalen dengan: WHERE (nim, beratbadan) IN (SELECT nim, beratbadan ...)`,
+        innerSql: `SELECT nim, beratbadan FROM mahasiswa WHERE beratbadan < 55`,
+        innerResult: `3 pasang (nim, beratbadan): ('71210007', 50.00), ('71210004', 45.90), ('71210006', 35.70)`,
+        substitutedSql: `SELECT nama FROM mahasiswa WHERE (nim, beratbadan) IN (('71210007',50.00), ('71210004',45.90), ('71210006',35.70));`,
+        exp: `Operator <code>= ANY</code> sama persis dengan <code>IN</code>. Subquery mengembalikan beberapa baris sekaligus dengan 2 kolom, lalu dicocokkan pasangannya oleh outer query.`,
+        output: [
+          { nama: 'LEIA ORGANA' },
+          { nama: 'PADME AMIDALA' },
+          { nama: 'JAR JAR BINKS' }
+        ]
+      },
+      {
+        label: '5. Multi-Row (> ANY 70..80)',
+        title: 'Contoh 5: Nilai angka > ANY (lebih besar dari SETIAP / salah satu nilai antara 70 hingga 80)',
+        sql: `SELECT nim, nilai_angka\nFROM registrasi\nWHERE nilai_angka > ANY (\n    SELECT nilai_angka FROM registrasi WHERE nilai_angka BETWEEN 70 AND 80\n)\nORDER BY 1;`,
+        innerSql: `SELECT nilai_angka FROM registrasi WHERE nilai_angka BETWEEN 70 AND 80`,
+        innerResult: `{ 71.10, 72.12, 78.70, 78.77 } (Nilai minimum di himpunan ini adalah 71.10)`,
+        substitutedSql: `SELECT nim, nilai_angka FROM registrasi WHERE nilai_angka > 71.10 ORDER BY 1;`,
+        exp: `<strong>Perbedaan Kritis <code>&gt; ANY</code>:</strong> Agar suatu nilai lebih besar dari <em>salah satu</em> anggota himpunan <code>{71.10, 72.12, 78.70, 78.77}</code>, nilai tersebut cukup <strong>lebih besar dari nilai terkecilnya (<code>&gt; 71.10</code>)</strong>! Oleh karena itu, nilai <code>72.12</code>, <code>78.70</code>, dan <code>78.77</code> masih ikut tampil.`,
+        output: [
+          { nim: '71210001', nilai_angka: '90.00' },
+          { nim: '71210001', nilai_angka: '83.83' },
+          { nim: '71210002', nilai_angka: '84.50' },
+          { nim: '71210003', nilai_angka: '78.77' },
+          { nim: '71210004', nilai_angka: '72.12' },
+          { nim: '71210005', nilai_angka: '78.70' },
+          { nim: '71210006', nilai_angka: '85.55' },
+          { nim: '71210008', nilai_angka: '99.90' }
+        ]
+      },
+      {
+        label: '6. Multi-Row (> ALL 70..80)',
+        title: 'Contoh 6: Nilai angka > ALL (lebih besar dari SEMUA nilai antara 70 hingga 80)',
+        sql: `SELECT nim, nilai_angka\nFROM registrasi\nWHERE nilai_angka > ALL (\n    SELECT nilai_angka FROM registrasi WHERE nilai_angka BETWEEN 70 AND 80\n)\nORDER BY 1;`,
+        innerSql: `SELECT nilai_angka FROM registrasi WHERE nilai_angka BETWEEN 70 AND 80`,
+        innerResult: `{ 71.10, 72.12, 78.70, 78.77 } (Nilai maksimum di himpunan ini adalah 78.77)`,
+        substitutedSql: `SELECT nim, nilai_angka FROM registrasi WHERE nilai_angka > 78.77 ORDER BY 1;`,
+        exp: `<strong>Perbedaan Kritis <code>&gt; ALL</code>:</strong> Agar suatu nilai lebih besar dari <em>semua</em> anggota himpunan <code>{71.10, 72.12, 78.70, 78.77}</code>, nilai tersebut wajib <strong>lebih besar dari nilai tertingginya sekalipun (<code>&gt; 78.77</code>)</strong>! Maka hanya nilai di atas 78.77 yang ditampilkan.`,
+        output: [
+          { nim: '71210001', nilai_angka: '90.00' },
+          { nim: '71210001', nilai_angka: '83.83' },
+          { nim: '71210002', nilai_angka: '84.50' },
+          { nim: '71210006', nilai_angka: '85.55' },
+          { nim: '71210008', nilai_angka: '99.90' }
+        ]
+      },
+      {
+        label: '7. Operator EXISTS (> 90)',
+        title: 'Contoh 7: Menampilkan seluruh registrasi JIKA ADA mahasiswa bernilai > 90',
+        sql: `SELECT *\nFROM registrasi\nWHERE EXISTS (\n    SELECT nilai_angka FROM registrasi WHERE nilai_angka > 90\n);`,
+        innerSql: `SELECT nilai_angka FROM registrasi WHERE nilai_angka > 90`,
+        innerResult: `Mengembalikan 1 baris: 99.90 (milik NIM 71210008) -> EXISTS bernilai TRUE!`,
+        substitutedSql: `SELECT * FROM registrasi WHERE TRUE; (Menampilkan seluruh 11 baris registrasi)`,
+        exp: `Operator <code>EXISTS</code> menguji apakah subquery menghasilkan minimal 1 baris. Karena ada nilai <code>99.90 &gt; 90</code>, maka kondisi <code>EXISTS</code> bernilai <code>TRUE</code> sehingga seluruh 11 baris tabel <code>registrasi</code> ditampilkan.`,
+        output: [
+          { kode_kelas: 'TI01A', nim: '71210001', nilai: 'A', nilai_angka: '90.00' },
+          { kode_kelas: 'TI01B', nim: '71210002', nilai: 'A-', nilai_angka: '84.50' },
+          { kode_kelas: 'TI02A', nim: '71210003', nilai: 'B+', nilai_angka: '78.77' },
+          { kode_kelas: 'TI05B', nim: '71210008', nilai: 'A', nilai_angka: '99.90' }
+        ]
+      }
+    ];
+
+    function initMhsSubquerySimulator() {
+      const btnBox = document.getElementById('mhs-example-buttons');
+      btnBox.innerHTML = MHS_SUBQUERY_EXAMPLES.map((ex, i) => `
+        <button onclick="selectMhsSubqueryExample(${i})" id="mhs-ex-btn-${i}" class="px-3 py-1.5 rounded-xl border transition-all ${
+          i === 0 ? 'bg-purple-600 text-white border-purple-400 font-bold' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+        }">${ex.label}</button>
+      `).join('');
+      selectMhsSubqueryExample(0);
+    }
+
+    function selectMhsSubqueryExample(idx) {
+      MHS_SUBQUERY_EXAMPLES.forEach((_, i) => {
+        const b = document.getElementById(`mhs-ex-btn-${i}`);
+        if (b) {
+          b.className = i === idx
+            ? 'px-3 py-1.5 rounded-xl border transition-all bg-purple-600 text-white border-purple-400 font-bold'
+            : 'px-3 py-1.5 rounded-xl border transition-all bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700';
+        }
+      });
+
+      const ex = MHS_SUBQUERY_EXAMPLES[idx];
+      const viewer = document.getElementById('mhs-example-viewer');
+      const cols = Object.keys(ex.output[0]);
+
+      viewer.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-7 space-y-3">
+            <div class="rounded-xl border border-slate-800 overflow-hidden">
+              <div class="px-4 py-2 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+                <span class="text-purple-300 font-bold">${ex.title}</span>
+                <button onclick="copyMhsExampleCode(${idx})" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200"><i class="fa-regular fa-copy mr-1"></i>Salin</button>
+              </div>
+              <pre class="p-4 sql-code overflow-x-auto"><code>${highlightSQL(ex.sql)}</code></pre>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+              ${ex.exp}
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 space-y-3 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-1">
+              <div class="text-[10px] font-bold uppercase text-amber-400">Tahap 1 — Evaluasi Inner Query (Subquery):</div>
+              <div class="text-slate-300"><code>${ex.innerSql}</code></div>
+              <div class="text-amber-300 font-bold pt-1">&rarr; Hasil Inner: ${ex.innerResult}</div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/40 space-y-1">
+              <div class="text-[10px] font-bold uppercase text-cyan-400">Tahap 2 — Substitusi ke Outer Query:</div>
+              <div class="text-cyan-200"><code>${ex.substitutedSql}</code></div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-emerald-500/40 space-y-2">
+              <div class="text-[10px] font-bold uppercase text-emerald-400">Tahap 3 — Hasil Akhir Outer Query:</div>
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
+                  <tr>${cols.map(c => `<th class="p-1.5">${c}</th>`).join('')}</tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                  ${ex.output.map(r => `<tr>${cols.map(c => `<td class="p-1.5 text-emerald-300">${r[c]}</td>`).join('')}</tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function copyMhsExampleCode(idx) {
+      if (MHS_SUBQUERY_EXAMPLES[idx]) copyRawText(MHS_SUBQUERY_EXAMPLES[idx].sql);
+    }
+
+    // 7. DATA & RENDERER LATIHAN B (NOMOR 1 S.D. 7 — SUBQUERY_EMP.SQL)
+    const LATIHAN_B_DATA = [
+      {
+        no: 'Latihan B.1',
+        title: 'Karyawan yang Memiliki Departemen yang Sama dengan Emil',
+        question: 'Tampilkan data karyawan yang memiliki departemen yang sama dengan Emil.',
+        innerQuery: `SELECT id_departemen FROM karyawan WHERE nama_depan = 'Emil'`,
+        innerOutput: `1 (Departemen Finance)`,
+        sql: `SELECT *\nFROM karyawan\nWHERE id_departemen = (\n    SELECT id_departemen\n    FROM karyawan\n    WHERE nama_depan = 'Emil'\n);`,
+        breakdown: [
+          { code: `(SELECT id_departemen FROM karyawan WHERE nama_depan = 'Emil')`, desc: `<strong>Inner Query (Single-Row Subquery):</strong> Mencari <code>id_departemen</code> tempat Emil bekerja di tabel <code>karyawan</code>, menghasilkan nilai skalar tunggal <code>1</code>.` },
+          { code: `SELECT * FROM karyawan WHERE id_departemen = (...)`, desc: `<strong>Outer Query:</strong> Menampilkan seluruh karyawan yang memiliki <code>id_departemen = 1</code> (Emil, Regina, dan Tomi). Jika Emil sendiri tidak ingin ditampilkan, dapat ditambahkan <code>AND nama_depan != 'Emil'</code>.` }
+        ],
+        output: [
+          { id_karyawan: 110, nama_depan: 'Emil', nama_belakang: 'Artanti', gaji: '4,000,000', id_departemen: 1 },
+          { id_karyawan: 112, nama_depan: 'Regina', nama_belakang: 'Bella', gaji: '5,000,000', id_departemen: 1 },
+          { id_karyawan: 115, nama_depan: 'Tomi', nama_belakang: 'Sudiro', gaji: '2,000,000', id_departemen: 1 }
+        ]
+      },
+      {
+        no: 'Latihan B.2',
+        title: 'Nama Depan Karyawan dengan Gaji Lebih Besar daripada Rino Cheros',
+        question: 'Tampilkan nama depan karyawan yang memiliki gaji lebih besar daripada Rino Cheros.',
+        innerQuery: `SELECT gaji FROM karyawan WHERE nama_depan = 'Rino' AND nama_belakang = 'Cheros'`,
+        innerOutput: `3000000 (Rp 3.000.000)`,
+        sql: `SELECT nama_depan, gaji\nFROM karyawan\nWHERE gaji > (\n    SELECT gaji\n    FROM karyawan\n    WHERE nama_depan = 'Rino' AND nama_belakang = 'Cheros'\n);`,
+        breakdown: [
+          { code: `(SELECT gaji FROM karyawan WHERE nama_depan = 'Rino' AND nama_belakang = 'Cheros')`, desc: `<strong>Inner Query:</strong> Mengambil besaran gaji milik Rino Cheros yaitu <code>3000000</code>.` },
+          { code: `SELECT nama_depan, gaji FROM karyawan WHERE gaji > (...)`, desc: `<strong>Outer Query:</strong> Menyaring karyawan yang gajinya di atas 3.000.000 (Emil 4jt, Regina 5jt, Richard 3.5jt, dan Angeline 3.5jt).` }
+        ],
+        output: [
+          { nama_depan: 'Emil', gaji: '4,000,000' },
+          { nama_depan: 'Regina', gaji: '5,000,000' },
+          { nama_depan: 'Richard', gaji: '3,500,000' },
+          { nama_depan: 'Angeline', gaji: '3,500,000' }
+        ]
+      },
+      {
+        no: 'Latihan B.3',
+        title: 'Data Karyawan yang Memiliki Gaji di Bawah Rata-rata Karyawan',
+        question: 'Tampilkan data karyawan yang memiliki gaji di bawah gaji rata-rata karyawan.',
+        innerQuery: `SELECT AVG(gaji) FROM karyawan`,
+        innerOutput: `3214285.7143 (Hasil 22.500.000 / 7 karyawan)`,
+        sql: `SELECT *\nFROM karyawan\nWHERE gaji < (\n    SELECT AVG(gaji)\n    FROM karyawan\n);`,
+        breakdown: [
+          { code: `(SELECT AVG(gaji) FROM karyawan)`, desc: `<strong>Inner Query (Agregasi Skalar):</strong> Menghitung rata-rata gaji seluruh 7 karyawan menggunakan <code>AVG(gaji)</code>, menghasilkan angka <code>3214285.71</code>.` },
+          { code: `WHERE gaji < (3214285.71)`, desc: `<strong>Outer Query:</strong> Menampilkan karyawan yang gajinya lebih rendah dari Rp 3.214.285,71, yaitu Rino (3jt), Tomi (2jt), dan Setiawan (1.5jt).` }
+        ],
+        output: [
+          { id_karyawan: 111, nama_depan: 'Rino', nama_belakang: 'Cheros', gaji: '3,000,000', id_departemen: 4 },
+          { id_karyawan: 115, nama_depan: 'Tomi', nama_belakang: 'Sudiro', gaji: '2,000,000', id_departemen: 1 },
+          { id_karyawan: 116, nama_depan: 'Setiawan', nama_belakang: 'Setiawan', gaji: '1,500,000', id_departemen: 2 }
+        ]
+      },
+      {
+        no: 'Latihan B.4',
+        title: 'Data Karyawan yang Bekerja pada Departemen Finance ATAU pada Region 2',
+        question: 'Tampilkan data karyawan yang bekerja pada departemen Finance atau pada Region 2.',
+        innerQuery: `SELECT id_departemen FROM departemen WHERE nama_departemen = 'Finance' OR region = 2`,
+        innerOutput: `Multiple rows: { 1 (Finance, Reg 2), 2 (IT, Reg 2) }`,
+        sql: `SELECT *\nFROM karyawan\nWHERE id_departemen IN (\n    SELECT id_departemen\n    FROM departemen\n    WHERE nama_departemen = 'Finance' OR region = 2\n);`,
+        breakdown: [
+          { code: `SELECT id_departemen FROM departemen WHERE nama_departemen = 'Finance' OR region = 2`, desc: `<strong>Inner Query (Multiple-Row Subquery):</strong> Mencari di tabel <code>departemen</code> yang namanya 'Finance' atau berlokasi di <code>region = 2</code>. Karena Finance (id=1) dan IT (id=2) berada di Region 2, subquery mengembalikan 2 baris: <code>1</code> dan <code>2</code>.` },
+          { code: `WHERE id_departemen IN (...)`, desc: `<strong>Outer Query:</strong> Karena subquery menghasilkan lebih dari 1 baris, kita wajib menggunakan operator <code>IN</code> (atau <code>= ANY</code>) untuk menampilkan seluruh karyawan di departemen 1 dan 2.` }
+        ],
+        output: [
+          { id_karyawan: 110, nama_depan: 'Emil', nama_belakang: 'Artanti', gaji: '4,000,000', id_departemen: 1 },
+          { id_karyawan: 112, nama_depan: 'Regina', nama_belakang: 'Bella', gaji: '5,000,000', id_departemen: 1 },
+          { id_karyawan: 114, nama_depan: 'Angeline', nama_belakang: 'Novi', gaji: '3,500,000', id_departemen: 2 },
+          { id_karyawan: 115, nama_depan: 'Tomi', nama_belakang: 'Sudiro', gaji: '2,000,000', id_departemen: 1 },
+          { id_karyawan: 116, nama_depan: 'Setiawan', nama_belakang: 'Setiawan', gaji: '1,500,000', id_departemen: 2 }
+        ]
+      },
+      {
+        no: 'Latihan B.5',
+        title: 'Nama Departemen yang Karyawannya Memiliki Gaji di Atas 3,5 Juta',
+        question: 'Tampilkan nama departemen yang karyawannya memiliki gaji di atas 3,5 juta.',
+        innerQuery: `SELECT DISTINCT id_departemen FROM karyawan WHERE gaji > 3500000`,
+        innerOutput: `1 (Karena hanya Emil [4jt] dan Regina [5jt] yang gajinya > 3.500.000, keduanya di id_departemen = 1)`,
+        sql: `SELECT nama_departemen\nFROM departemen\nWHERE id_departemen IN (\n    SELECT id_departemen\n    FROM karyawan\n    WHERE gaji > 3500000\n);`,
+        breakdown: [
+          { code: `SELECT id_departemen FROM karyawan WHERE gaji > 3500000`, desc: `<strong>Inner Query:</strong> Menyaring karyawan yang gajinya <strong>di atas</strong> Rp 3.500.000 (perhatikan: Richard dan Angeline bergaji tepat 3.500.000 sehingga tidak masuk kriteria <code>&gt; 3500000</code>). Hasilnya adalah Emil dan Regina yang keduanya memiliki <code>id_departemen = 1</code>.` },
+          { code: `SELECT nama_departemen FROM departemen WHERE id_departemen IN (...)`, desc: `<strong>Outer Query:</strong> Mengambil nama departemen untuk <code>id_departemen = 1</code>, yaitu <strong>Finance</strong>.` }
+        ],
+        output: [
+          { nama_departemen: 'Finance' }
+        ]
+      },
+      {
+        no: 'Latihan B.6',
+        title: 'Karyawan yang TIDAK Bekerja di Departemen Region 1',
+        question: 'Tampilkan karyawan yang tidak bekerja di departemen Region 1.',
+        innerQuery: `SELECT id_departemen FROM departemen WHERE region = 1`,
+        innerOutput: `{ 3 (Marketing), 4 (HRD) }`,
+        sql: `SELECT *\nFROM karyawan\nWHERE id_departemen NOT IN (\n    SELECT id_departemen\n    FROM departemen\n    WHERE region = 1\n);`,
+        breakdown: [
+          { code: `SELECT id_departemen FROM departemen WHERE region = 1`, desc: `<strong>Inner Query:</strong> Mengambil daftar ID departemen yang berada di Region 1, yaitu <code>3</code> (Marketing) dan <code>4</code> (HRD).` },
+          { code: `WHERE id_departemen NOT IN (3, 4)`, desc: `<strong>Outer Query:</strong> Menggunakan negasi <code>NOT IN</code> (atau <code>!= ALL</code>) untuk mengecualikan departemen 3 dan 4, sehingga menampilkan karyawan yang bekerja di luar Region 1 (yakni di Region 2: Finance dan IT).` }
+        ],
+        output: [
+          { id_karyawan: 110, nama_depan: 'Emil', nama_belakang: 'Artanti', gaji: '4,000,000', id_departemen: 1 },
+          { id_karyawan: 112, nama_depan: 'Regina', nama_belakang: 'Bella', gaji: '5,000,000', id_departemen: 1 },
+          { id_karyawan: 114, nama_depan: 'Angeline', nama_belakang: 'Novi', gaji: '3,500,000', id_departemen: 2 },
+          { id_karyawan: 115, nama_depan: 'Tomi', nama_belakang: 'Sudiro', gaji: '2,000,000', id_departemen: 1 },
+          { id_karyawan: 116, nama_depan: 'Setiawan', nama_belakang: 'Setiawan', gaji: '1,500,000', id_departemen: 2 }
+        ]
+      },
+      {
+        no: 'Latihan B.7',
+        title: 'Karyawan yang Gajinya Lebih Rendah daripada SEMUA Karyawan Departemen Finance (< ALL)',
+        question: 'Tampilkan karyawan yang gajinya lebih rendah daripada semua karyawan yang bekerja di departemen Finance.',
+        innerQuery: `SELECT gaji FROM karyawan WHERE id_departemen = (SELECT id_departemen FROM departemen WHERE nama_departemen = 'Finance')`,
+        innerOutput: `{ 4000000, 5000000, 2000000 } (Gaji terendah di Finance adalah Tomi = 2.000.000)`,
+        sql: `SELECT *\nFROM karyawan\nWHERE gaji < ALL (\n    SELECT gaji\n    FROM karyawan\n    WHERE id_departemen = (\n        SELECT id_departemen\n        FROM departemen\n        WHERE nama_departemen = 'Finance'\n    )\n);`,
+        breakdown: [
+          { code: `Nested Subquery Terdalam: SELECT id_departemen FROM departemen WHERE nama_departemen = 'Finance'`, desc: `Mencari ID milik departemen Finance terlebih dahulu tanpa melakukan hardcode angka, menghasilkan <code>1</code>.` },
+          { code: `Subquery Tengah: SELECT gaji FROM karyawan WHERE id_departemen = (1)`, desc: `Mengambil daftar seluruh gaji karyawan di departemen Finance: <code>{4000000, 5000000, 2000000}</code>.` },
+          { code: `Outer Query: WHERE gaji < ALL (4000000, 5000000, 2000000)`, desc: `<strong>Logika Operator <code>&lt; ALL</code>:</strong> Agar gaji seorang karyawan lebih rendah daripada <strong>semua</strong> orang di Finance, gajinya harus lebih rendah dari gaji terkecil di Finance sekalipun (<code>&lt; 2000000</code>). Hanya <strong>Setiawan (Rp 1.500.000)</strong> yang memenuhi syarat ini!` }
+        ],
+        output: [
+          { id_karyawan: 116, nama_depan: 'Setiawan', nama_belakang: 'Setiawan', gaji: '1,500,000', id_departemen: 2 }
+        ]
+      }
+    ];
+
+    function renderLatihanB() {
+      const container = document.getElementById('latihan-b-cards');
+      container.innerHTML = LATIHAN_B_DATA.map((item, idx) => {
+        const cols = Object.keys(item.output[0]);
+        return `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">${item.no}</span>
+                  <h3 class="text-base font-bold text-white">${item.title}</h3>
+                </div>
+                <p class="text-xs text-slate-400 mt-1"><strong class="text-amber-300">Soal:</strong> "${item.question}"</p>
+              </div>
+              <button onclick="copyLatihanBCode(${idx})" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 border border-slate-700">
+                <i class="fa-regular fa-copy mr-1"></i> Salin Kode
+              </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+              <pre class="p-4 sql-code rounded-xl border border-slate-800 overflow-x-auto"><code>${highlightSQL(item.sql)}</code></pre>
+
+              <!-- Alur Evaluasi Inner Query -> Outer Query -->
+              <div class="p-3.5 rounded-xl bg-amber-950/25 border border-amber-500/30 text-xs font-mono space-y-1">
+                <div class="text-amber-400 font-bold">🔍 Evaluasi Inner Query (Subquery) Terlebih Dahulu:</div>
+                <div class="text-slate-300">Query Dalam: <code>${item.innerQuery}</code></div>
+                <div class="text-emerald-300 font-bold">&rarr; Nilai yang Dikembalikan ke Outer Query: ${item.innerOutput}</div>
+              </div>
+
+              <!-- Penjelasan Clause-by-Clause -->
+              <div class="space-y-2">
+                <div class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Penjelasan Tiap Bagian Kode:</div>
+                ${item.breakdown.map((b, i) => `
+                  <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row gap-3 text-xs">
+                    <div class="sm:w-80 shrink-0"><code class="px-2 py-1 rounded bg-slate-900 text-amber-300 font-mono text-[11px] border border-slate-800 block">${i + 1}. ${b.code}</code></div>
+                    <div class="text-slate-300 leading-relaxed flex-1">${b.desc}</div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Tabel Output After -->
+              <div class="space-y-2">
+                <div class="text-xs font-mono font-bold text-emerald-400">Hasil Eksekusi Query (After — ${item.output.length} baris):</div>
+                <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60">
+                  <table class="w-full text-left text-xs font-mono border-collapse">
+                    <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                      <tr>${cols.map(c => `<th class="p-2.5">${c}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                      ${item.output.map(r => `<tr>${cols.map(c => `<td class="p-2.5 text-slate-200">${r[c]}</td>`).join('')}</tr>`).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copyLatihanBCode(idx) {
+      if (LATIHAN_B_DATA[idx]) copyRawText(LATIHAN_B_DATA[idx].sql);
+    }
+
+    // 8. SIMULASI SOAL UNGUIDED / POSTTEST (3 KASUS KOMPREHENSIF)
+    const UNGUIDED_CHALLENGES = [
+      {
+        badge: 'Kasus Posttest 1 (Subquery_mhs.sql)',
+        title: 'Mencari Mahasiswa yang Belum Pernah Mengambil Mata Kuliah Sama Sekali (MINUS / NOT EXISTS)',
+        problem: 'Pada database akademik Star Wars (Subquery_mhs.sql), terdapat 9 mahasiswa terdaftar di tabel mahasiswa, namun tidak semuanya mengambil kelas di tabel registrasi. Tampilkan nim dan nama mahasiswa yang belum mengambil satu pun kelas kuliah!',
+        sql: `-- Pendekatan 1: Menggunakan Subquery NOT IN\nSELECT nim, nama, beratbadan\nFROM mahasiswa\nWHERE nim NOT IN (\n    SELECT DISTINCT nim FROM registrasi\n);\n\n-- Pendekatan 2: Menggunakan Emulasi Himpunan MINUS (LEFT JOIN ... IS NULL)\nSELECT m.nim, m.nama, m.beratbadan\nFROM mahasiswa m\nLEFT JOIN registrasi r ON m.nim = r.nim\nWHERE r.nim IS NULL;`,
+        explanation: `Di tabel <code>registrasi</code>, hanya NIM <code>71210001</code> s.d. <code>71210008</code> yang tercatat mengambil kelas. Mahasiswa ke-9 yaitu <strong>CASSIAN ANDOR (71210009)</strong> belum pernah mengambil kelas apa pun, sehingga terjaring oleh operasi selisih himpunan ($\text{mahasiswa} - \text{registrasi}$).`,
+        output: [
+          { nim: '71210009', nama: 'CASSIAN ANDOR', beratbadan: '65.70' }
+        ]
+      },
+      {
+        badge: 'Kasus Posttest 2 (Subquery Bersarang 3 Level)',
+        title: 'Menampilkan Nama Mahasiswa yang Mengambil Mata Kuliah yang Diajar oleh Dosen "ROSA DELIMA"',
+        problem: 'Tanpa menggunakan JOIN, gunakan Subquery bersarang (nested subquery) untuk menampilkan nim dan nama mahasiswa yang mengambil kelas yang diampu oleh dosen bernama "ROSA DELIMA"!',
+        sql: `SELECT nim, nama\nFROM mahasiswa\nWHERE nim IN (\n    SELECT nim FROM registrasi\n    WHERE kode_kelas IN (\n        SELECT kode_kelas FROM kelas\n        WHERE nik_dosen = (\n            SELECT nik_dosen FROM dosen\n            WHERE nama_dosen = 'ROSA DELIMA'\n        )\n    )\n);`,
+        explanation: `Query ini menyarangkan 3 level subquery dari bawah ke atas:<br>1. Subquery terdalam mencari <code>nik_dosen</code> milik <strong>ROSA DELIMA</strong> &rarr; <code>'DS003'</code>.<br>2. Subquery tengah mencari <code>kode_kelas</code> yang diajar <code>'DS003'</code> &rarr; <code>{'TI03A', 'TI03B'}</code>.<br>3. Subquery luar mencari <code>nim</code> di tabel <code>registrasi</code> yang mengambil kelas tersebut &rarr; <code>{'71210001', '71210006'}</code>.<br>4. Outer query menampilkan profil <strong>OBI WAN KENOBI</strong> dan <strong>JAR JAR BINKS</strong>.`,
+        output: [
+          { nim: '71210001', nama: 'OBI WAN KENOBI' },
+          { nim: '71210006', nama: 'JAR JAR BINKS' }
+        ]
+      },
+      {
+        badge: 'Kasus Posttest 3 (Gabungan UNION + Subquery Agregasi)',
+        title: 'Laporan Gabungan Karyawan Bergaji Tertinggi & Terendah Beserta Statusnya',
+        problem: 'Gunakan kombinasi operasi himpunan UNION dan Subquery agregasi (MAX dan MIN) pada tabel karyawan untuk menampilkan karyawan dengan gaji paling tinggi dan gaji paling rendah dalam satu tabel laporan!',
+        sql: `SELECT id_karyawan, nama_depan, gaji, 'Gaji Tertinggi (MAX)' AS kategori_ekstrem\nFROM karyawan\nWHERE gaji = (SELECT MAX(gaji) FROM karyawan)\nUNION\nSELECT id_karyawan, nama_depan, gaji, 'Gaji Terendah (MIN)' AS kategori_ekstrem\nFROM karyawan\nWHERE gaji = (SELECT MIN(gaji) FROM karyawan);`,
+        explanation: `Query pertama menggunakan subquery <code>(SELECT MAX(gaji) FROM karyawan)</code> untuk menemukan penerima gaji tertinggi (Regina - Rp 5.000.000). Query kedua menggunakan <code>(SELECT MIN(gaji) FROM karyawan)</code> untuk menemukan penerima gaji terendah (Setiawan - Rp 1.500.000). Keduanya digabungkan menjadi satu tabel laporan utuh menggunakan operator himpunan <code>UNION</code>.`,
+        output: [
+          { id_karyawan: 112, nama_depan: 'Regina', gaji: '5,000,000', kategori_ekstrem: 'Gaji Tertinggi (MAX)' },
+          { id_karyawan: 116, nama_depan: 'Setiawan', gaji: '1,500,000', kategori_ekstrem: 'Gaji Terendah (MIN)' }
+        ]
+      }
+    ];
+
+    function renderUnguidedChallenges() {
+      const box = document.getElementById('unguided-cards-container');
+      box.innerHTML = UNGUIDED_CHALLENGES.map((ch, idx) => {
+        const cols = Object.keys(ch.output[0]);
+        return `
+          <div class="bg-slate-900 border border-rose-500/30 rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">${ch.badge}</span>
+                <h3 class="text-base font-bold text-white mt-1">${ch.title}</h3>
+                <p class="text-xs text-slate-400 mt-1"><strong class="text-amber-300">Tantangan:</strong> ${ch.problem}</p>
+              </div>
+              <button onclick="copyUnguidedSql(${idx})" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700">
+                <i class="fa-regular fa-copy mr-1"></i> Salin Solusi SQL
+              </button>
+            </div>
+            <div class="p-6 space-y-4">
+              <pre class="p-4 sql-code rounded-xl border border-slate-800 overflow-x-auto"><code>${highlightSQL(ch.sql)}</code></pre>
+              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                <strong class="text-rose-300">Bedah Alur Penyelesaian:</strong><br>${ch.explanation}
+              </div>
+              <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60">
+                <table class="w-full text-left text-xs font-mono border-collapse">
+                  <thead class="bg-slate-900 text-emerald-300 border-b border-slate-800">
+                    <tr>${cols.map(c => `<th class="p-2.5">${c}</th>`).join('')}</tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800">
+                    ${ch.output.map(r => `<tr>${cols.map(c => `<td class="p-2.5 text-slate-200">${r[c]}</td>`).join('')}</tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copyUnguidedSql(idx) {
+      if (UNGUIDED_CHALLENGES[idx]) copyRawText(UNGUIDED_CHALLENGES[idx].sql);
+    }
+
+    // 8B. DATA & ENGINE KASUS POSTTEST SEKUENSIAL BERKESINAMBUNGAN (6 TAHAP)
+    const SEQUENTIAL_POSTTEST_STEPS = [
+      {
+        stepNo: 'Tahap 1 dari 6',
+        materiTag: 'Materi A.1: UNION vs UNION ALL & Pengurutan Tanpa ORDER BY',
+        title: 'Konsolidasi Daftar Peserta Seleksi (Gabungan Beasiswa & Asisten Lab)',
+        story: 'Langkah pertama panitia adalah menggabungkan seluruh mahasiswa yang mendaftar di tabel kandidat_beasiswa (5 orang) maupun asisten_lab (5 orang) menjadi satu daftar peserta unik tanpa nama kembar, lalu diurutkan berdasarkan nama secara alfabetis TANPA menggunakan klausa ORDER BY.',
+        sql: `-- Tahap 1A: Membuat tabel bantu pendaftaran (jika belum ada di database)\nCREATE TABLE IF NOT EXISTS kandidat_beasiswa (\n  nim varchar(8) PRIMARY KEY,\n  nama varchar(50) NOT NULL\n);\nINSERT IGNORE INTO kandidat_beasiswa VALUES\n('71210001', 'OBI WAN KENOBI'), ('71210002', 'ANAKIN SKYWALKER'),\n('71210006', 'JAR JAR BINKS'), ('71210007', 'LEIA ORGANA'), ('71210008', 'LUKE SKYWALKER');\n\nCREATE TABLE IF NOT EXISTS asisten_lab (\n  nim varchar(8) PRIMARY KEY,\n  nama varchar(50) NOT NULL\n);\nINSERT IGNORE INTO asisten_lab VALUES\n('71210001', 'OBI WAN KENOBI'), ('71210003', 'HAN SOLO'),\n('71210006', 'JAR JAR BINKS'), ('71210008', 'LUKE SKYWALKER'), ('71210009', 'CASSIAN ANDOR');\n\n-- Tahap 1B: Menggabungkan kedua himpunan secara unik & urut alfabetis TANPA ORDER BY\nSELECT nama, nim\nFROM (\n    SELECT nim, nama FROM kandidat_beasiswa\n    UNION\n    SELECT nim, nama FROM asisten_lab\n) AS peserta_gabungan\nGROUP BY nama, nim;`,
+        innerInfo: `UNION menggabungkan 5 baris kandidat_beasiswa + 5 baris asisten_lab, lalu menghapus 3 baris kembar (Obi Wan, Jar Jar, Luke) sehingga menghasilkan 7 peserta unik. Jika menggunakan UNION ALL, total baris akan tetap 10.`,
+        breakdown: [
+          { clause: `SELECT nim, nama FROM kandidat_beasiswa UNION SELECT nim, nama FROM asisten_lab`, desc: `Menggabungkan kedua tabel himpunan dan secara otomatis membuang duplikat (3 mahasiswa yang mendaftar di kedua jalur hanya dimunculkan 1 kali).` },
+          { clause: `FROM (...) AS peserta_gabungan`, desc: `Menjadikan hasil <code>UNION</code> sebagai <em>Derived Table</em> (subquery pada klausa <code>FROM</code>) agar dapat dikelompokkan.` },
+          { clause: `GROUP BY nama, nim;`, desc: `Sesuai trik pada Latihan A.2, klausa <code>GROUP BY nama</code> memicu pengelompokan terurut berdasarkan abjad kolom <code>nama</code> (A–Z) tanpa menulis klausa <code>ORDER BY</code>.` }
+        ],
+        output: [
+          { nama: 'ANAKIN SKYWALKER', nim: '71210002', status_awal: 'Hanya Beasiswa' },
+          { nama: 'CASSIAN ANDOR', nim: '71210009', status_awal: 'Hanya Asisten Lab' },
+          { nama: 'HAN SOLO', nim: '71210003', status_awal: 'Hanya Asisten Lab' },
+          { nama: 'JAR JAR BINKS', nim: '71210006', status_awal: 'Merangkap Keduanya' },
+          { nama: 'LEIA ORGANA', nim: '71210007', status_awal: 'Hanya Beasiswa' },
+          { nama: 'LUKE SKYWALKER', nim: '71210008', status_awal: 'Merangkap Keduanya' },
+          { nama: 'OBI WAN KENOBI', nim: '71210001', status_awal: 'Merangkap Keduanya' }
+        ]
+      },
+      {
+        stepNo: 'Tahap 2 dari 6',
+        materiTag: 'Materi A.2 & A.3: INTERSECT (Irisan) & MINUS (Selisih Himpunan)',
+        title: 'Audit Rangkap Jabatan (INTERSECT) vs Kandidat Murni Beasiswa (MINUS)',
+        story: 'Aturan fakultas mengharuskan panitia memisahkan: (1) Mahasiswa yang merangkap mendaftar Beasiswa sekaligus Asisten Lab (INTERSECT), dan (2) Mahasiswa yang murni hanya mendaftar Beasiswa tanpa merangkap Asisten Lab (MINUS: kandidat_beasiswa − asisten_lab).',
+        sql: `-- 1. MENCARI MAHASISWA YANG MERANGKAP KEDUANYA (INTERSECT via INNER JOIN):\nSELECT DISTINCT b.nim, b.nama, 'Merangkap Beasiswa & Asisten' AS kategori_himpunan\nFROM kandidat_beasiswa b\nINNER JOIN asisten_lab a USING (nim);\n\n-- 2. MENCARI MAHASISWA MURNI BEASISWA SAJA (Emulasi MINUS via LEFT JOIN ... IS NULL):\nSELECT b.nim, b.nama, 'Murni Beasiswa Saja (MINUS)' AS kategori_himpunan\nFROM kandidat_beasiswa b\nLEFT JOIN asisten_lab a ON b.nim = a.nim\nWHERE a.nim IS NULL;`,
+        innerInfo: `Irisan (kandidat_beasiswa ∩ asisten_lab) = 3 orang (Obi Wan, Jar Jar, Luke). Selisih (kandidat_beasiswa − asisten_lab) = 2 orang (Anakin, Leia).`,
+        breakdown: [
+          { clause: `INNER JOIN asisten_lab a USING (nim)`, desc: `Mengimplementasikan operasi himpunan <strong>INTERSECT</strong> di MySQL: hanya mengambil baris yang <code>nim</code>-nya eksis di kedua tabel sekaligus.` },
+          { clause: `LEFT JOIN asisten_lab a ON b.nim = a.nim WHERE a.nim IS NULL`, desc: `Mengimplementasikan operasi himpunan <strong>MINUS</strong> (<code>kandidat_beasiswa - asisten_lab</code>): mengambil seluruh kandidat beasiswa, lalu hanya menyisakan yang tidak punya pasangan di tabel <code>asisten_lab</code> (kolom <code>a.nim</code> bernilai <code>NULL</code>).` }
+        ],
+        output: [
+          { nim: '71210001', nama: 'OBI WAN KENOBI', hasil_operasi: 'INTERSECT (Merangkap Keduanya)' },
+          { nim: '71210006', nama: 'JAR JAR BINKS', hasil_operasi: 'INTERSECT (Merangkap Keduanya)' },
+          { nim: '71210008', nama: 'LUKE SKYWALKER', hasil_operasi: 'INTERSECT (Merangkap Keduanya)' },
+          { nim: '71210002', nama: 'ANAKIN SKYWALKER', hasil_operasi: 'MINUS (Murni Beasiswa Saja)' },
+          { nim: '71210007', nama: 'LEIA ORGANA', hasil_operasi: 'MINUS (Murni Beasiswa Saja)' }
+        ]
+      },
+      {
+        stepNo: 'Tahap 3 dari 6',
+        materiTag: 'Materi B: Single-Row Subquery (=, >, <) & Fungsi Agregasi AVG()',
+        title: 'Seleksi Nilai di Atas Rata-Rata Kampus & Berat Badan Ideal',
+        story: 'Dari tabel registrasi dan mahasiswa, panitia ingin menampilkan daftar pengambilan kelas yang nilai_angka-nya berada DI ATAS rata-rata nilai_angka seluruh registrasi kampus, DAN dimiliki oleh mahasiswa yang berat badannya lebih ringan daripada mahasiswa peraih nilai_angka = 90.00 (Obi Wan Kenobi).',
+        sql: `SELECT r.nim,\n       (SELECT m.nama FROM mahasiswa m WHERE m.nim = r.nim) AS nama_mhs,\n       r.kode_kelas,\n       r.nilai_angka\nFROM registrasi r\nWHERE r.nilai_angka > (\n    -- Subquery 1 (Single-Row Agregasi): Rata-rata nilai seluruh registrasi (78.85)\n    SELECT AVG(nilai_angka) FROM registrasi\n)\nAND (\n    SELECT m.beratbadan FROM mahasiswa m WHERE m.nim = r.nim\n) < (\n    -- Subquery 2 (Single-Row Bersarang): Berat badan peraih nilai 90.00 (Obi Wan = 73.50 kg)\n    SELECT beratbadan FROM mahasiswa\n    WHERE nim = (SELECT nim FROM registrasi WHERE nilai_angka = 90.00)\n);`,
+        innerInfo: `Subquery 1 menghasilkan AVG(nilai_angka) = 78.8518. Subquery 2 mencari NIM peraih nilai 90.00 ('71210001' - Obi Wan Kenobi) yang memiliki berat badan 73.50 kg.`,
+        breakdown: [
+          { clause: `(SELECT m.nama FROM mahasiswa m WHERE m.nim = r.nim) AS nama_mhs`, desc: `<strong>Subquery pada klausa SELECT:</strong> Mengembalikan tepat 1 nilai skalar berupa nama mahasiswa untuk setiap baris registrasi.` },
+          { clause: `WHERE r.nilai_angka > (SELECT AVG(nilai_angka) FROM registrasi)`, desc: `<strong>Single-Row Subquery dengan <code>&gt;</code>:</strong> Menyaring registrasi yang nilainya di atas rata-rata kampus (<code>&gt; 78.85</code>), yaitu nilai milik NIM 71210001 (90.00 & 83.83), 71210002 (84.50), 71210006 (85.55), dan 71210008 (99.90).` },
+          { clause: `AND (...) < (SELECT beratbadan FROM mahasiswa WHERE nim = (SELECT nim ... WHERE nilai_angka = 90.00))`, desc: `<strong>Nested Single-Row Subquery:</strong> Memastikan berat badan mahasiswa tersebut lebih ringan dari Obi Wan Kenobi (<code>&lt; 73.50 kg</code>), sehingga Obi Wan sendiri tereliminasi dan menyisakan Anakin (66.20 kg), Jar Jar (35.70 kg), serta Luke (60.00 kg).` }
+        ],
+        output: [
+          { nim: '71210002', nama_mhs: 'ANAKIN SKYWALKER', kode_kelas: 'TI01B', nilai_angka: '84.50', beratbadan: '66.20 kg (< 73.50)' },
+          { nim: '71210006', nama_mhs: 'JAR JAR BINKS', kode_kelas: 'TI03B', nilai_angka: '85.55', beratbadan: '35.70 kg (< 73.50)' },
+          { nim: '71210008', nama_mhs: 'LUKE SKYWALKER', kode_kelas: 'TI05B', nilai_angka: '99.90', beratbadan: '60.00 kg (< 73.50)' }
+        ]
+      },
+      {
+        stepNo: 'Tahap 4 dari 6',
+        materiTag: 'Materi B: Multiple-Row Subquery (IN, = ANY, NOT IN) Multi-Tabel',
+        title: 'Verifikasi Mahasiswa pada Kelas Dosen Ekstensi "314" & Eliminasi Mahasiswa Pasif',
+        story: 'Untuk menjadi Asisten Lab, mahasiswa harus pernah mengambil kelas yang diampu oleh dosen dengan nomor telepon ekstensi "314" (Antonius Rachmat Chrismanto / Yuan Lukito) dan TIDAK BOLEH berstatus mahasiswa pasif (belum pernah mengambil SKS di tabel registrasi).',
+        sql: `SELECT nim, nama, gender\nFROM mahasiswa\nWHERE nim = ANY (\n    SELECT nim FROM registrasi\n    WHERE kode_kelas IN (\n        SELECT kode_kelas FROM kelas\n        WHERE nik_dosen IN (\n            SELECT nik_dosen FROM dosen WHERE telp_dosen = '314'\n        )\n    )\n)\nAND nim NOT IN (\n    -- Mengecualikan mahasiswa yang tidak ada di registrasi (seperti Cassian Andor)\n    SELECT m.nim FROM mahasiswa m\n    LEFT JOIN registrasi r ON m.nim = r.nim\n    WHERE r.nim IS NULL\n);`,
+        innerInfo: `Dosen bertelpon '314' adalah {'DS002', 'DS005'} -> Mengajar kelas {'TI02A', 'TI02B', 'TI03C', 'TI05A', 'TI05B', 'TI07A'} -> Diambil oleh NIM {'71210003', '71210004', '71210005', '71210007', '71210008'}.`,
+        breakdown: [
+          { clause: `SELECT nik_dosen FROM dosen WHERE telp_dosen = '314'`, desc: `Subquery level 3 menghasilkan 2 baris dosen: <code>'DS002'</code> dan <code>'DS005'</code>.` },
+          { clause: `WHERE kode_kelas IN (SELECT kode_kelas FROM kelas WHERE nik_dosen IN (...))`, desc: `Karena hasil subquery lebih dari 1 baris, wajib digunakan operator multi-row <code>IN</code> untuk melacak seluruh kelas yang diajar kedua dosen tersebut.` },
+          { clause: `WHERE nim = ANY (...)`, desc: `Operator <code>= ANY</code> (ekuivalen penuh dengan <code>IN</code>) mencocokkan NIM mahasiswa yang mengambil salah satu dari kelas-kelas tersebut.` }
+        ],
+        output: [
+          { nim: '71210003', nama: 'HAN SOLO', gender: 'L', kelas_dosen_314: 'TI02A (DS002)' },
+          { nim: '71210004', nama: 'PADME AMIDALA', gender: 'P', kelas_dosen_314: 'TI02B (DS002)' },
+          { nim: '71210005', nama: 'JYN ERSO', gender: 'P', kelas_dosen_314: 'TI02B (DS002)' },
+          { nim: '71210007', nama: 'LEIA ORGANA', gender: 'P', kelas_dosen_314: 'TI03C (DS005) & TI05B (DS002)' },
+          { nim: '71210008', nama: 'LUKE SKYWALKER', gender: 'L', kelas_dosen_314: 'TI05B (DS002)' }
+        ]
+      },
+      {
+        stepNo: 'Tahap 5 dari 6',
+        materiTag: 'Materi B: Komparasi Ekstrem > ANY vs > ALL pada Himpunan Nilai',
+        title: 'Uji Ambang Batas Nilai Terhadap Kelas "TI02B" (> ANY vs > ALL)',
+        story: 'Kelas TI02B memiliki 2 nilai mahasiswa, yaitu 64.00 (Jyn Erso) dan 72.12 (Padme Amidala). Panitia ingin membandingkan daftar registrasi yang lolos jika syaratnya: (A) nilai_angka > ANY (kelas TI02B) dibanding (B) nilai_angka > ALL (kelas TI02B).',
+        sql: `-- Kueri A: Lebih besar dari SALAH SATU nilai di kelas TI02B (> ANY {64.00, 72.12} berarti > 64.00)\nSELECT nim, kode_kelas, nilai_angka, 'Lolos > ANY (> 64.00)' AS status_uji\nFROM registrasi\nWHERE nilai_angka > ANY (\n    SELECT nilai_angka FROM registrasi WHERE kode_kelas = 'TI02B'\n)\nORDER BY nilai_angka DESC;\n\n-- Kueri B: Lebih besar dari SEMUA nilai di kelas TI02B (> ALL {64.00, 72.12} berarti > 72.12)\nSELECT nim, kode_kelas, nilai_angka, 'Lolos > ALL (> 72.12)' AS status_uji\nFROM registrasi\nWHERE nilai_angka > ALL (\n    SELECT nilai_angka FROM registrasi WHERE kode_kelas = 'TI02B'\n)\nORDER BY nilai_angka DESC;`,
+        innerInfo: `Subquery (SELECT nilai_angka FROM registrasi WHERE kode_kelas = 'TI02B') mengembalikan himpunan {64.00, 72.12}. Dengan > ANY (cukup > 64.00) terjaring 9 baris; sedangkan dengan > ALL (wajib > 72.12) terjaring 7 baris (71.10 dan 72.12 gugur).`,
+        breakdown: [
+          { clause: `nilai_angka > ANY (SELECT nilai_angka FROM registrasi WHERE kode_kelas = 'TI02B')`, desc: `Bernilai TRUE jika <code>nilai_angka</code> lebih besar dari nilai minimum di TI02B (<code>&gt; 64.00</code>), sehingga nilai <code>71.10</code> dan <code>72.12</code> masih ikut lolos.` },
+          { clause: `nilai_angka > ALL (SELECT nilai_angka FROM registrasi WHERE kode_kelas = 'TI02B')`, desc: `Bernilai TRUE hanya jika <code>nilai_angka</code> melampaui nilai tertinggi sekalipun di TI02B (<code>&gt; 72.12</code>).` },
+          { clause: `ORDER BY nilai_angka DESC;`, desc: `Sesuai aturan subquery di Halaman 4 Modul, klausa <code>ORDER BY</code> ditempatkan pada <strong>outer query</strong> (bukan di dalam subquery).` }
+        ],
+        output: [
+          { nim: '71210008', kode_kelas: 'TI05B', nilai_angka: '99.90', lolos_any: 'YA (> 64.00)', lolos_all: 'YA (> 72.12)' },
+          { nim: '71210001', kode_kelas: 'TI01A', nilai_angka: '90.00', lolos_any: 'YA (> 64.00)', lolos_all: 'YA (> 72.12)' },
+          { nim: '71210006', kode_kelas: 'TI03B', nilai_angka: '85.55', lolos_any: 'YA (> 64.00)', lolos_all: 'YA (> 72.12)' },
+          { nim: '71210002', kode_kelas: 'TI01B', nilai_angka: '84.50', lolos_any: 'YA (> 64.00)', lolos_all: 'YA (> 72.12)' },
+          { nim: '71210001', kode_kelas: 'TI03A', nilai_angka: '83.83', lolos_any: 'YA (> 64.00)', lolos_all: 'YA (> 72.12)' },
+          { nim: '71210003', kode_kelas: 'TI02A', nilai_angka: '78.77', lolos_any: 'YA (> 64.00)', lolos_all: 'YA (> 72.12)' },
+          { nim: '71210005', kode_kelas: 'TI04A', nilai_angka: '78.70', lolos_any: 'YA (> 64.00)', lolos_all: 'YA (> 72.12)' },
+          { nim: '71210004', kode_kelas: 'TI02B', nilai_angka: '72.12', lolos_any: 'YA (> 64.00)', lolos_all: 'GUGUR (Tidak > 72.12)' },
+          { nim: '71210007', kode_kelas: 'TI03C', nilai_angka: '71.10', lolos_any: 'YA (> 64.00)', lolos_all: 'GUGUR (Tidak > 72.12)' }
+        ]
+      },
+      {
+        stepNo: 'Tahap 6 dari 6 (Final)',
+        materiTag: 'Sintesis Akhir: EXISTS, NOT EXISTS, & UNION Laporan Keputusan Final',
+        title: 'Keputusan Final SK Dekan: Penerima Insentif Penuh vs Pembinaan Akademik',
+        story: 'Sebagai penutup posttest, buatlah satu query laporan gabungan (UNION) yang menyatukan: (1) Mahasiswa yang memiliki minimal satu nilai A (nilai_angka >= 85) menggunakan EXISTS sebagai "Penerima Beasiswa & Asisten Penuh", dan (2) Mahasiswa yang SAMA SEKALI TIDAK memiliki catatan registrasi menggunakan NOT EXISTS sebagai "Wajib Pembinaan KRS".',
+        sql: `-- Bagian 1: Mahasiswa berprestasi yang memiliki minimal 1 mata kuliah bernilai >= 85 (EXISTS)\nSELECT m.nim, m.nama, 'LOLOS: Insentif Penuh (Ada Nilai >= 85)' AS keputusan_sk\nFROM mahasiswa m\nWHERE EXISTS (\n    SELECT 1 FROM registrasi r\n    WHERE r.nim = m.nim AND r.nilai_angka >= 85.00\n)\nUNION\n-- Bagian 2: Mahasiswa pasif yang belum memiliki baris registrasi sama sekali (NOT EXISTS)\nSELECT m.nim, m.nama, 'EVALUASI: Wajib Pembinaan KRS (0 Kelas)' AS keputusan_sk\nFROM mahasiswa m\nWHERE NOT EXISTS (\n    SELECT 1 FROM registrasi r\n    WHERE r.nim = m.nim\n)\nORDER BY keputusan_sk ASC, nim ASC;`,
+        innerInfo: `Subquery pertama dengan EXISTS menemukan 3 mahasiswa yang punya nilai >= 85 (Obi Wan 90.00, Jar Jar 85.55, Luke 99.90). Subquery kedua dengan NOT EXISTS menemukan 1 mahasiswa tanpa KRS (Cassian Andor). Keduanya disatukan dengan UNION.`,
+        breakdown: [
+          { clause: `WHERE EXISTS (SELECT 1 FROM registrasi r WHERE r.nim = m.nim AND r.nilai_angka >= 85.00)`, desc: `<strong>Correlated Subquery dengan <code>EXISTS</code>:</strong> Mengecek untuk setiap mahasiswa <code>m</code> apakah terdapat minimal 1 baris di tabel <code>registrasi</code> milik NIM tersebut yang nilainya $\ge 85.00$.` },
+          { clause: `UNION`, desc: `Menggabungkan hasil kelompok mahasiswa penerima insentif penuh dengan kelompok mahasiswa evaluasi KRS ke dalam satu tabel SK Dekan.` },
+          { clause: `WHERE NOT EXISTS (SELECT 1 FROM registrasi r WHERE r.nim = m.nim)`, desc: `<strong>Correlated Subquery dengan <code>NOT EXISTS</code>:</strong> Bernilai TRUE jika subquery tidak mengembalikan satu baris pun, yang berarti mahasiswa tersebut belum pernah mendaftar kelas.` }
+        ],
+        output: [
+          { nim: '71210009', nama: 'CASSIAN ANDOR', keputusan_sk: 'EVALUASI: Wajib Pembinaan KRS (0 Kelas)' },
+          { nim: '71210001', nama: 'OBI WAN KENOBI', keputusan_sk: 'LOLOS: Insentif Penuh (Ada Nilai >= 85)' },
+          { nim: '71210006', nama: 'JAR JAR BINKS', keputusan_sk: 'LOLOS: Insentif Penuh (Ada Nilai >= 85)' },
+          { nim: '71210008', nama: 'LUKE SKYWALKER', keputusan_sk: 'LOLOS: Insentif Penuh (Ada Nilai >= 85)' }
+        ]
+      }
+    ];
+
+    let activeSeqStep = 0;
+
+    function selectSeqStep(idx) {
+      activeSeqStep = idx;
+      SEQUENTIAL_POSTTEST_STEPS.forEach((_, i) => {
+        const btn = document.getElementById(`seq-btn-${i}`);
+        if (!btn) return;
+        if (i === idx) {
+          btn.className = 'p-3 rounded-xl border text-left transition-all bg-amber-500/20 text-amber-200 border-amber-400 font-bold';
+        } else {
+          btn.className = 'p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40';
+        }
+      });
+
+      const st = SEQUENTIAL_POSTTEST_STEPS[idx];
+      const viewer = document.getElementById('seq-step-viewer');
+      const cols = Object.keys(st.output[0]);
+
+      viewer.innerHTML = `
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">${st.stepNo}</span>
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${st.materiTag}</span>
+              </div>
+              <h4 class="text-lg font-bold text-white pt-1">${st.title}</h4>
+              <p class="text-xs text-slate-300 leading-relaxed"><strong class="text-amber-300">Skenario Berkesinambungan:</strong> ${st.story}</p>
+            </div>
+            <button onclick="copySeqStepSql(${idx})" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700 shrink-0">
+              <i class="fa-regular fa-copy mr-1"></i> Salin Query Tahap ${idx + 1}
+            </button>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 overflow-hidden">
+            <pre class="p-4 sql-code overflow-x-auto"><code>${highlightSQL(st.sql)}</code></pre>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-amber-950/25 border border-amber-500/30 text-xs font-mono text-amber-200 leading-relaxed">
+            <strong class="text-amber-400"><i class="fa-solid fa-magnifying-glass mr-1"></i>Alur Evaluasi Himpunan / Inner Subquery:</strong> ${st.innerInfo}
+          </div>
+
+          <div class="space-y-2">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Bedah Kode Baris demi Baris (Clause-by-Clause):</div>
+            <div class="space-y-2">
+              ${st.breakdown.map((b, i) => `
+                <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row gap-3 text-xs">
+                  <div class="sm:w-80 shrink-0"><code class="px-2 py-1 rounded bg-slate-950 text-amber-300 font-mono text-[11px] border border-slate-800 block break-all">${i + 1}. ${b.clause}</code></div>
+                  <div class="text-slate-300 leading-relaxed flex-1">${b.desc}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-emerald-400 font-bold"><i class="fa-solid fa-table mr-1"></i>Hasil Eksekusi ${st.stepNo} (After — ${st.output.length} baris):</span>
+              <div class="flex gap-2">
+                ${idx > 0 ? `<button onclick="selectSeqStep(${idx - 1})" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">&larr; Tahap Sebelumnya</button>` : ''}
+                ${idx < SEQUENTIAL_POSTTEST_STEPS.length - 1 ? `<button onclick="selectSeqStep(${idx + 1})" class="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white font-bold">Lanjut Tahap ${idx + 2} &rarr;</button>` : ''}
+              </div>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/50">
+              <table class="w-full text-left text-xs font-mono border-collapse">
+                <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                  <tr>${cols.map(c => `<th class="p-2.5">${c}</th>`).join('')}</tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                  ${st.output.map(r => `<tr>${cols.map(c => `<td class="p-2.5 text-slate-200">${r[c]}</td>`).join('')}</tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function copySeqStepSql(idx) {
+      if (SEQUENTIAL_POSTTEST_STEPS[idx]) copyRawText(SEQUENTIAL_POSTTEST_STEPS[idx].sql);
+    }
+
+    function getFullSequentialSqlScript() {
+      return SEQUENTIAL_POSTTEST_STEPS.map(s => `-- ====================================================================\n-- ${s.stepNo.toUpperCase()}: ${s.title}\n-- (${s.materiTag})\n-- ====================================================================\n${s.sql}`).join('\n\n');
+    }
+
+    function copySequentialFullSql() {
+      copyRawText(getFullSequentialSqlScript());
+    }
+
+    function downloadSequentialSql() {
+      const content = getFullSequentialSqlScript();
+      const blob = new Blob([content], { type: 'application/sql;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'posttest_sekuensial_himpunan_subquery.sql';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('File posttest_sekuensial_himpunan_subquery.sql berhasil diunduh!');
+    }
+
+    // 9. KUIS EVALUASI PEMAHAMAN (6 SOAL)
+    const SET_SUBQUERY_QUIZ = [
+      {
+        q: '1. Apa perbedaan utama antara operator UNION dan UNION ALL pada SQL?',
+        options: [
+          'UNION menghapus baris duplikat (kembar), sedangkan UNION ALL menampilkan semua baris termasuk duplikatnya.',
+          'UNION hanya untuk angka, sedangkan UNION ALL untuk teks.',
+          'UNION ALL mengurutkan data secara otomatis, sedangkan UNION tidak.',
+          'Tidak ada perbedaan sama sekali.'
+        ],
+        correct: 0,
+        exp: 'Sesuai Halaman 2 Modul, <code>UNION</code> otomatis menyaring baris kembar agar tampil 1 kali saja, sedangkan <code>UNION ALL</code> mempertahankan seluruh duplikat.'
+      },
+      {
+        q: '2. Karena MySQL standar tidak memiliki keyword MINUS seperti Oracle, bagaimanakah cara mengemulasikan operasi Prima MINUS Genap?',
+        options: [
+          'SELECT * FROM prima INNER JOIN genap USING(bilangan)',
+          'SELECT * FROM prima LEFT JOIN genap ON prima.bilangan = genap.bilangan WHERE genap.bilangan IS NULL',
+          'SELECT * FROM prima UNION ALL SELECT * FROM genap',
+          'SELECT * FROM prima CROSS JOIN genap'
+        ],
+        correct: 1,
+        exp: 'Dengan <code>LEFT JOIN</code> dan menyaring <code>WHERE genap.bilangan IS NULL</code>, kita hanya mengambil anggota himpunan kiri (<code>prima</code>) yang tidak memiliki pasangan di himpunan kanan (<code>genap</code>).'
+      },
+      {
+        q: '3. Manakah dari aturan penulisan Subquery berikut yang BENAR menurut modul?',
+        options: [
+          'Klausa ORDER BY wajib ditulis di dalam subquery.',
+          'Subquery tidak perlu ditulis di dalam tanda kurung.',
+          'Klausa ORDER BY tidak boleh digunakan di dalam subquery, tetapi boleh digunakan di outer query.',
+          'Subquery harus selalu berada di sebelah kiri operator pembanding.'
+        ],
+        correct: 2,
+        exp: 'Sesuai Halaman 4 Modul, <code>ORDER BY</code> dilarang di dalam subquery dan hanya ditempatkan pada query induk (outer query).'
+      },
+      {
+        q: '4. Jika sebuah subquery menghasilkan himpunan nilai {2000000, 4000000, 5000000}, maka kondisi WHERE gaji < ALL (subquery) akan bernilai TRUE untuk gaji berapa?',
+        options: [
+          'Gaji 4.500.000',
+          'Gaji 3.000.000',
+          'Gaji 2.000.000',
+          'Gaji 1.500.000 (lebih kecil dari nilai minimum 2.000.000)'
+        ],
+        correct: 3,
+        exp: 'Kondisi <code>&lt; ALL (2jt, 4jt, 5jt)</code> menuntut nilai gaji lebih kecil daripada <strong>semua</strong> angka tersebut, artinya harus lebih kecil dari angka terkecil (<code>&lt; 2.000.000</code>).'
+      },
+      {
+        q: '5. Sebaliknya, jika subquery menghasilkan {71.10, 72.12, 78.70, 78.77}, kondisi WHERE nilai_angka > ANY (subquery) ekuivalen dengan kondisi apa?',
+        options: [
+          'nilai_angka > 71.10 (lebih besar dari nilai terkecil di dalam himpunan)',
+          'nilai_angka > 78.77 (lebih besar dari nilai terbesar)',
+          'nilai_angka = 71.10',
+          'nilai_angka < 71.10'
+        ],
+        correct: 0,
+        exp: 'Operator <code>&gt; ANY</code> bernilai TRUE asalkan nilai tersebut lebih besar dari <em>setidaknya satu</em> elemen di hasil subquery (cukup <code>&gt; 71.10</code>).'
+      },
+      {
+        q: '6. Mengapa pada Latihan B nomor 4 (departemen Finance atau Region 2) kita menggunakan operator IN dan bukan tanda sama dengan (=)?',
+        options: [
+          'Karena kolom id_departemen bertipe VARCHAR.',
+          'Karena subquery mengembalikan lebih dari satu baris (id_departemen 1 dan 2), sehingga operator single-row (=) akan menyebabkan error.',
+          'Karena operator = hanya boleh dipakai pada klausa SELECT.',
+          'Karena IN selalu mengubah hasil menjadi huruf besar.'
+        ],
+        correct: 1,
+        exp: 'Subquery yang menghasilkan *multiple rows* wajib dipasangkan dengan operator multi-baris seperti <code>IN</code>, <code>ANY</code>, atau <code>ALL</code>.'
+      }
+    ];
+
+    function renderQuiz() {
+      const box = document.getElementById('quiz-questions-box');
+      box.innerHTML = SET_SUBQUERY_QUIZ.map((item, qIdx) => `
+        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div class="font-bold text-xs sm:text-sm text-white leading-relaxed">${item.q}</div>
+          <div class="space-y-2 text-xs font-mono">
+            ${item.options.map((opt, oIdx) => `
+              <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-cyan-500/50 transition-colors">
+                <input type="radio" name="sqquiz-${qIdx}" value="${oIdx}" class="accent-cyan-500">
+                <span class="text-slate-200">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="sqquiz-exp-${qIdx}" class="hidden p-3 rounded-xl text-xs leading-relaxed"></div>
+        </div>
+      `).join('');
+    }
+
+    function gradeSetSubqueryQuiz() {
+      let score = 0;
+      SET_SUBQUERY_QUIZ.forEach((item, qIdx) => {
+        const chosen = document.querySelector(`input[name="sqquiz-${qIdx}"]:checked`);
+        const expEl = document.getElementById(`sqquiz-exp-${qIdx}`);
+        expEl.classList.remove('hidden');
+        if (chosen && parseInt(chosen.value) === item.correct) {
+          score++;
+          expEl.className = 'p-3 rounded-xl text-xs leading-relaxed bg-emerald-950/50 border border-emerald-500/40 text-emerald-200';
+          expEl.innerHTML = `<strong class="text-emerald-400">✓ Benar!</strong> ${item.exp}`;
+        } else {
+          expEl.className = 'p-3 rounded-xl text-xs leading-relaxed bg-rose-950/50 border border-rose-500/40 text-rose-200';
+          expEl.innerHTML = `<strong class="text-rose-400">✗ Kurang Tepat.</strong> Jawaban benar: <code class="text-amber-300">${item.options[item.correct]}</code>.<br>${item.exp}`;
+        }
+      });
+      document.getElementById('quiz-score-badge').textContent = `Skor: ${score} / ${SET_SUBQUERY_QUIZ.length} (${Math.round((score/SET_SUBQUERY_QUIZ.length)*100)}%)`;
+      showToast(`Kuis selesai dinilai! Skor Anda: ${score}/${SET_SUBQUERY_QUIZ.length}`);
+    }
+
+    // 10. CLIPBOARD & DOWNLOAD HELPERS
+    function copyRawText(text) {
+      if (!text) return;
+      const fallback = (str) => {
+        const ta = document.createElement('textarea');
+        ta.value = str;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast('Query SQL berhasil disalin ke clipboard!');
+        } catch (e) {
+          showToast('Gagal menyalin.');
+        }
+        document.body.removeChild(ta);
+      };
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('Query SQL berhasil disalin ke clipboard!'))
+          .catch(() => fallback(text));
+      } else {
+        fallback(text);
+      }
+    }
+
+    function downloadSqlDump(type) {
+      let content = SQL_DUMP_HIMPUNAN;
+      let filename = 'Modul_9_Himpunan.sql';
+      if (type === 'mhs') {
+        content = SQL_DUMP_MHS;
+        filename = 'Modul_9_Subquery_mhs.sql';
+      } else if (type === 'emp') {
+        content = SQL_DUMP_EMP;
+        filename = 'Modul_9_Subquery_emp.sql';
+      }
+      const blob = new Blob([content], { type: 'application/sql;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`File ${filename} berhasil diunduh!`);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 2600);
+    }
+
+    // INITIALIZE ON DOM READY
+    window.addEventListener('DOMContentLoaded', () => {
+      switchDbTab('himpunan');
+      setVennDataset('angka');
+      renderLatihanA();
+      initMhsSubquerySimulator();
+      renderLatihanB();
+      renderUnguidedChallenges();
+      selectSeqStep(0);
+      renderQuiz();
+    });
+  </script>
+</body>
+</html>
