@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TI0173 Sistem Basis Data — Normalisasi Part I & Part II (UKDW)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#131c2e',
+              900: '#0f172a',
+              950: '#070b14'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .sql-code {
+      background-color: #080c14;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.79rem;
+      line-height: 1.65;
+    }
+    .kw { color: #38bdf8; font-weight: 600; }
+    .fn { color: #c084fc; font-weight: 600; }
+    .st { color: #34d399; }
+    .nm { color: #fbbf24; }
+    .cm { color: #64748b; font-style: italic; }
+    .ln {
+      user-select: none;
+      color: #475569;
+      text-align: right;
+      padding-right: 1rem;
+      min-width: 2.2rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-indigo-500/50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toast-msg">Berhasil disalin ke clipboard!</span>
+  </div>
+
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/95 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-emerald-500 flex items-center justify-center shadow-md">
+            <i class="fa-solid fa-diagram-project text-white text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-sm sm:text-base font-bold tracking-tight text-white">TI0173 Sistem Basis Data — Normalisasi Part I &amp; Part II</h1>
+              <span class="hidden md:inline-block px-2 py-0.5 text-[10px] font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-md">SBD08 &amp; SBD09 • UKDW</span>
+            </div>
+            <p class="text-xs text-slate-400">Dr. Rosa Delima • Lukas Chrisantyo • Maria Nila Anggia Rini | UNF → 1NF → 2NF → 3NF &amp; ERD</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="switchMainTab('tab-part2')" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-all">
+            <i class="fa-solid fa-bolt text-amber-400"></i>
+            <span>SBD09: Latihan Part 2 (Baru!)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Horizontal Navigation Tabs -->
+      <nav class="flex space-x-1 overflow-x-auto py-2 text-xs font-semibold border-t border-slate-800/80">
+        <button onclick="switchMainTab('tab-intro')" id="nav-tab-intro" class="main-nav-btn px-3 py-1.5 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-400 whitespace-nowrap">1. Pengantar &amp; Anomali</button>
+        <button onclick="switchMainTab('tab-1nf')" id="nav-tab-1nf" class="main-nav-btn px-3 py-1.5 rounded-lg bg-slate-800/80 text-slate-300 hover:bg-slate-800 whitespace-nowrap">2. UNF → 1NF</button>
+        <button onclick="switchMainTab('tab-2nf')" id="nav-tab-2nf" class="main-nav-btn px-3 py-1.5 rounded-lg bg-slate-800/80 text-slate-300 hover:bg-slate-800 whitespace-nowrap">3. FD &amp; 2NF (Partial)</button>
+        <button onclick="switchMainTab('tab-3nf')" id="nav-tab-3nf" class="main-nav-btn px-3 py-1.5 rounded-lg bg-slate-800/80 text-slate-300 hover:bg-slate-800 whitespace-nowrap">4. 3NF (Transitive)</button>
+        <button onclick="switchMainTab('tab-cobain')" id="nav-tab-cobain" class="main-nav-btn px-3 py-1.5 rounded-lg bg-slate-800/80 text-cyan-300 hover:bg-slate-800 whitespace-nowrap">5. "Kita Cobain" (1–3)</button>
+        <button onclick="switchMainTab('tab-mandiri')" id="nav-tab-mandiri" class="main-nav-btn px-3 py-1.5 rounded-lg bg-slate-800/80 text-emerald-300 hover:bg-slate-800 whitespace-nowrap">6. Latihan Mandiri Part 1</button>
+        <button onclick="switchMainTab('tab-part2')" id="nav-tab-part2" class="main-nav-btn px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 whitespace-nowrap">🔥 7. SBD09: Normalisasi Part 2 (Lat 1–6 &amp; Milestone 2)</button>
+        <button onclick="switchMainTab('tab-quiz')" id="nav-tab-quiz" class="main-nav-btn px-3 py-1.5 rounded-lg bg-slate-800/80 text-purple-300 hover:bg-slate-800 whitespace-nowrap">🎯 8. Kuis Evaluasi</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+    <!-- ======================================================================= -->
+    <!-- TAB 1: PENGANTAR & SIMULATOR ANOMALI DATA (SLIDE 2 - 6)                 -->
+    <!-- ======================================================================= -->
+    <section id="tab-intro" class="main-tab-panel space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">SBD08 • Slide 2 – 6</span>
+          <span class="text-xs font-mono text-slate-400">Dikembangkan oleh Dr. E.F. (Ted) Codd (1972)</span>
+        </div>
+        <h2 class="text-2xl font-bold text-white">Pengantar Normalisasi &amp; Simulator 3 Anomali Data (Before vs After)</h2>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          <strong>Normalisasi</strong> adalah teknik perancangan basis data secara <em>bottom-up</em> (berada di antara tahap konseptual dan logikal) untuk menghasilkan himpunan relasi/tabel yang bebas dari redundansi dan <strong>anomali data</strong> (<em>Insert, Update, dan Delete Anomaly</em>).
+        </p>
+
+        <!-- Padanan Istilah Logical vs Physical (Slide 3) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs font-mono">
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800"><span class="text-slate-400 block">Logical → Physical</span><span class="text-indigo-300 font-bold">Relation → Table</span></div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800"><span class="text-slate-400 block">Logical → Physical</span><span class="text-cyan-300 font-bold">Unique ID → Primary Key</span></div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800"><span class="text-slate-400 block">Logical → Physical</span><span class="text-emerald-300 font-bold">Attribute → Column</span></div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800"><span class="text-slate-400 block">Logical → Physical</span><span class="text-amber-300 font-bold">Tuple → Row</span></div>
+        </div>
+      </div>
+
+      <!-- Simulator Interaktif Anomali (Slide 4 & 5: Kasus Rudi & Siti) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-bold text-white">🎛️ Simulator Anomali Data: Mengapa Tabel Gabungan Bermasalah?</h3>
+            <p class="text-xs text-slate-400">Uji langsung ketiga anomali pada tabel <strong>BEFORE (Belum Normal)</strong> vs <strong>AFTER (Sudah 3NF)</strong>:</p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs font-mono">
+            <button onclick="simAnomaly('update')" class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30">1. Uji Update Anomaly (Rudi Pindah)</button>
+            <button onclick="simAnomaly('insert')" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30">2. Uji Insert Anomaly (Pelanggan Baru)</button>
+            <button onclick="simAnomaly('delete')" class="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30">3. Uji Delete Anomaly (Hapus Siti)</button>
+          </div>
+        </div>
+
+        <div id="anomaly-sim-box" class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 leading-relaxed"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs font-mono">
+          <!-- Tabel BEFORE -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-rose-500/30 space-y-2">
+            <div class="text-rose-400 font-bold">BEFORE (Tabel Belum Dinormalisasi — Slide 4):</div>
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
+                <tr><th class="p-2">No</th><th class="p-2">Nama Pelanggan</th><th class="p-2">Alamat</th><th class="p-2">Produk</th><th class="p-2">Harga</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr><td class="p-2">1</td><td class="p-2 text-amber-300">Rudi</td><td class="p-2 text-rose-300">Bandung</td><td class="p-2">Teh Botol</td><td class="p-2">5000</td></tr>
+                <tr><td class="p-2">2</td><td class="p-2 text-amber-300">Rudi</td><td class="p-2 text-rose-300">Bandung</td><td class="p-2">Indomie</td><td class="p-2">3000</td></tr>
+                <tr><td class="p-2">3</td><td class="p-2 text-cyan-300">Siti</td><td class="p-2">Jakarta</td><td class="p-2">Teh Botol</td><td class="p-2">5000</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Tabel AFTER -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-2">
+            <div class="text-emerald-400 font-bold">AFTER (Hasil Normalisasi 3NF — Bebas Anomali):</div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                <div class="text-cyan-300 font-bold mb-1">Tabel Pelanggan</div>
+                <div>P01 | Rudi | Bandung</div>
+                <div>P02 | Siti | Jakarta</div>
+              </div>
+              <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                <div class="text-amber-300 font-bold mb-1">Tabel Produk</div>
+                <div>PR1 | Teh Botol | 5000</div>
+                <div>PR2 | Indomie | 3000</div>
+              </div>
+            </div>
+            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+              <div class="text-emerald-300 font-bold mb-1">Tabel Transaksi (No, ID_Pelanggan, ID_Produk)</div>
+              <div>1 → (P01, PR1) | 2 → (P01, PR2) | 3 → (P02, PR1)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 2: UNF KE 1NF TRANSFORMER (SLIDE 7 - 14)                            -->
+    <!-- ======================================================================= -->
+    <section id="tab-1nf" class="main-tab-panel hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">SBD08 • Slide 7 – 14</span>
+        <h2 class="text-2xl font-bold text-white">Bentuk Normal Pertama (1NF): Menghilangkan Atribut Multivalue &amp; Berulang</h2>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Suatu relasi berada dalam <strong>1NF</strong> jika setiap sel bernilai tunggal (<em>atomic value</em>), tidak ada atribut berulang (seperti <code>use1, use2, use3</code> atau <code>ID_Pengarang1, ID_Pengarang2</code>), dan telah ditentukan <strong>Primary Key / Identifier</strong>-nya.
+        </p>
+
+        <div class="flex flex-wrap gap-2 text-xs font-mono pt-2">
+          <button onclick="select1nfCase(0)" id="btn-1nf-0" class="px-3 py-1.5 rounded-xl bg-cyan-600 text-white font-bold">Kasus 1: Proyek (Slide 8)</button>
+          <button onclick="select1nfCase(1)" id="btn-1nf-1" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">Kasus 2: Supervisor-Warehouse (Slide 12)</button>
+          <button onclick="select1nfCase(2)" id="btn-1nf-2" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">Kasus 3: Buku &amp; Pengarang (Slide 13)</button>
+          <button onclick="select1nfCase(3)" id="btn-1nf-3" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">Kasus 4: Tanaman plantID (Slide 14)</button>
+        </div>
+
+        <div id="box-1nf-viewer" class="space-y-4 pt-2"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 3: FUNCTIONAL DEPENDENCY & 2NF (SLIDE 15 - 25)                      -->
+    <!-- ======================================================================= -->
+    <section id="tab-2nf" class="main-tab-panel hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">SBD08 • Slide 15 – 25</span>
+        <h2 class="text-2xl font-bold text-white">Functional Dependency (X → Y) &amp; Bentuk Normal Kedua (2NF: Buang Partial Dependency)</h2>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Ketergantungan fungsional <strong>X → Y</strong> berlaku jika untuk setiap dua tuple <strong>∀(t₁.X = t₂.X) ⇒ (t₁.Y = t₂.Y)</strong> (nilai X menentukan secara unik nilai Y). Suatu tabel 1NF berada dalam <strong>2NF</strong> jika semua atribut non-kunci bergantung penuh (<em>Fully Functional Dependency</em>) pada <strong>seluruh Composite Primary Key</strong>, bukan hanya menumpang pada salah satu subset kunci (<em>Partial Dependency</em>).
+        </p>
+
+        <div class="flex flex-wrap gap-2 text-xs font-mono pt-2">
+          <button onclick="select2nfCase(0)" id="btn-2nf-0" class="px-3 py-1.5 rounded-xl bg-purple-600 text-white font-bold">Kasus 1: KRS Mahasiswa (Slide 22)</button>
+          <button onclick="select2nfCase(1)" id="btn-2nf-1" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">Kasus 2: Assignment Proyek (Slide 24)</button>
+          <button onclick="select2nfCase(2)" id="btn-2nf-2" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">Kasus 3: Tabel Buku 1NF → 2NF (Slide 25)</button>
+        </div>
+
+        <div id="box-2nf-viewer" class="space-y-4 pt-2"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 4: TRANSITIVE DEPENDENCY & 3NF (SLIDE 26 - 33)                      -->
+    <!-- ======================================================================= -->
+    <section id="tab-3nf" class="main-tab-panel hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">SBD08 • Slide 26 – 33</span>
+            <h2 class="text-2xl font-bold text-white">Bentuk Normal Ketiga (3NF): Membuang Transitive Dependencies</h2>
+          </div>
+          <span class="px-3 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono text-xs font-bold">
+            A (PK) → B (Non-Key) → C (Non-Key)
+          </span>
+        </div>
+
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Suatu relasi berada dalam <strong>3NF</strong> jika sudah <strong>2NF</strong> dan tidak ada atribut non-kunci yang bergantung pada atribut non-kunci lainnya (<strong>A → B</strong> dan <strong>B → C</strong> di mana <strong>B ↛ A</strong> dan <strong>B</strong> bukan identifier).
+        </p>
+
+        <!-- Simulator Visual Interaktif 3NF -->
+        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 class="text-sm font-bold text-emerald-300">🎛️ Ilustrasi Interaktif 3NF (Kasus Slide 28: Book → Author → Author Nationality &amp; Diagram C1..C5 Slide 29–31)</h3>
+            <div class="flex flex-wrap gap-1.5 text-xs font-mono">
+              <button onclick="set3nfStep(1)" id="step3nf-btn-1" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold">1. Masalah Anomali 2NF</button>
+              <button onclick="set3nfStep(2)" id="step3nf-btn-2" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">2. Analisis Rantai A → B → C</button>
+              <button onclick="set3nfStep(3)" id="step3nf-btn-3" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">3. Dekomposisi 3NF &amp; C1..C5</button>
+            </div>
+          </div>
+          <div id="step3nf-content-box" class="space-y-4"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 5: "KITA COBAIN" 1, 2, 3 (SLIDE 34 - 36)                            -->
+    <!-- ======================================================================= -->
+    <section id="tab-cobain" class="main-tab-panel hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">SBD08 • Slide 34 – 36</span>
+        <h2 class="text-2xl font-bold text-white">Pembahasan Studi Kasus "Kita Cobain" (1, 2, dan 3) — Before vs After</h2>
+        <div class="flex flex-wrap gap-2 text-xs font-mono">
+          <button onclick="selectCobainCase(0)" id="btn-cobain-0" class="px-3.5 py-2 rounded-xl bg-cyan-600 text-white font-bold">Cobain 1: Royalti Buku &amp; Edisi (Slide 34)</button>
+          <button onclick="selectCobainCase(1)" id="btn-cobain-1" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300">Cobain 2: Skill Karyawan (Slide 35)</button>
+          <button onclick="selectCobainCase(2)" id="btn-cobain-2" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300">Cobain 3: Tiket Penerbangan (Slide 36)</button>
+        </div>
+        <div id="box-cobain-viewer" class="space-y-5 pt-2"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 6: LATIHAN MANDIRI PART 1 (SLIDE 37 - 41)                           -->
+    <!-- ======================================================================= -->
+    <section id="tab-mandiri" class="main-tab-panel hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">SBD08 • Slide 37 – 41</span>
+        <h2 class="text-2xl font-bold text-white">Pembahasan Latihan Mandiri 1–4 (Termasuk Denormalisasi KHS)</h2>
+        <div class="flex flex-wrap gap-2 text-xs font-mono">
+          <button onclick="selectMandiriCase(0)" id="btn-mandiri-0" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-bold">Mandiri 1: Nota Furniture (Slide 37)</button>
+          <button onclick="selectMandiriCase(1)" id="btn-mandiri-1" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300">Mandiri 2: Pesanan Produk (Slide 38)</button>
+          <button onclick="selectMandiriCase(2)" id="btn-mandiri-2" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300">Mandiri 3: Aset &amp; Proyek (Slide 39)</button>
+          <button onclick="selectMandiriCase(3)" id="btn-mandiri-3" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300">Mandiri 4: Denormalisasi KHS (Slide 40)</button>
+        </div>
+        <div id="box-mandiri-viewer" class="space-y-5 pt-2"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 7: SBD09 - NORMALISASI PART 2 (LATIHAN 1 S.D. 6 & MILESTONE 2)      -->
+    <!-- ======================================================================= -->
+    <section id="tab-part2" class="main-tab-panel hidden space-y-8">
+      <!-- Banner SBD09 Part 2 -->
+      <div class="bg-gradient-to-br from-slate-900 via-amber-950/30 to-slate-900 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold">
+            MODUL SBD09 • NORMALISASI PART 2 (LATIHAN 1 – 6 &amp; PROJECT 3 MILESTONE 2)
+          </span>
+          <span class="text-xs font-mono text-emerald-300">Lengkap dengan Diagram Dependency, ERD, &amp; SQL Trigger/Procedure</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+          Latihan Komprehensif Normalisasi (SBD09) — Analisis FFD, Partial, Transitive, Deteksi Error Tabel &amp; ERD
+        </h2>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Pilih salah satu dari <strong>6 Latihan Normalisasi Part 2</strong> atau panduan <strong>Project 3 - Milestone 2 (BAB 5 Implementasi DDL, DML, Trigger, &amp; Stored Procedure)</strong> di bawah ini untuk melihat perbandingan <strong>Tabel Awal (Before)</strong>, <strong>Diagram Dependency (1NF → 2NF → 3NF)</strong>, <strong>ERD Logikal</strong>, hingga <strong>Source Code SQL</strong> lengkap beserta penjelasannya!
+        </p>
+
+        <!-- Selector Buttons for SBD09 Part 2 (Latihan 1 - 6 + Milestone 2) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs font-mono pt-1">
+          <button onclick="selectPart2Case(0)" id="btn-p2-0" class="p-3 rounded-xl border text-left transition-all bg-amber-500/20 text-amber-200 border-amber-400 font-bold">
+            <div class="text-[10px] text-amber-400">SLIDE 2</div>
+            <div class="mt-0.5 truncate">Latihan 1: Royalti</div>
+          </button>
+          <button onclick="selectPart2Case(1)" id="btn-p2-1" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400">SLIDE 3</div>
+            <div class="mt-0.5 truncate">Latihan 2: Invoice</div>
+          </button>
+          <button onclick="selectPart2Case(2)" id="btn-p2-2" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400">SLIDE 4</div>
+            <div class="mt-0.5 truncate">Latihan 3: Sewa Film</div>
+          </button>
+          <button onclick="selectPart2Case(3)" id="btn-p2-3" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-slate-400">SLIDE 5</div>
+            <div class="mt-0.5 truncate">Latihan 4: Training</div>
+          </button>
+          <button onclick="selectPart2Case(4)" id="btn-p2-4" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-rose-400">SLIDE 6 (Cek Error!)</div>
+            <div class="mt-0.5 truncate">Latihan 5: Mahasiswa</div>
+          </button>
+          <button onclick="selectPart2Case(5)" id="btn-p2-5" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40">
+            <div class="text-[10px] text-emerald-400">SLIDE 7 (Bengkel)</div>
+            <div class="mt-0.5 truncate">Latihan 6: Servis</div>
+          </button>
+          <button onclick="selectPart2Case(6)" id="btn-p2-6" class="p-3 rounded-xl border text-left transition-all bg-slate-950 text-cyan-300 border-slate-800 hover:border-cyan-500/40">
+            <div class="text-[10px] text-cyan-400">SLIDE 8 (Project 3)</div>
+            <div class="mt-0.5 truncate">Milestone 2: Trigger</div>
+          </button>
+        </div>
+
+        <!-- Dynamic Container for SBD09 Part 2 -->
+        <div id="box-part2-viewer" class="space-y-6 pt-2"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 8: KUIS EVALUASI NORMALISASI PART 1 & PART 2                        -->
+    <!-- ======================================================================= -->
+    <section id="tab-quiz" class="main-tab-panel hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">Evaluasi Mandiri</span>
+            <h2 class="text-2xl font-bold text-white">Kuis Penguasaan Normalisasi Part I &amp; Part II (SBD08 &amp; SBD09)</h2>
+          </div>
+          <div id="norm-quiz-score" class="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 font-mono text-sm font-bold text-indigo-400">
+            Skor: Belum Dinilai
+          </div>
+        </div>
+        <div id="norm-quiz-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <button onclick="gradeNormQuiz()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs sm:text-sm shadow-lg transition-all">
+          <i class="fa-solid fa-check-double mr-1.5"></i> Periksa Jawaban Kuis
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="mt-12 border-t border-slate-800 py-6 bg-slate-950 text-center text-xs text-slate-500">
+    TI0173 Sistem Basis Data — Universitas Kristen Duta Wacana (UKDW) • Modul Interaktif Normalisasi Part I (SBD08) &amp; Part II (SBD09)
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT ENGINE: SIMULATORS, SBD08 & SBD09 CASES, SQL HIGHLIGHTER       -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. SQL SYNTAX HIGHLIGHTER
+    function highlightSQL(sql) {
+      const escaped = sql.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return escaped.split('\n').map((line, idx) => {
+        if (line.trim().startsWith('--')) {
+          return `<span class="ln">${idx + 1}</span><span class="cm">${line}</span>`;
+        }
+        const strings = [];
+        let processed = line.replace(/('[^']*')/g, (m) => {
+          strings.push(m);
+          return `___STR_${strings.length - 1}___`;
+        });
+        processed = processed.replace(/\b(CREATE|TABLE|PRIMARY|KEY|FOREIGN|REFERENCES|VARCHAR|INT|DECIMAL|DATE|NOT|NULL|INSERT|INTO|VALUES|SELECT|FROM|JOIN|ON|WHERE|TRIGGER|AFTER|BEFORE|UPDATE|FOR|EACH|ROW|BEGIN|END|PROCEDURE|CALL|SET|SUM|DELIMITER)\b/g, '<span class="kw">$1</span>');
+        processed = processed.replace(/\b(\d+(\.\d+)?)\b/g, '<span class="nm">$1</span>');
+        processed = processed.replace(/___STR_(\d+)___/g, (_, i) => `<span class="st">${strings[Number(i)]}</span>`);
+        return `<span class="ln">${idx + 1}</span>${processed}`;
+      }).join('\n');
+    }
+
+    // 2. SIMULATOR ANOMALI (TAB 1)
+    function simAnomaly(type) {
+      const box = document.getElementById('anomaly-sim-box');
+      if (type === 'update') {
+        box.innerHTML = `<strong class="text-amber-400">⚠️ Update Anomaly (Anomali Ubah):</strong> Pada tabel BEFORE, <strong>Rudi</strong> membeli 2 produk sehingga alamatnya (<em>Bandung</em>) tercatat berulang di Baris 1 dan Baris 2. Ketika Rudi pindah alamat ke <em>Surabaya</em>, kita wajib mengubah semua baris milik Rudi. Jika baris ke-2 terlewat, data menjadi inkonsisten! Pada skema <strong>AFTER (3NF)</strong>, alamat Rudi cukup diubah <strong>1 kali</strong> di tabel <code>Pelanggan</code>.`;
+      } else if (type === 'insert') {
+        box.innerHTML = `<strong class="text-cyan-400">⚠️ Insert Anomaly (Anomali Tambah):</strong> Pada tabel BEFORE, kita <strong>tidak bisa menambahkan pelanggan baru (misal: Andi) yang belum pernah membeli produk</strong>, karena kolom Produk dan Harga akan bernilai kosong/NULL. Pada skema <strong>AFTER (3NF)</strong>, pelanggan baru bebas didaftarkan langsung ke tabel <code>Pelanggan</code> kapan saja.`;
+      } else {
+        box.innerHTML = `<strong class="text-rose-400">⚠️ Delete Anomaly (Anomali Hapus):</strong> Pada tabel BEFORE, <strong>Siti</strong> hanya pernah melakukan 1 transaksi (Baris 3). Jika transaksi nomor 3 dihapus, maka <strong>data master nama dan alamat Siti (Jakarta) ikut terhapus selamanya!</strong> Pada skema <strong>AFTER (3NF)</strong>, menghapus baris di tabel <code>Transaksi</code> sama sekali tidak menghilangkan profil Siti di tabel <code>Pelanggan</code>.`;
+      }
+    }
+
+    // 3. TAB 2: UNF -> 1NF CASES (SLIDE 8, 12, 13, 14)
+    const CASES_1NF = [
+      {
+        title: 'Kasus 1: Laporan Proyek (Slide 8 — Evergreen, Amber Wave, Rolling Tide, Starflight)',
+        beforeDesc: 'Pada tabel laporan proyek (UNF), satu PROJ_NUM (misal 15 - Evergreen) membawahi banyak karyawan (EMP_NUM 103, 101, 105, 106, 102) dengan sel PROJ_NUM dan PROJ_NAME yang dikosongkan pada baris berikutnya, ditambah adanya baris Subtotal.',
+        beforeHtml: `<div class="text-xs font-mono text-slate-300">PROJ_NUM: 15 | PROJ_NAME: Evergreen | EMP_NUM: [103, 101, 105, 106, 102] (Multivalue / Grup Berulang dalam 1 Proyek)</div>`,
+        afterDesc: 'Setiap baris diratakan (flattened) sehingga setiap sel bernilai atomik, baris Subtotal dibuang (karena merupakan nilai turunan), dan ditentukan Composite Primary Key: (PROJ_NUM, EMP_NUM).',
+        pk: '{PROJ_NUM, EMP_NUM}',
+        afterRows: [
+          ['15', 'Evergreen', '103', 'June E. Arbough', 'Elec. Engineer', '$85.50', '23.8'],
+          ['15', 'Evergreen', '101', 'John G. News', 'Database Designer', '$105.00', '19.4'],
+          ['18', 'Amber Wave', '114', 'Annelise Jones', 'Applications Designer', '$48.10', '25.6']
+        ],
+        cols: ['<u>PROJ_NUM (PK)</u>', 'PROJ_NAME', '<u>EMP_NUM (PK)</u>', 'EMP_NAME', 'JOB_CLASS', 'CHG_HOUR', 'HOURS']
+      },
+      {
+        title: 'Kasus 2: Supervisor, Component, & Warehouse (Slide 9 & 12)',
+        beforeDesc: 'Pada bentuk UNF, satu Supervisor (Sp-No 3462 Waters) memiliki grup berulang komponen: (18765, D Services, 4, Fargo, 13540) dan (18830, M. Levys, 3, Bismarck, 10600).',
+        beforeHtml: `<div class="text-xs font-mono text-slate-300">3462 | Waters | West | [(18765, D Services, 4, Fargo, 13540), (18830, M. Levys, 3, Bismarck, 10600)]</div>`,
+        afterDesc: 'Grup berulang dipisahkan menjadi baris-baris mandiri dengan mengulang identitas Supervisor, lalu ditetapkan Composite Primary Key: (Sp-No, C-No).',
+        pk: '{Sp-No, C-No}',
+        afterRows: [
+          ['3462', 'Waters', 'West', '18765', 'D Services', '4', 'Fargo', '13,540'],
+          ['3462', 'Waters', 'West', '18830', 'M. Levys', '3', 'Bismarck', '10,600'],
+          ['1234', 'Johnson', 'East', '45455', 'Compuhou', '7', 'Jamestown', '9,444']
+        ],
+        cols: ['<u>Sp-No (PK)</u>', 'Sp-Name', 'Area', '<u>C-No (PK)</u>', 'C-Name', 'W-No', 'Ware-loc', 'Sales']
+      },
+      {
+        title: 'Kasus 3: Tabel Buku dengan Kolom Pengarang Berulang (Slide 9 & 13)',
+        beforeDesc: 'Tabel Buku memiliki kolom berulang: ID_Pengarang1, Nama_Pengarang1, ID_Pengarang2, Nama_Pengarang2. Jika ada buku dengan 3 pengarang, struktur tabel akan rusak.',
+        beforeHtml: `<div class="text-xs font-mono text-slate-300">ISBN: 12-1202-19222 | Thn: 1992 | Pengarang 1: (K0121, Aris M) | Pengarang 2: (K1021, Kosim P)</div>`,
+        afterDesc: 'Kolom pengarang digabung menjadi satu pasang (ID_Pengarang, Nama_Pengarang) dan dipecah ke bawah per baris. Composite Primary Key adalah (ISBN, ID_Pengarang).',
+        pk: '{ISBN, ID_Pengarang}',
+        afterRows: [
+          ['12-1202-19222', '1992', 'K0121', 'Aris M'],
+          ['12-1202-19222', '1992', 'K1021', 'Kosim P'],
+          ['11-1090-29101', '2001', 'K1021', 'Kosim P']
+        ],
+        cols: ['<u>ISBN (PK)</u>', 'Thn_Terbit', '<u>ID_Pengarang (PK)</u>', 'Nama_Pengarang']
+      },
+      {
+        title: 'Kasus 4: Tanaman dengan Kolom Kegunaan use1, use2, use3 (Slide 14)',
+        beforeDesc: 'Tabel tanaman memiliki atribut multivalue dalam bentuk kolom berulang use1, use2, use3 (shelter, hedging, soil stability, firewood, dll.).',
+        beforeHtml: `<div class="text-xs font-mono text-slate-300">plantID: 1 | Dodonaea viscosa (Akeake) | use1: shelter | use2: hedging | use3: soil stability</div>`,
+        afterDesc: 'Ketiga kolom use1, use2, use3 disatukan menjadi satu kolom tunggal "use", sehingga setiap kegunaan tanaman menjadi satu baris terpisah. Composite Primary Key: (plantID, use).',
+        pk: '{plantID, use}',
+        afterRows: [
+          ['1', 'Dodonaea', 'viscosa', 'Akeake', 'shelter'],
+          ['1', 'Dodonaea', 'viscosa', 'Akeake', 'hedging'],
+          ['1', 'Dodonaea', 'viscosa', 'Akeake', 'soil stability'],
+          ['2', 'Cedrus', 'atlantica', 'Atlas cedar', 'shelter']
+        ],
+        cols: ['<u>plantID (PK)</u>', 'genus', 'species', 'common_name', '<u>use (PK)</u>']
+      }
+    ];
+
+    function select1nfCase(idx) {
+      [0, 1, 2, 3].forEach(i => {
+        const b = document.getElementById(`btn-1nf-${i}`);
+        if (b) b.className = i === idx ? 'px-3 py-1.5 rounded-xl bg-cyan-600 text-white font-bold' : 'px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300';
+      });
+      const c = CASES_1NF[idx];
+      document.getElementById('box-1nf-viewer').innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-950 border border-rose-500/30 space-y-2 text-xs">
+          <div class="font-bold text-rose-400">Kondisi Awal BEFORE (UNF): ${c.title}</div>
+          <p class="text-slate-300">${c.beforeDesc}</p>
+          <div class="p-2.5 rounded bg-slate-900 border border-slate-800">${c.beforeHtml}</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-3 text-xs">
+          <div class="flex flex-wrap justify-between gap-2">
+            <span class="font-bold text-emerald-400">Hasil Transformasi AFTER (1NF):</span>
+            <span class="font-mono text-amber-300">Suspected Identifier / Composite PK: ${c.pk}</span>
+          </div>
+          <p class="text-slate-300">${c.afterDesc}</p>
+          <div class="overflow-x-auto rounded-lg border border-slate-800">
+            <table class="w-full text-left font-mono border-collapse">
+              <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                <tr>${c.cols.map(col => `<th class="p-2">${col}</th>`).join('')}</tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                ${c.afterRows.map(r => `<tr>${r.map(v => `<td class="p-2 text-slate-200">${v}</td>`).join('')}</tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    }
+
+    // 4. TAB 3: 1NF -> 2NF CASES (SLIDE 22, 24, 25)
+    const CASES_2NF = [
+      {
+        title: 'Kasus 1: KRS Mahasiswa (Slide 22 — NIM, KODE_MK, NAMA_MHS, NAMA_MK, NILAI)',
+        beforeCols: ['<u>NIM (PK)</u>', '<u>KODE_MK (PK)</u>', 'NAMA_MHS (Partial ke NIM)', 'NAMA_MK (Partial ke KODE_MK)', 'NILAI (Full FD)'],
+        beforeRows: [
+          ['101', 'IF101', 'Budi', 'Basis Data', 'A'],
+          ['101', 'IF102', 'Budi', 'Algoritma', 'B']
+        ],
+        fds: [
+          '{NIM, KODE_MK} → NILAI (Fully Functional Dependency — tetap di tabel relasi)',
+          'NIM → NAMA_MHS (Partial Dependency — hanya bergantung pada NIM, pisahkan ke tabel Mahasiswa!)',
+          'KODE_MK → NAMA_MK (Partial Dependency — hanya bergantung pada KODE_MK, pisahkan ke tabel Matakuliah!)'
+        ],
+        afterTables: [
+          '1. Tabel Mahasiswa (<u>NIM</u> [PK], NAMA_MHS)',
+          '2. Tabel Matakuliah (<u>KODE_MK</u> [PK], NAMA_MK)',
+          '3. Tabel Nilai_KRS (<u>NIM</u> [PK, FK], <u>KODE_MK</u> [PK, FK], NILAI)'
+        ]
+      },
+      {
+        title: 'Kasus 2: Assignment Proyek (Slide 24 — empID, project_num, project_name, contact, hours)',
+        beforeCols: ['<u>empID (PK)</u>', '<u>project_num (PK)</u>', 'project_name (Partial)', 'contact (Partial)', 'hours (Full FD)'],
+        beforeRows: [
+          ['1005', '1', 'JenningsLtd', '325-1234', '8'],
+          ['1001', '3', 'ABCPromo', '142-3456', '8'],
+          ['1005', '3', 'ABCPromo', '142-3456', '14']
+        ],
+        fds: [
+          '{empID, project_num} → hours (Fully Functional Dependency — jam kerja bergantung pada karyawan & proyek)',
+          'project_num → project_name, contact (Partial Dependency — nama proyek & kontak hanya bergantung pada project_num)'
+        ],
+        afterTables: [
+          '1. Tabel Assignment (<u>empID</u> [PK], <u>project_num</u> [PK, FK], hours)',
+          '2. Tabel Project (<u>project_num</u> [PK], project_name, contact)'
+        ]
+      },
+      {
+        title: 'Kasus 3: Tabel Buku & Pengarang 1NF → 2NF (Slide 25)',
+        beforeCols: ['<u>ISBN (PK)</u>', 'Thn_Terbit (Partial ke ISBN)', '<u>ID_Pengarang (PK)</u>', 'Nama_Pengarang (Partial ke ID_Pengarang)'],
+        beforeRows: [
+          ['12-1202-19222', '1992', 'K0121', 'Aris M'],
+          ['12-1202-19222', '1992', 'K1021', 'Kosim P'],
+          ['11-1090-29101', '2001', 'K1021', 'Kosim P']
+        ],
+        fds: [
+          'ISBN → Thn_Terbit (Partial Dependency — tahun terbit hanya ditentukan oleh ISBN buku)',
+          'ID_Pengarang → Nama_Pengarang (Partial Dependency — nama pengarang hanya ditentukan oleh ID_Pengarang)',
+          '{ISBN, ID_Pengarang} (Tabel penghubung many-to-many antara Buku dan Pengarang)'
+        ],
+        afterTables: [
+          '1. Tabel Buku (<u>ISBN</u> [PK], Thn_Terbit)',
+          '2. Tabel Pengarang (<u>ID_Pengarang</u> [PK], Nama_Pengarang)',
+          '3. Tabel Buku_Pengarang (<u>ISBN</u> [PK, FK], <u>ID_Pengarang</u> [PK, FK])'
+        ]
+      }
+    ];
+
+    function select2nfCase(idx) {
+      [0, 1, 2].forEach(i => {
+        const b = document.getElementById(`btn-2nf-${i}`);
+        if (b) b.className = i === idx ? 'px-3 py-1.5 rounded-xl bg-purple-600 text-white font-bold' : 'px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300';
+      });
+      const c = CASES_2NF[idx];
+      document.getElementById('box-2nf-viewer').innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-950 border border-rose-500/30 space-y-3 text-xs">
+          <div class="font-bold text-rose-400">Tabel BEFORE (Masih 1NF — Mengandung Partial Dependency): ${c.title}</div>
+          <div class="overflow-x-auto rounded-lg border border-slate-800">
+            <table class="w-full text-left font-mono border-collapse">
+              <thead class="bg-slate-900 text-purple-300 border-b border-slate-800">
+                <tr>${c.beforeCols.map(col => `<th class="p-2">${col}</th>`).join('')}</tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                ${c.beforeRows.map(r => `<tr>${r.map(v => `<td class="p-2 text-slate-200">${v}</td>`).join('')}</tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="space-y-1 pt-1">
+            <div class="font-bold text-amber-300">Analisis Functional Dependency:</div>
+            ${c.fds.map(f => `<div class="font-mono text-slate-300">• ${f}</div>`).join('')}
+          </div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-2 text-xs">
+          <div class="font-bold text-emerald-400">Hasil Dekomposisi AFTER (Sudah 2NF — Partial Dependency Dihilangkan):</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono">
+            ${c.afterTables.map(t => `<div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-emerald-300">${t}</div>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    // 5. TAB 4: 3NF STEPPER (SLIDE 28 - 31)
+    function set3nfStep(step) {
+      [1, 2, 3].forEach(s => {
+        const b = document.getElementById(`step3nf-btn-${s}`);
+        if (b) b.className = s === step ? 'px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold' : 'px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300';
+      });
+      const box = document.getElementById('step3nf-content-box');
+      if (step === 1) {
+        box.innerHTML = `
+          <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs space-y-2">
+            <div class="font-bold text-rose-400">Langkah 1: Tabel BEFORE (Sudah 2NF karena PK Tunggal {Book}, tetapi Melanggar 3NF)</div>
+            <p class="text-slate-300">Perhatikan bahwa <strong>Jules Verne (French)</strong> dan <strong>Leo Tolstoy (Russian)</strong> berulang di beberapa buku. Atribut non-kunci <code>Author Nationality</code> bergantung pada atribut non-kunci <code>Author</code>.</p>
+            <table class="w-full text-left font-mono border border-slate-800 mt-2">
+              <thead class="bg-slate-900 text-slate-300"><tr><th class="p-2"><u>Book (PK)</u></th><th class="p-2">Genre</th><th class="p-2">Author (Non-Key)</th><th class="p-2 text-rose-300">Author Nationality (Transitive)</th></tr></thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr><td class="p-2">20,000 Leagues Under the Sea</td><td class="p-2">Sci-Fi</td><td class="p-2 text-amber-300">Jules Verne</td><td class="p-2 text-rose-300">French</td></tr>
+                <tr><td class="p-2">Journey to the Center of the Earth</td><td class="p-2">Sci-Fi</td><td class="p-2 text-amber-300">Jules Verne</td><td class="p-2 text-rose-300">French</td></tr>
+                <tr><td class="p-2">Anna Karenina</td><td class="p-2">Literary</td><td class="p-2 text-cyan-300">Leo Tolstoy</td><td class="p-2 text-rose-300">Russian</td></tr>
+              </tbody>
+            </table>
+          </div>`;
+      } else if (step === 2) {
+        box.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800"><div class="text-amber-400 font-bold">1. {Book} → {Author}</div><p class="font-sans text-slate-300 mt-1">Judul buku menentukan pengarangnya (namun Author ↛ Book).</p></div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800"><div class="text-cyan-400 font-bold">2. {Author} → {Author Nationality}</div><p class="font-sans text-slate-300 mt-1">Pengarang (atribut bukan PK) menentukan kewarganegaraannya.</p></div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-rose-500/40"><div class="text-rose-400 font-bold">3. Rantai Transitif</div><p class="font-sans text-slate-300 mt-1">{Book} → {Author} → {Author Nationality}. Wajib dipisah agar mencapai 3NF!</p></div>
+          </div>`;
+      } else {
+        box.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/40 space-y-1">
+              <div class="text-emerald-400 font-bold">AFTER (3NF) — Kasus Buku:</div>
+              <div>• Tabel 1: <strong>Buku</strong> (<u>Book</u> [PK], Genre, Author [FK])</div>
+              <div>• Tabel 2: <strong>Penulis</strong> (<u>Author</u> [PK], Author_Nationality)</div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-900 border border-cyan-500/40 space-y-1">
+              <div class="text-cyan-400 font-bold">AFTER (3NF) — Diagram C1..C5 (Slide 29–31):</div>
+              <div>• Table 1 (3NF): <strong>(<u>C1</u> [PK], C2)</strong> — hasil pisah Partial C1 → C2</div>
+              <div>• Table 2 (3NF): <strong>(<u>C1, C3</u> [PK], C4 [FK])</strong> — hasil FFD</div>
+              <div>• Table 3 (3NF): <strong>(<u>C4</u> [PK], C5)</strong> — hasil pisah Transitive C4 → C5</div>
+            </div>
+          </div>`;
+      }
+    }
+
+    // 6. TAB 5: "KITA COBAIN" 1, 2, 3 (SLIDE 34 - 36)
+    const COBAIN_DATA = [
+      {
+        title: 'Kita Cobain 1: Royalti Penulis Buku & Edisi (Slide 34)',
+        story: 'Penulis mendapatkan royalti untuk setiap buku yang mereka tulis untuk penerbit. Jumlah royalti dapat bervariasi menurut penulis, buku, dan edisi buku. Pada buku The Pragmatic Programmer (978-334455), terdapat 2 penulis (102 Martin royalti 10% dan 104 Russell royalti 5%).',
+        beforeCols: ['ISBN', 'JudulBuku', 'IdPenulis', 'NamaBelakang', 'Penerbit', 'Royalti', 'Edisi'],
+        beforeRows: [
+          ['978-123456', 'The Art of Programming', '101', 'Knuth', 'Addison-Wesley', '15%', '3'],
+          ['978-334455', 'The Pragmatic Programmer', '102', 'Martin', 'Addison-Wesley', '10%', '2'],
+          ['(Kosong/UNF)', '(Kosong/UNF)', '104', 'Russell', '(Kosong/UNF)', '5%', '(Kosong/UNF)']
+        ],
+        fds: [
+          'Composite PK pada 1NF: {ISBN, IdPenulis, Edisi} → Royalti (Full Functional Dependency, karena royalti bervariasi menurut buku, penulis, dan edisi)',
+          'ISBN → JudulBuku, Penerbit (Partial Dependency terhadap ISBN)',
+          'IdPenulis → NamaBelakang (Partial Dependency terhadap IdPenulis)'
+        ],
+        after3nf: [
+          '1. Tabel Buku (<u>ISBN</u> [PK], JudulBuku, Penerbit)',
+          '2. Tabel Penulis (<u>IdPenulis</u> [PK], NamaBelakang)',
+          '3. Tabel Royalti_Edisi (<u>ISBN</u> [PK, FK], <u>IdPenulis</u> [PK, FK], <u>Edisi</u> [PK], Royalti)'
+        ]
+      },
+      {
+        title: 'Kita Cobain 2: Skill Karyawan (Slide 35)',
+        story: 'Tiap karyawan memiliki beberapa skill (kolom berulang Skill Id, Skill Name) dan satu Job Name.',
+        beforeCols: ['Name', 'Address', 'Skill 1 (Id, Name)', 'Skill 2 (Id, Name)', 'Job Name'],
+        beforeRows: [
+          ['Betty Anderson', '1 Temple St Beacon Hill', '10, sales', '11, acct mngt', 'Sales Representative'],
+          ['Bob Smith', '14 Kings Rd Camden', '20, word processing', '21, dictation', 'Administrative Assistant']
+        ],
+        fds: [
+          '1NF: Buat ID_Karyawan (atau Name), pecah kolom berulang Skill menjadi baris. Composite PK: {Emp_ID, Skill_ID}',
+          'Emp_ID → Name, Address, Job_Name (Partial Dependency terhadap Emp_ID)',
+          'Skill_ID → Skill_Name (Partial Dependency terhadap Skill_ID)'
+        ],
+        after3nf: [
+          '1. Tabel Karyawan (<u>Emp_ID</u> [PK], Name, Address, Job_Name)',
+          '2. Tabel Skill (<u>Skill_ID</u> [PK], Skill_Name)',
+          '3. Tabel Karyawan_Skill (<u>Emp_ID</u> [PK, FK], <u>Skill_ID</u> [PK, FK])'
+        ]
+      },
+      {
+        title: 'Kita Cobain 3: Tiket Penerbangan (Slide 36)',
+        story: 'Tabel tiket penerbangan memiliki sel kosong (UNF) pada Flight Code, Destination City, dan City Code untuk penumpang pada penerbangan yang sama.',
+        beforeCols: ['Ticket ID', 'Flight Code', 'Passenger Name', 'Seat Number', 'Gate Number', 'Destination City', 'City Code'],
+        beforeRows: [
+          ['001A', 'GA-101', 'Budi Santoso', '12A', '5', 'Tokyo', 'TYO'],
+          ['002B', '(Kosong → GA-101)', 'Siti Aisyah', '12B', '5', '(Kosong → Tokyo)', '(Kosong → TYO)'],
+          ['003C', 'SQ-505', 'Joko Anwar', '23C', '10', 'Singapura', 'SIN']
+        ],
+        fds: [
+          'PK Tunggal: {Ticket_ID} → Flight_Code, Passenger_Name, Seat_Number (Sudah 2NF begitu sel kosong diisi)',
+          'Transitive 1: Ticket_ID → Flight_Code → Gate_Number, City_Code',
+          'Transitive 2: Flight_Code → City_Code → Destination_City'
+        ],
+        after3nf: [
+          '1. Tabel Kota (<u>City_Code</u> [PK], Destination_City)',
+          '2. Tabel Penerbangan (<u>Flight_Code</u> [PK], Gate_Number, City_Code [FK])',
+          '3. Tabel Tiket (<u>Ticket_ID</u> [PK], Flight_Code [FK], Passenger_Name, Seat_Number)'
+        ]
+      }
+    ];
+
+    function selectCobainCase(idx) {
+      [0, 1, 2].forEach(i => {
+        const b = document.getElementById(`btn-cobain-${i}`);
+        if (b) b.className = i === idx ? 'px-3.5 py-2 rounded-xl bg-cyan-600 text-white font-bold' : 'px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300';
+      });
+      const c = COBAIN_DATA[idx];
+      document.getElementById('box-cobain-viewer').innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-950 border border-rose-500/30 space-y-3 text-xs">
+          <div class="font-bold text-rose-400">BEFORE (Tabel Awal Slide): ${c.title}</div>
+          <p class="text-slate-300">${c.story}</p>
+          <div class="overflow-x-auto rounded-lg border border-slate-800">
+            <table class="w-full text-left font-mono border-collapse">
+              <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800"><tr>${c.beforeCols.map(col => `<th class="p-2">${col}</th>`).join('')}</tr></thead>
+              <tbody class="divide-y divide-slate-800">${c.beforeRows.map(r => `<tr>${r.map(v => `<td class="p-2">${v}</td>`).join('')}</tr>`).join('')}</tbody>
+            </table>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-3 text-xs">
+          <div class="font-bold text-amber-300">Analisis Ketergantungan Fungsional (FD):</div>
+          <div class="space-y-1 font-mono text-slate-300">${c.fds.map(f => `<div>• ${f}</div>`).join('')}</div>
+          <div class="font-bold text-emerald-400 pt-2">AFTER (Skema Tabel 3NF):</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono">${c.after3nf.map(t => `<div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-emerald-300">${t}</div>`).join('')}</div>
+        </div>`;
+    }
+
+    // 7. TAB 6: LATIHAN MANDIRI PART 1 (SLIDE 37 - 40)
+    const MANDIRI_PART1_DATA = [
+      {
+        title: 'Latihan Mandiri 1: Order Furniture (Slide 37)',
+        beforeInfo: 'Order_ID 1006 (Ronny Furniture) memiliki 3 produk (Meja Makan, Meja Tulis, Lemari TV) dalam 1 sel/grup berulang.',
+        fds: [
+          'Composite PK 1NF: {Order_ID, Product_ID} → Ordered_Quantity (Full FD)',
+          'Order_ID → Order_Date, Customer_ID, Customer_Name, Customer_Address (Partial Dependency)',
+          'Product_ID → Product_Description, Product_Finish, Unit_Price (Partial Dependency)',
+          'Order_ID → Customer_ID → Customer_Name, Customer_Address (Transitive Dependency di tabel Order)'
+        ],
+        afterTables: [
+          '1. Customer (<u>Customer_ID</u> [PK], Customer_Name, Customer_Address)',
+          '2. Orders (<u>Order_ID</u> [PK], Order_Date, Customer_ID [FK])',
+          '3. Product (<u>Product_ID</u> [PK], Product_Description, Product_Finish, Unit_Price)',
+          '4. Order_Line (<u>Order_ID</u> [PK, FK], <u>Product_ID</u> [PK, FK], Ordered_Quantity)'
+        ]
+      },
+      {
+        title: 'Latihan Mandiri 2: Pesanan Pelanggan Multivalue (Slide 38)',
+        beforeInfo: 'No. Pesanan 001 (Ali, Jl. Merdeka No.1) berisi Produk Dipesan = "Laptop, Smartphone" dan Jumlah = "2, 1".',
+        fds: [
+          '1NF: Pecah "Laptop, Smartphone" dan "2, 1" menjadi 2 baris atomik. Composite PK: {No_Pesanan, ID_Produk}',
+          'No_Pesanan → ID_Pelanggan → Nama_Pelanggan, Alamat_Pelanggan (Partial & Transitive Dependency)',
+          '{No_Pesanan, ID_Produk} → Jumlah (Full FD)'
+        ],
+        afterTables: [
+          '1. Pelanggan (<u>ID_Pelanggan</u> [PK], Nama_Pelanggan, Alamat_Pelanggan)',
+          '2. Produk (<u>ID_Produk</u> [PK], Nama_Produk)',
+          '3. Pesanan (<u>No_Pesanan</u> [PK], ID_Pelanggan [FK])',
+          '4. Detail_Pesanan (<u>No_Pesanan</u> [PK, FK], <u>ID_Produk</u> [PK, FK], Jumlah)'
+        ]
+      },
+      {
+        title: 'Latihan Mandiri 3: Peminjaman Aset Proyek & Karyawan (Slide 39)',
+        beforeInfo: 'Aset ID 501 (Laptop A) pada Proyek P100 (Alpha Launch, Jakarta) digunakan oleh E001 (Ali) dan E002 (Budi).',
+        fds: [
+          'Composite PK: {Aset_ID, ID_Karyawan} (atau {Aset_ID, Proyek_ID, ID_Karyawan})',
+          'Aset_ID → Nama_Aset, Proyek_ID (Partial Dependency)',
+          'Proyek_ID → Nama_Proyek, Lokasi_Proyek (Transitive Dependency)',
+          'ID_Karyawan → Nama_Karyawan (Partial Dependency)'
+        ],
+        afterTables: [
+          '1. Proyek (<u>Proyek_ID</u> [PK], Nama_Proyek, Lokasi_Proyek)',
+          '2. Aset (<u>Aset_ID</u> [PK], Nama_Aset, Proyek_ID [FK])',
+          '3. Karyawan (<u>ID_Karyawan</u> [PK], Nama_Karyawan)',
+          '4. Penggunaan_Aset (<u>Aset_ID</u> [PK, FK], <u>ID_Karyawan</u> [PK, FK])'
+        ]
+      },
+      {
+        title: 'Latihan Mandiri 4: Denormalisasi Flat File 2D KHS (Slide 40)',
+        beforeInfo: 'Kebalikan dari normalisasi: diberikan 4 tabel ternormalisasi (mahasiswa, registrasi, kelasMatakuliah, matakuliah) dan diminta membuat flat file 2D KHS yang memuat atribut: nim, nama, kodeKelasMtk, namaMtk, sks, nilai, ips.',
+        fds: [
+          'Menggabungkan kembali (JOIN) ke-4 tabel menjadi satu tabel/view 2D KHS untuk kebutuhan pelaporan cepat:',
+          'SELECT m.nim, m.nama, r.kodeKelasMtk, mk.namaMtk, mk.sks, r.nilai, m.ipk AS ips FROM mahasiswa m JOIN registrasi r ON m.nim = r.nim JOIN kelasMatakuliah k ON r.kodeKelasMtk = k.kodeKelasMtk JOIN matakuliah mk ON k.kodeMtk = mk.kodeMtk;'
+        ],
+        afterTables: [
+          'Flat File 2D KHS: (nim, nama, kodeKelasMtk, namaMtk, sks, nilai, ips)'
+        ]
+      }
+    ];
+
+    function selectMandiriCase(idx) {
+      [0, 1, 2, 3].forEach(i => {
+        const b = document.getElementById(`btn-mandiri-${i}`);
+        if (b) b.className = i === idx ? 'px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-bold' : 'px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300';
+      });
+      const c = MANDIRI_PART1_DATA[idx];
+      document.getElementById('box-mandiri-viewer').innerHTML = `
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+          <div class="font-bold text-amber-300">${c.title}</div>
+          <p class="text-slate-300">${c.beforeInfo}</p>
+          <div class="space-y-1 font-mono text-slate-300 pt-2">${c.fds.map(f => `<div>• ${f}</div>`).join('')}</div>
+          <div class="font-bold text-emerald-400 pt-2">Hasil Struktur Akhir:</div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 font-mono">${c.afterTables.map(t => `<div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-emerald-300">${t}</div>`).join('')}</div>
+        </div>`;
+    }
+
+    // =========================================================================
+    // 8. TAB 7: SBD09 - NORMALISASI PART 2 (LATIHAN 1 S.D. 6 & MILESTONE 2)
+    // =========================================================================
+    const PART2_CASES = [
+      // LATIHAN 1 (SLIDE 2)
+      {
+        badge: 'SBD09 • Latihan 1 (Slide 2)',
+        title: 'Klasifikasi FFD, Partial Dependency, & Transitive Dependency pada Relasi Buku-Penulis-Edisi',
+        instruction: 'Perjelas mana yang berupa Full Functional Dependency (FFD), Partial Dependency (PD), dan Transitive Dependency (TD bila ada), dan lanjutkan normalisasi hingga 3NF untuk skema: (ISBN, Book_Title, Author_Num, LastName, Publisher, Royalty, Edition).',
+        beforeHtml: `
+          <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs text-slate-200">
+            Skema Awal 1NF: <strong>R(<u>ISBN</u>, Book_Title, <u>Author_Num</u>, LastName, Publisher, Royalty, <u>Edition</u>)</strong><br>
+            <span class="text-amber-300">Composite Primary Key: {ISBN, Author_Num, Edition}</span> (karena 1 buku punya beberapa edisi &amp; beberapa penulis dengan persentase royalti berbeda).
+          </div>`,
+        fdAnalysis: [
+          { type: 'Full Functional Dependency (FFD)', color: 'emerald', desc: '<code>{ISBN, Author_Num, Edition} → Royalty</code><br>Besaran royalti bergantung penuh pada kombinasi buku (ISBN), siapa penulisnya (Author_Num), dan edisi ke berapa (Edition).' },
+          { type: 'Partial Dependency (PD #1)', color: 'amber', desc: '<code>ISBN → Book_Title, Publisher</code><br>Judul buku dan nama penerbit hanya bergantung pada sebagian kunci utama yaitu <code>ISBN</code>.' },
+          { type: 'Partial Dependency (PD #2)', color: 'amber', desc: '<code>Author_Num → LastName</code><br>Nama belakang penulis hanya bergantung pada sebagian kunci utama yaitu <code>Author_Num</code>.' },
+          { type: 'Transitive Dependency (TD — Jika Publisher punya atribut detail)', color: 'purple', desc: 'Jika informasi Penerbit diperluas (atau <code>Publisher_ID → Publisher_Name</code>), maka <code>ISBN → Publisher_ID → Publisher_Name</code> merupakan Transitive Dependency sehingga <code>Publisher</code> dipisahkan menjadi tabel master tersendiri di 3NF.' }
+        ],
+        stagesHtml: `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            <div class="p-4 rounded-xl bg-slate-900 border border-amber-500/30 space-y-1.5">
+              <div class="text-amber-300 font-bold">Tahap 2NF (Pisahkan Partial Dependency):</div>
+              <div>1. <strong>BOOK</strong> (<u>ISBN</u> [PK], Book_Title, Publisher)</div>
+              <div>2. <strong>AUTHOR</strong> (<u>Author_Num</u> [PK], LastName)</div>
+              <div>3. <strong>BOOK_ROYALTY</strong> (<u>ISBN</u> [PK,FK], <u>Author_Num</u> [PK,FK], <u>Edition</u> [PK], Royalty)</div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1.5">
+              <div class="text-emerald-300 font-bold">Tahap 3NF (Pisahkan Entitas Publisher jika distandarkan):</div>
+              <div>1. <strong>PUBLISHER</strong> (<u>Pub_ID</u> [PK], Publisher_Name)</div>
+              <div>2. <strong>BOOK</strong> (<u>ISBN</u> [PK], Book_Title, Pub_ID [FK])</div>
+              <div>3. <strong>AUTHOR</strong> (<u>Author_Num</u> [PK], LastName)</div>
+              <div>4. <strong>BOOK_ROYALTY</strong> (<u>ISBN</u> [PK,FK], <u>Author_Num</u> [PK,FK], <u>Edition</u> [PK], Royalty)</div>
+            </div>
+          </div>`,
+        afterTablesHtml: `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">1. Tabel PUBLISHER (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>Pub_ID (PK)</u></th><th class="p-1.5">Publisher_Name</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">P01</td><td class="p-1.5">Addison-Wesley</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">P02</td><td class="p-1.5">Prentice Hall</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">P03</td><td class="p-1.5">MIT Press</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">2. Tabel AUTHOR (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>Author_Num (PK)</u></th><th class="p-1.5">LastName</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">101</td><td class="p-1.5">Knuth</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">102</td><td class="p-1.5">Martin</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">104</td><td class="p-1.5">Russell</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">3. Tabel BOOK (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>ISBN (PK)</u></th><th class="p-1.5">Book_Title</th><th class="p-1.5">Pub_ID (FK)</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">978-123456</td><td class="p-1.5">The Art of Programming</td><td class="p-1.5 text-purple-300">P01</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">978-654321</td><td class="p-1.5">Clean Code</td><td class="p-1.5 text-purple-300">P02</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">978-334455</td><td class="p-1.5">The Pragmatic Programmer</td><td class="p-1.5 text-purple-300">P01</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">4. Tabel BOOK_ROYALTY (3NF — FFD)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>ISBN (PK,FK)</u></th><th class="p-1.5"><u>Author_Num (PK,FK)</u></th><th class="p-1.5"><u>Edition (PK)</u></th><th class="p-1.5">Royalty</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">978-123456</td><td class="p-1.5 text-purple-300">101</td><td class="p-1.5">3</td><td class="p-1.5 text-emerald-300">15%</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">978-334455</td><td class="p-1.5 text-purple-300">102</td><td class="p-1.5">2</td><td class="p-1.5 text-emerald-300">10%</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">978-334455</td><td class="p-1.5 text-purple-300">104</td><td class="p-1.5">2</td><td class="p-1.5 text-emerald-300">5%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>`,
+        erdSvg: `
+          <svg viewBox="0 0 760 210" class="w-full bg-slate-900/95 rounded-xl border border-slate-800 p-2 font-mono">
+            <!-- Lines -->
+            <line x1="175" y1="65" x2="255" y2="65" stroke="#38bdf8" stroke-width="2" />
+            <text x="188" y="56" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+            <text x="235" y="56" fill="#38bdf8" font-size="10" font-weight="bold">M</text>
+
+            <line x1="425" y1="65" x2="515" y2="95" stroke="#34d399" stroke-width="2" />
+            <text x="438" y="62" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+            <text x="495" y="88" fill="#34d399" font-size="10" font-weight="bold">M</text>
+
+            <line x1="425" y1="155" x2="515" y2="120" stroke="#c084fc" stroke-width="2" />
+            <text x="438" y="152" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+            <text x="495" y="135" fill="#c084fc" font-size="10" font-weight="bold">M</text>
+
+            <!-- PUBLISHER -->
+            <rect x="20" y="25" width="155" height="80" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="2" />
+            <rect x="20" y="25" width="155" height="24" rx="6" fill="#0284c7" />
+            <text x="97" y="41" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">PUBLISHER</text>
+            <text x="30" y="66" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  Pub_ID</text>
+            <text x="30" y="84" fill="#e2e8f0" font-size="9.5">    Publisher_Name</text>
+
+            <!-- BOOK -->
+            <rect x="255" y="20" width="170" height="90" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="2" />
+            <rect x="255" y="20" width="170" height="24" rx="6" fill="#059669" />
+            <text x="340" y="36" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">BOOK</text>
+            <text x="265" y="60" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  ISBN</text>
+            <text x="265" y="77" fill="#e2e8f0" font-size="9.5">    Book_Title</text>
+            <text x="265" y="94" fill="#c084fc" font-size="9.5" font-weight="bold">FK  Pub_ID</text>
+
+            <!-- AUTHOR -->
+            <rect x="255" y="122" width="170" height="75" rx="8" fill="#0f172a" stroke="#c084fc" stroke-width="2" />
+            <rect x="255" y="122" width="170" height="24" rx="6" fill="#7c3aed" />
+            <text x="340" y="138" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">AUTHOR</text>
+            <text x="265" y="162" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  Author_Num</text>
+            <text x="265" y="180" fill="#e2e8f0" font-size="9.5">    LastName</text>
+
+            <!-- BOOK_ROYALTY -->
+            <rect x="515" y="45" width="225" height="115" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="2" />
+            <rect x="515" y="45" width="225" height="24" rx="6" fill="#d97706" />
+            <text x="627" y="61" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">BOOK_ROYALTY</text>
+            <text x="525" y="85" fill="#fbbf24" font-size="9.5" font-weight="bold">PK,FK1  ISBN</text>
+            <text x="525" y="103" fill="#fbbf24" font-size="9.5" font-weight="bold">PK,FK2  Author_Num</text>
+            <text x="525" y="121" fill="#fbbf24" font-size="9.5" font-weight="bold">PK      Edition</text>
+            <text x="525" y="139" fill="#34d399" font-size="9.5" font-weight="bold">        Royalty</text>
+          </svg>`,
+        sql: `CREATE TABLE author (
+  author_num INT PRIMARY KEY,
+  last_name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE book (
+  isbn VARCHAR(20) PRIMARY KEY,
+  book_title VARCHAR(100) NOT NULL,
+  publisher VARCHAR(80) NOT NULL
+);
+
+CREATE TABLE book_royalty (
+  isbn VARCHAR(20) NOT NULL,
+  author_num INT NOT NULL,
+  edition INT NOT NULL,
+  royalty DECIMAL(5,2) NOT NULL,
+  PRIMARY KEY (isbn, author_num, edition),
+  FOREIGN KEY (isbn) REFERENCES book(isbn),
+  FOREIGN KEY (author_num) REFERENCES author(author_num)
+);`
+      },
+
+      // LATIHAN 2 (SLIDE 3)
+      {
+        badge: 'SBD09 • Latihan 2 (Slide 3)',
+        title: 'Normalisasi Tabel Invoice (INV_NUM, PROD_NUM, SALE_DATE, VEND_CODE, QUANT_SOLD, PROD_PRICE)',
+        instruction: 'Dari tabel invoice berikut, buatkan diagram dependency, tuliskan seluruh dependency, kemudian pisahkan partial dan transitive dependency menjadi tabel tersendiri dan gambarkan ERD-nya.',
+        beforeHtml: `
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-2"><u>INV_NUM</u></th><th class="p-2"><u>PROD_NUM</u></th><th class="p-2">SALE_DATE</th>
+                  <th class="p-2">PROD_LABEL</th><th class="p-2">VEND_CODE</th><th class="p-2">VEND_NAME</th>
+                  <th class="p-2 text-right">QUANT_SOLD</th><th class="p-2 text-right">PROD_PRICE</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                <tr><td class="p-2 text-amber-300">211347</td><td class="p-2 text-emerald-300">AA-E3422QW</td><td class="p-2">15-Jan-2010</td><td class="p-2">Rotary sander</td><td class="p-2">211</td><td class="p-2">NeverFail, Inc.</td><td class="p-2 text-right">1</td><td class="p-2 text-right">$49.95</td></tr>
+                <tr><td class="p-2 text-amber-300">211347</td><td class="p-2 text-emerald-300">QD-300932X</td><td class="p-2">15-Jan-2010</td><td class="p-2">0.25-in. drill bit</td><td class="p-2">211</td><td class="p-2">NeverFail, Inc.</td><td class="p-2 text-right">8</td><td class="p-2 text-right">$3.45</td></tr>
+                <tr><td class="p-2 text-amber-300">211347</td><td class="p-2 text-emerald-300">RU-995748G</td><td class="p-2">15-Jan-2010</td><td class="p-2">Band saw</td><td class="p-2">309</td><td class="p-2">BeGood, Inc.</td><td class="p-2 text-right">1</td><td class="p-2 text-right">$39.99</td></tr>
+                <tr><td class="p-2 text-amber-300">211348</td><td class="p-2 text-emerald-300">AA-E3422QW</td><td class="p-2">15-Jan-2010</td><td class="p-2">Rotary sander</td><td class="p-2">211</td><td class="p-2">NeverFail, Inc.</td><td class="p-2 text-right">2</td><td class="p-2 text-right">$49.95</td></tr>
+                <tr><td class="p-2 text-amber-300">211349</td><td class="p-2 text-emerald-300">GH-778345P</td><td class="p-2">16-Jan-2010</td><td class="p-2">Power drill</td><td class="p-2">157</td><td class="p-2">ToughGo, Inc.</td><td class="p-2 text-right">1</td><td class="p-2 text-right">$87.75</td></tr>
+              </tbody>
+            </table>
+          </div>`,
+        fdAnalysis: [
+          { type: 'Composite Primary Key (1NF)', color: 'cyan', desc: '<code>{INV_NUM, PROD_NUM}</code> menjadi kunci komposit karena satu nomor invoice (211347) memuat banyak produk.' },
+          { type: 'Full Functional Dependency (FFD)', color: 'emerald', desc: '<code>{INV_NUM, PROD_NUM} → QUANT_SOLD</code> (Jumlah barang terjual bergantung penuh pada nomor nota dan kode barang).' },
+          { type: 'Partial Dependency (PD #1)', color: 'amber', desc: '<code>INV_NUM → SALE_DATE</code> (Tanggal penjualan hanya bergantung pada nomor invoice).' },
+          { type: 'Partial Dependency (PD #2)', color: 'amber', desc: '<code>PROD_NUM → PROD_LABEL, VEND_CODE, VEND_NAME, PROD_PRICE</code> (Detail barang, harga, dan vendor hanya bergantung pada kode barang).' },
+          { type: 'Transitive Dependency (TD)', color: 'rose', desc: '<code>PROD_NUM → VEND_CODE → VEND_NAME</code> (Nama vendor bergantung pada kode vendor <code>VEND_CODE</code> yang bukan PK pada tabel Produk).' }
+        ],
+        stagesHtml: `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs font-mono">
+            <div class="p-4 rounded-xl bg-slate-900 border border-amber-500/30 space-y-1.5">
+              <div class="text-amber-300 font-bold">Hasil Dekomposisi 2NF (3 Tabel):</div>
+              <div>1. <strong>INVOICE</strong> (<u>INV_NUM</u> [PK], SALE_DATE)</div>
+              <div>2. <strong>LINE</strong> (<u>INV_NUM</u> [PK,FK], <u>PROD_NUM</u> [PK,FK], QUANT_SOLD)</div>
+              <div>3. <strong>PRODUCT_2NF</strong> (<u>PROD_NUM</u> [PK], PROD_LABEL, VEND_CODE, VEND_NAME, PROD_PRICE) <span class="text-rose-400">← Masih ada TD!</span></div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1.5">
+              <div class="text-emerald-300 font-bold">Hasil Dekomposisi Akhir 3NF &amp; ERD (4 Tabel):</div>
+              <div>1. <strong>INVOICE</strong> (<u>INV_NUM</u> [PK], SALE_DATE)</div>
+              <div>2. <strong>VENDOR</strong> (<u>VEND_CODE</u> [PK], VEND_NAME)</div>
+              <div>3. <strong>PRODUCT</strong> (<u>PROD_NUM</u> [PK], PROD_LABEL, PROD_PRICE, VEND_CODE [FK])</div>
+              <div>4. <strong>LINE</strong> (<u>INV_NUM</u> [PK,FK], <u>PROD_NUM</u> [PK,FK], QUANT_SOLD)</div>
+              <div class="pt-1 text-cyan-300">Relasi ERD: INVOICE (1) ──&lt; (M) LINE (M) &gt;── (1) PRODUCT (M) &gt;── (1) VENDOR</div>
+            </div>
+          </div>`,
+        afterTablesHtml: `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">1. Tabel INVOICE (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>INV_NUM (PK)</u></th><th class="p-1.5">SALE_DATE</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">211347</td><td class="p-1.5">15-Jan-2010</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">211348</td><td class="p-1.5">15-Jan-2010</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">211349</td><td class="p-1.5">16-Jan-2010</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">2. Tabel VENDOR (3NF — Hasil Pisah Transitive Dependency)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>VEND_CODE (PK)</u></th><th class="p-1.5">VEND_NAME</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">211</td><td class="p-1.5">NeverFail, Inc.</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">309</td><td class="p-1.5">BeGood, Inc.</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">157</td><td class="p-1.5">ToughGo, Inc.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">3. Tabel PRODUCT (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>PROD_NUM (PK)</u></th><th class="p-1.5">PROD_LABEL</th><th class="p-1.5">PROD_PRICE</th><th class="p-1.5">VEND_CODE (FK)</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">AA-E3422QW</td><td class="p-1.5">Rotary sander</td><td class="p-1.5">$49.95</td><td class="p-1.5 text-purple-300">211</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">QD-300932X</td><td class="p-1.5">0.25-in. drill bit</td><td class="p-1.5">$3.45</td><td class="p-1.5 text-purple-300">211</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">RU-995748G</td><td class="p-1.5">Band saw</td><td class="p-1.5">$39.99</td><td class="p-1.5 text-purple-300">309</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">GH-778345P</td><td class="p-1.5">Power drill</td><td class="p-1.5">$87.75</td><td class="p-1.5 text-purple-300">157</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">4. Tabel LINE / DETAIL_INVOICE (3NF — FFD)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>INV_NUM (PK,FK)</u></th><th class="p-1.5"><u>PROD_NUM (PK,FK)</u></th><th class="p-1.5 text-right">QUANT_SOLD</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">211347</td><td class="p-1.5 text-purple-300">AA-E3422QW</td><td class="p-1.5 text-right">1</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">211347</td><td class="p-1.5 text-purple-300">QD-300932X</td><td class="p-1.5 text-right">8</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">211347</td><td class="p-1.5 text-purple-300">RU-995748G</td><td class="p-1.5 text-right">1</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">211348</td><td class="p-1.5 text-purple-300">AA-E3422QW</td><td class="p-1.5 text-right">2</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">211349</td><td class="p-1.5 text-purple-300">GH-778345P</td><td class="p-1.5 text-right">1</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>`,
+        erdSvg: `
+          <svg viewBox="0 0 780 155" class="w-full bg-slate-900/95 rounded-xl border border-slate-800 p-2 font-mono">
+            <!-- Connectors -->
+            <line x1="160" y1="75" x2="215" y2="75" stroke="#38bdf8" stroke-width="2.2" />
+            <text x="170" y="65" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+            <text x="198" y="65" fill="#38bdf8" font-size="10" font-weight="bold">M</text>
+
+            <line x1="395" y1="75" x2="450" y2="75" stroke="#34d399" stroke-width="2.2" />
+            <text x="405" y="65" fill="#34d399" font-size="10" font-weight="bold">M</text>
+            <text x="435" y="65" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+
+            <line x1="615" y1="75" x2="660" y2="75" stroke="#c084fc" stroke-width="2.2" />
+            <text x="623" y="65" fill="#c084fc" font-size="10" font-weight="bold">M</text>
+            <text x="647" y="65" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+
+            <!-- INVOICE -->
+            <rect x="15" y="30" width="145" height="85" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="2" />
+            <rect x="15" y="30" width="145" height="24" rx="6" fill="#0284c7" />
+            <text x="87" y="46" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">INVOICE</text>
+            <text x="25" y="72" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  INV_NUM</text>
+            <text x="25" y="92" fill="#e2e8f0" font-size="9.5">    SALE_DATE</text>
+
+            <!-- LINE -->
+            <rect x="215" y="25" width="180" height="98" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="2" />
+            <rect x="215" y="25" width="180" height="24" rx="6" fill="#d97706" />
+            <text x="305" y="41" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">LINE (Detail)</text>
+            <text x="225" y="66" fill="#fbbf24" font-size="9.5" font-weight="bold">PK,FK1  INV_NUM</text>
+            <text x="225" y="84" fill="#fbbf24" font-size="9.5" font-weight="bold">PK,FK2  PROD_NUM</text>
+            <text x="225" y="102" fill="#34d399" font-size="9.5">        QUANT_SOLD</text>
+
+            <!-- PRODUCT -->
+            <rect x="450" y="18" width="165" height="112" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="2" />
+            <rect x="450" y="18" width="165" height="24" rx="6" fill="#059669" />
+            <text x="532" y="34" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">PRODUCT</text>
+            <text x="460" y="58" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  PROD_NUM</text>
+            <text x="460" y="76" fill="#e2e8f0" font-size="9.5">    PROD_LABEL</text>
+            <text x="460" y="94" fill="#e2e8f0" font-size="9.5">    PROD_PRICE</text>
+            <text x="460" y="112" fill="#c084fc" font-size="9.5" font-weight="bold">FK  VEND_CODE</text>
+
+            <!-- VENDOR -->
+            <rect x="660" y="30" width="110" height="85" rx="8" fill="#0f172a" stroke="#c084fc" stroke-width="2" />
+            <rect x="660" y="30" width="110" height="24" rx="6" fill="#7c3aed" />
+            <text x="715" y="46" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">VENDOR</text>
+            <text x="668" y="72" fill="#fbbf24" font-size="9" font-weight="bold">PK VEND_CODE</text>
+            <text x="668" y="92" fill="#e2e8f0" font-size="9">   VEND_NAME</text>
+          </svg>`,
+        sql: `CREATE TABLE vendor (
+  vend_code INT PRIMARY KEY,
+  vend_name VARCHAR(80) NOT NULL
+);
+
+CREATE TABLE product (
+  prod_num VARCHAR(15) PRIMARY KEY,
+  prod_label VARCHAR(80) NOT NULL,
+  prod_price DECIMAL(10,2) NOT NULL,
+  vend_code INT NOT NULL,
+  FOREIGN KEY (vend_code) REFERENCES vendor(vend_code)
+);
+
+CREATE TABLE invoice (
+  inv_num INT PRIMARY KEY,
+  sale_date DATE NOT NULL
+);
+
+CREATE TABLE line (
+  inv_num INT NOT NULL,
+  prod_num VARCHAR(15) NOT NULL,
+  quant_sold INT NOT NULL,
+  PRIMARY KEY (inv_num, prod_num),
+  FOREIGN KEY (inv_num) REFERENCES invoice(inv_num),
+  FOREIGN KEY (prod_num) REFERENCES product(prod_num)
+);`
+      },
+
+      // LATIHAN 3 (SLIDE 4)
+      {
+        badge: 'SBD09 • Latihan 3 (Slide 4)',
+        title: 'Normalisasi Penyewaan Film (Paijem Margono, Raditya Bika, Tuppence Tuppleware)',
+        instruction: 'Normalisasikan tabel penyewaan film berikut yang mengandung multivalue berpasangan pada kolom Film Disewa dan Kategori.',
+        beforeHtml: `
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                <tr><th class="p-2">Nama Lengkap</th><th class="p-2">Alamat Fisik</th><th class="p-2 text-rose-300">Film Disewa (Multivalue)</th><th class="p-2">Pembayaran</th><th class="p-2 text-rose-300">Kategori (Multivalue)</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                <tr><td class="p-2 text-amber-300">Paijem Margono</td><td class="p-2">Jl. Sudirman No. 5 Yogyakarta, Indonesia</td><td class="p-2 text-rose-300">Rambo First Blood, Rambo Last Blood</td><td class="p-2">CC Mastercard</td><td class="p-2 text-rose-300">Action, Action</td></tr>
+                <tr><td class="p-2 text-amber-300">Raditya Bika</td><td class="p-2">61 Slamet Riyadi, Surakarta, Indonesia</td><td class="p-2 text-rose-300">Ad Astra, It Chapter Two, 3 Idiots</td><td class="p-2">Paypal</td><td class="p-2 text-rose-300">Sci-Fi, Horror, Comedy</td></tr>
+                <tr><td class="p-2 text-amber-300">Tuppence Tuppleware</td><td class="p-2">7 Stappleton Street, East Bedok, Singapore</td><td class="p-2 text-rose-300">3 Idiots, Seven, Rambo Last Blood</td><td class="p-2">VA BCA</td><td class="p-2 text-rose-300">Comedy, Thriller, Action</td></tr>
+              </tbody>
+            </table>
+          </div>`,
+        fdAnalysis: [
+          { type: 'UNF → 1NF (Atomisasi & Surrogate Key)', color: 'cyan', desc: 'Setiap film dan kategorinya yang dipisahkan koma dipecah menjadi baris tunggal (8 baris sewa). Tambahkan pengenal unik <code>ID_Member</code> dan <code>ID_Film</code>. Composite PK 1NF: <code>{ID_Member, ID_Film}</code>.' },
+          { type: 'Partial Dependency (PD #1)', color: 'amber', desc: '<code>ID_Member → Nama_Lengkap, Jalan, Kota, Negara, Metode_Pembayaran</code> (Data profil penyewa hanya bergantung pada <code>ID_Member</code>).' },
+          { type: 'Partial Dependency (PD #2)', color: 'amber', desc: '<code>ID_Film → Judul_Film, ID_Kategori, Nama_Kategori</code> (Judul film dan genre hanya bergantung pada <code>ID_Film</code>).' },
+          { type: 'Transitive Dependency (TD)', color: 'rose', desc: '<code>ID_Film → ID_Kategori → Nama_Kategori</code> serta pada alamat: <code>Kota → Negara</code> (Yogyakarta &amp; Surakarta → Indonesia, East Bedok → Singapore).' }
+        ],
+        stagesHtml: `
+          <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2 text-xs font-mono">
+            <div class="text-emerald-300 font-bold">Hasil Akhir Dekomposisi 3NF (4 Tabel):</div>
+            <div>1. <strong>KATEGORI_FILM</strong> (<u>ID_Kategori</u> [PK], Nama_Kategori) — <em>Action, Sci-Fi, Horror, Comedy, Thriller</em></div>
+            <div>2. <strong>FILM</strong> (<u>ID_Film</u> [PK], Judul_Film, ID_Kategori [FK]) — <em>Rambo First Blood, 3 Idiots, Seven, dll.</em></div>
+            <div>3. <strong>MEMBER</strong> (<u>ID_Member</u> [PK], Nama_Lengkap, Alamat_Jalan, Kota, Negara, Metode_Pembayaran)</div>
+            <div>4. <strong>PENYEWAAN</strong> (<u>ID_Member</u> [PK,FK], <u>ID_Film</u> [PK,FK])</div>
+          </div>`,
+        afterTablesHtml: `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">1. Tabel MEMBER (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>ID_Member (PK)</u></th><th class="p-1.5">Nama_Lengkap</th><th class="p-1.5">Kota / Negara</th><th class="p-1.5">Pembayaran</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">M01</td><td class="p-1.5">Paijem Margono</td><td class="p-1.5">Yogyakarta, ID</td><td class="p-1.5">CC Mastercard</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">M02</td><td class="p-1.5">Raditya Bika</td><td class="p-1.5">Surakarta, ID</td><td class="p-1.5">Paypal</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">M03</td><td class="p-1.5">Tuppence Tuppleware</td><td class="p-1.5">East Bedok, SG</td><td class="p-1.5">VA BCA</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">2. Tabel KATEGORI_FILM (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>ID_Kategori (PK)</u></th><th class="p-1.5">Nama_Kategori</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">K01</td><td class="p-1.5">Action</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">K02</td><td class="p-1.5">Sci-Fi</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">K03</td><td class="p-1.5">Horror</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">K04</td><td class="p-1.5">Comedy</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">K05</td><td class="p-1.5">Thriller</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">3. Tabel FILM (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>ID_Film (PK)</u></th><th class="p-1.5">Judul_Film</th><th class="p-1.5">ID_Kategori (FK)</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">F01</td><td class="p-1.5">Rambo First Blood</td><td class="p-1.5 text-purple-300">K01</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">F02</td><td class="p-1.5">Rambo Last Blood</td><td class="p-1.5 text-purple-300">K01</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">F03</td><td class="p-1.5">Ad Astra</td><td class="p-1.5 text-purple-300">K02</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">F04</td><td class="p-1.5">It Chapter Two</td><td class="p-1.5 text-purple-300">K03</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">F05</td><td class="p-1.5">3 Idiots</td><td class="p-1.5 text-purple-300">K04</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">F06</td><td class="p-1.5">Seven</td><td class="p-1.5 text-purple-300">K05</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">4. Tabel PENYEWAAN (3NF — 8 Baris Atomik)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>ID_Member (PK,FK)</u></th><th class="p-1.5"><u>ID_Film (PK,FK)</u></th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">M01 (Paijem)</td><td class="p-1.5 text-purple-300">F01 (Rambo First Blood)</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">M01 (Paijem)</td><td class="p-1.5 text-purple-300">F02 (Rambo Last Blood)</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">M02 (Raditya)</td><td class="p-1.5 text-purple-300">F03, F04, F05</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">M03 (Tuppence)</td><td class="p-1.5 text-purple-300">F05, F06, F02</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>`,
+        erdSvg: `
+          <svg viewBox="0 0 780 155" class="w-full bg-slate-900/95 rounded-xl border border-slate-800 p-2 font-mono">
+            <line x1="175" y1="75" x2="230" y2="75" stroke="#38bdf8" stroke-width="2.2" />
+            <text x="183" y="65" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+            <text x="213" y="65" fill="#38bdf8" font-size="10" font-weight="bold">M</text>
+
+            <line x1="395" y1="75" x2="450" y2="75" stroke="#34d399" stroke-width="2.2" />
+            <text x="405" y="65" fill="#34d399" font-size="10" font-weight="bold">M</text>
+            <text x="435" y="65" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+
+            <line x1="610" y1="75" x2="655" y2="75" stroke="#c084fc" stroke-width="2.2" />
+            <text x="618" y="65" fill="#c084fc" font-size="10" font-weight="bold">M</text>
+            <text x="642" y="65" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+
+            <!-- MEMBER -->
+            <rect x="15" y="20" width="160" height="108" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="2" />
+            <rect x="15" y="20" width="160" height="24" rx="6" fill="#0284c7" />
+            <text x="95" y="36" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">MEMBER</text>
+            <text x="25" y="60" fill="#fbbf24" font-size="9" font-weight="bold">PK  ID_Member</text>
+            <text x="25" y="77" fill="#e2e8f0" font-size="9">    Nama_Lengkap</text>
+            <text x="25" y="94" fill="#e2e8f0" font-size="9">    Alamat_Fisik</text>
+            <text x="25" y="111" fill="#e2e8f0" font-size="9">    Pembayaran</text>
+
+            <!-- PENYEWAAN -->
+            <rect x="230" y="32" width="165" height="84" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="2" />
+            <rect x="230" y="32" width="165" height="24" rx="6" fill="#d97706" />
+            <text x="312" y="48" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">PENYEWAAN</text>
+            <text x="240" y="75" fill="#fbbf24" font-size="9.5" font-weight="bold">PK,FK1 ID_Member</text>
+            <text x="240" y="95" fill="#fbbf24" font-size="9.5" font-weight="bold">PK,FK2 ID_Film</text>
+
+            <!-- FILM -->
+            <rect x="450" y="25" width="160" height="98" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="2" />
+            <rect x="450" y="25" width="160" height="24" rx="6" fill="#059669" />
+            <text x="530" y="41" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">FILM</text>
+            <text x="460" y="66" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  ID_Film</text>
+            <text x="460" y="84" fill="#e2e8f0" font-size="9.5">    Judul_Film</text>
+            <text x="460" y="102" fill="#c084fc" font-size="9.5" font-weight="bold">FK  ID_Kategori</text>
+
+            <!-- KATEGORI -->
+            <rect x="655" y="32" width="115" height="84" rx="8" fill="#0f172a" stroke="#c084fc" stroke-width="2" />
+            <rect x="655" y="32" width="115" height="24" rx="6" fill="#7c3aed" />
+            <text x="712" y="48" fill="#fff" font-size="9.5" font-weight="bold" text-anchor="middle">KATEGORI_FILM</text>
+            <text x="662" y="75" fill="#fbbf24" font-size="8.5" font-weight="bold">PK ID_Kategori</text>
+            <text x="662" y="95" fill="#e2e8f0" font-size="8.5">   Nama_Kategori</text>
+          </svg>`,
+        sql: `CREATE TABLE kategori_film (
+  id_kategori VARCHAR(5) PRIMARY KEY,
+  nama_kategori VARCHAR(30) NOT NULL
+);
+
+CREATE TABLE film (
+  id_film VARCHAR(5) PRIMARY KEY,
+  judul_film VARCHAR(80) NOT NULL,
+  id_kategori VARCHAR(5) NOT NULL,
+  FOREIGN KEY (id_kategori) REFERENCES kategori_film(id_kategori)
+);
+
+CREATE TABLE member (
+  id_member VARCHAR(5) PRIMARY KEY,
+  nama_lengkap VARCHAR(60) NOT NULL,
+  alamat_fisik VARCHAR(120) NOT NULL,
+  pembayaran VARCHAR(30) NOT NULL
+);
+
+CREATE TABLE penyewaan (
+  id_member VARCHAR(5) NOT NULL,
+  id_film VARCHAR(5) NOT NULL,
+  PRIMARY KEY (id_member, id_film),
+  FOREIGN KEY (id_member) REFERENCES member(id_member),
+  FOREIGN KEY (id_film) REFERENCES film(id_film)
+);`
+      },
+
+      // LATIHAN 4 (SLIDE 5)
+      {
+        badge: 'SBD09 • Latihan 4 (Slide 5)',
+        title: 'Normalisasi Pelatihan Karyawan (Emp_ID, Dept_Name, Dept_Office, Salary, Course_Title, Date_Completed)',
+        instruction: 'Normalisasikan tabel pelatihan karyawan berikut. Perhatikan bahwa Emp_ID 190 (Larry King) belum pernah mengikuti kursus apa pun (Course_Title & Date_Completed kosong).',
+        beforeHtml: `
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                <tr><th class="p-2">Emp_ID</th><th class="p-2">Name</th><th class="p-2">Dept_Name</th><th class="p-2">Dept_Office</th><th class="p-2">Salary</th><th class="p-2">Course_Title</th><th class="p-2">Date_Completed</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                <tr><td class="p-2 text-amber-300">100</td><td class="p-2">Mel Simpson</td><td class="p-2">Marketing</td><td class="p-2">Seattle HQ</td><td class="p-2">48.000</td><td class="p-2">SPSS / Surveys</td><td class="p-2">19/6/2011 &amp; 7/10/2012</td></tr>
+                <tr><td class="p-2 text-amber-300">140</td><td class="p-2">Alan Beeton</td><td class="p-2">Accounting</td><td class="p-2">Oregon</td><td class="p-2">52.000</td><td class="p-2">Tax Acc</td><td class="p-2">8/12/2012</td></tr>
+                <tr><td class="p-2 text-amber-300">110</td><td class="p-2">Chris Lucero</td><td class="p-2">Info Systems</td><td class="p-2">Oregon</td><td class="p-2">43.000</td><td class="p-2">Visual Basic / C++</td><td class="p-2">12/1/2010 &amp; 22/4/2011</td></tr>
+                <tr><td class="p-2 text-rose-400 font-bold">190</td><td class="p-2">Larry King</td><td class="p-2">Finance</td><td class="p-2">California</td><td class="p-2">55.000</td><td class="p-2 text-rose-400 italic">(NULL / Belum Kursus)</td><td class="p-2 text-rose-400 italic">(NULL)</td></tr>
+                <tr><td class="p-2 text-amber-300">150</td><td class="p-2">Susan Martin</td><td class="p-2">Marketing</td><td class="p-2">Seattle HQ</td><td class="p-2">42.000</td><td class="p-2">SPSS / Java</td><td class="p-2">19/6/2009 &amp; 12/8/2011</td></tr>
+              </tbody>
+            </table>
+          </div>`,
+        fdAnalysis: [
+          { type: 'Masalah Entity Integrity pada 1NF', color: 'rose', desc: 'Jika Composite PK adalah <code>{Emp_ID, Course_Title}</code>, maka baris <strong>190 (Larry King)</strong> melanggar aturan <em>Entity Integrity</em> karena bagian dari Primary Key (<code>Course_Title</code>) tidak boleh bernilai <code>NULL</code>! Pemisahan ke 2NF menuntaskan masalah ini.' },
+          { type: 'Full Functional Dependency (FFD)', color: 'emerald', desc: '<code>{Emp_ID, Course_Title} → Date_Completed</code> (Tanggal selesai kursus bergantung penuh pada siapa karyawannya dan kursus apa yang diambil).' },
+          { type: 'Partial Dependency (PD)', color: 'amber', desc: '<code>Emp_ID → Name, Dept_Name, Dept_Office, Salary</code> (Profil karyawan hanya bergantung pada <code>Emp_ID</code>).' },
+          { type: 'Transitive Dependency (TD)', color: 'purple', desc: '<code>Emp_ID → Dept_Name → Dept_Office</code> (Lokasi kantor departemen ditentukan oleh <code>Dept_Name</code>: Marketing → Seattle HQ, Accounting → Oregon, Finance → California).' }
+        ],
+        stagesHtml: `
+          <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2 text-xs font-mono">
+            <div class="text-emerald-300 font-bold">Hasil Akhir Dekomposisi 3NF (4 Tabel — Larry King Aman di Tabel Employee tanpa Baris di Emp_Training):</div>
+            <div>1. <strong>DEPARTMENT</strong> (<u>Dept_Name</u> [PK], Dept_Office)</div>
+            <div>2. <strong>EMPLOYEE</strong> (<u>Emp_ID</u> [PK], Name, Salary, Dept_Name [FK])</div>
+            <div>3. <strong>COURSE</strong> (<u>Course_ID</u> [PK], Course_Title)</div>
+            <div>4. <strong>EMP_TRAINING</strong> (<u>Emp_ID</u> [PK,FK], <u>Course_ID</u> [PK,FK], Date_Completed)</div>
+          </div>`,
+        afterTablesHtml: `
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">1. Tabel DEPARTMENT (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>Dept_Name (PK)</u></th><th class="p-1.5">Dept_Office</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">Marketing</td><td class="p-1.5">Seattle HQ</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">Accounting</td><td class="p-1.5">Oregon</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">Info Systems</td><td class="p-1.5">Oregon</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">Finance</td><td class="p-1.5">California</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">2. Tabel EMPLOYEE (3NF — Termasuk Larry King)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>Emp_ID (PK)</u></th><th class="p-1.5">Name</th><th class="p-1.5">Salary</th><th class="p-1.5">Dept_Name (FK)</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">100</td><td class="p-1.5">Mel Simpson</td><td class="p-1.5">48.000</td><td class="p-1.5 text-purple-300">Marketing</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">140</td><td class="p-1.5">Alan Beeton</td><td class="p-1.5">52.000</td><td class="p-1.5 text-purple-300">Accounting</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">110</td><td class="p-1.5">Chris Lucero</td><td class="p-1.5">43.000</td><td class="p-1.5 text-purple-300">Info Systems</td></tr>
+                  <tr class="bg-emerald-950/30"><td class="p-1.5 text-emerald-300 font-bold">190</td><td class="p-1.5 text-emerald-300">Larry King</td><td class="p-1.5">55.000</td><td class="p-1.5 text-purple-300">Finance</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">150</td><td class="p-1.5">Susan Martin</td><td class="p-1.5">42.000</td><td class="p-1.5 text-purple-300">Marketing</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">3. Tabel EMP_TRAINING (3NF — FFD)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>Emp_ID (PK,FK)</u></th><th class="p-1.5"><u>Course_Title (PK)</u></th><th class="p-1.5">Date_Completed</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">100</td><td class="p-1.5">SPSS</td><td class="p-1.5">19/6/2011</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">100</td><td class="p-1.5">Surveys</td><td class="p-1.5">7/10/2012</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">140</td><td class="p-1.5">Tax Acc</td><td class="p-1.5">8/12/2012</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">110</td><td class="p-1.5">Visual Basic &amp; C++</td><td class="p-1.5">2010 &amp; 2011</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">150</td><td class="p-1.5">SPSS &amp; Java</td><td class="p-1.5">2009 &amp; 2011</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>`,
+        erdSvg: `
+          <svg viewBox="0 0 720 150" class="w-full bg-slate-900/95 rounded-xl border border-slate-800 p-2 font-mono">
+            <line x1="185" y1="75" x2="255" y2="75" stroke="#38bdf8" stroke-width="2.2" />
+            <text x="195" y="65" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+            <text x="235" y="65" fill="#38bdf8" font-size="10" font-weight="bold">M</text>
+
+            <line x1="435" y1="75" x2="505" y2="75" stroke="#34d399" stroke-width="2.2" />
+            <text x="445" y="65" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+            <text x="485" y="65" fill="#34d399" font-size="10" font-weight="bold">M</text>
+
+            <!-- DEPARTMENT -->
+            <rect x="20" y="30" width="165" height="85" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="2" />
+            <rect x="20" y="30" width="165" height="24" rx="6" fill="#0284c7" />
+            <text x="102" y="46" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">DEPARTMENT</text>
+            <text x="30" y="72" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  Dept_Name</text>
+            <text x="30" y="92" fill="#e2e8f0" font-size="9.5">    Dept_Office</text>
+
+            <!-- EMPLOYEE -->
+            <rect x="255" y="20" width="180" height="108" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="2" />
+            <rect x="255" y="20" width="180" height="24" rx="6" fill="#059669" />
+            <text x="345" y="36" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">EMPLOYEE</text>
+            <text x="265" y="60" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  Emp_ID</text>
+            <text x="265" y="77" fill="#e2e8f0" font-size="9.5">    Name</text>
+            <text x="265" y="94" fill="#e2e8f0" font-size="9.5">    Salary</text>
+            <text x="265" y="111" fill="#c084fc" font-size="9.5" font-weight="bold">FK  Dept_Name</text>
+
+            <!-- EMP_TRAINING -->
+            <rect x="505" y="25" width="195" height="98" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="2" />
+            <rect x="505" y="25" width="195" height="24" rx="6" fill="#d97706" />
+            <text x="602" y="41" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">EMP_TRAINING</text>
+            <text x="515" y="66" fill="#fbbf24" font-size="9.5" font-weight="bold">PK,FK  Emp_ID</text>
+            <text x="515" y="84" fill="#fbbf24" font-size="9.5" font-weight="bold">PK     Course_Title</text>
+            <text x="515" y="102" fill="#34d399" font-size="9.5">       Date_Completed</text>
+          </svg>`,
+        sql: `CREATE TABLE department (
+  dept_name VARCHAR(40) PRIMARY KEY,
+  dept_office VARCHAR(40) NOT NULL
+);
+
+CREATE TABLE employee (
+  emp_id INT PRIMARY KEY,
+  name VARCHAR(60) NOT NULL,
+  salary DECIMAL(10,2) NOT NULL,
+  dept_name VARCHAR(40) NOT NULL,
+  FOREIGN KEY (dept_name) REFERENCES department(dept_name)
+);
+
+CREATE TABLE emp_training (
+  emp_id INT NOT NULL,
+  course_title VARCHAR(50) NOT NULL,
+  date_completed DATE NOT NULL,
+  PRIMARY KEY (emp_id, course_title),
+  FOREIGN KEY (emp_id) REFERENCES employee(emp_id)
+);`
+      },
+
+      // LATIHAN 5 (SLIDE 6)
+      {
+        badge: 'SBD09 • Latihan 5 (Slide 6 — Identifikasi Kesalahan Tabel!)',
+        title: 'Deteksi Kesalahan Tabel Mahasiswa & Normalisasi Transitive Dependency Berjenjang',
+        instruction: 'Tabel berikut ada kesalahan kecil. Identifikasi kesalahannya dan lanjutkan dengan normalisasi sampai 3NF!',
+        beforeHtml: `
+          <div class="p-4 rounded-xl bg-rose-950/30 border border-rose-500/50 space-y-2 text-xs">
+            <div class="font-bold text-rose-300 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-bug"></i> TEMUAN KESALAHAN KECIL PADA TABEL SLIDE 6:
+            </div>
+            <p class="text-slate-200 leading-relaxed">
+              1. <strong>Pelanggaran Keunikan Primary Key / Functional Dependency (<code>STU_NUM = 199876</code> Muncul 2 Kali!):</strong> Pada kolom sampel ke-3 dan ke-4, nomor mahasiswa <strong><code>199876</code> dipakai oleh dua orang berbeda</strong>, yaitu <strong>Jones</strong> (GPA 2.31, Advisor Gentry) dan <strong>Ortiz</strong> (GPA 3.45, Advisor Tillery). Hal ini melanggar syarat <code>STU_NUM → STU_LNAME</code> ($t_1.\text{STU\_NUM} = t_2.\text{STU\_NUM}$ tetapi $t_1.\text{STU\_LNAME} \neq t_2.\text{STU\_LNAME}$). Solusinya: berikan <code>STU_NUM</code> unik untuk Ortiz (misal <code>199877</code>).<br>
+              2. <strong>Redundansi Atribut <code>STU_MAJOR</code> vs <code>DEPT_NAME</code>:</strong> Pada sampel ke-5 (McKulski), <code>STU_MAJOR = Statistics</code> sedangkan <code>DEPT_NAME = Mathematics</code> (satu departemen dapat menaungi beberapa major, atau <code>STU_MAJOR</code> ditentukan oleh kode program studi).
+            </p>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-800 mt-3">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                <tr><th class="p-2">ATTRIBUTE</th><th class="p-2">VAL 1</th><th class="p-2">VAL 2</th><th class="p-2 bg-rose-500/20 text-rose-300">VAL 3 (Konflik PK!)</th><th class="p-2 bg-rose-500/20 text-rose-300">VAL 4 (Konflik PK!)</th><th class="p-2">VAL 5</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                <tr><td class="p-2 font-bold text-amber-300">STU_NUM (PK)</td><td class="p-2">211343</td><td class="p-2">200128</td><td class="p-2 font-bold text-rose-400">199876</td><td class="p-2 font-bold text-rose-400">199876 (Harusnya Unik!)</td><td class="p-2">223456</td></tr>
+                <tr><td class="p-2">STU_LNAME</td><td class="p-2">Stephanos</td><td class="p-2">Smith</td><td class="p-2 text-rose-300">Jones</td><td class="p-2 text-rose-300">Ortiz</td><td class="p-2">McKulski</td></tr>
+                <tr><td class="p-2">DEPT_CODE</td><td class="p-2">ACCT</td><td class="p-2">ACCT</td><td class="p-2">MKTG</td><td class="p-2">MKTG</td><td class="p-2">MATH</td></tr>
+                <tr><td class="p-2">DEPT_NAME / PHONE</td><td class="p-2">Accounting (4356)</td><td class="p-2">Accounting (4356)</td><td class="p-2">Marketing (4378)</td><td class="p-2">Marketing (4378)</td><td class="p-2">Mathematics (3420)</td></tr>
+                <tr><td class="p-2">ADVISOR_LNAME</td><td class="p-2">Grastrand (T201)</td><td class="p-2">Grastrand (T201)</td><td class="p-2">Gentry (T228)</td><td class="p-2">Tillery (T356)</td><td class="p-2">Chen (J331)</td></tr>
+                <tr><td class="p-2">STU_HOURS / CLASS</td><td class="p-2">75 (Junior)</td><td class="p-2">45 (Sophomore)</td><td class="p-2">117 (Senior)</td><td class="p-2">113 (Senior)</td><td class="p-2">87 (Junior)</td></tr>
+              </tbody>
+            </table>
+          </div>`,
+        fdAnalysis: [
+          { type: 'Sudah 2NF (Setelah STU_NUM Diperbaiki Unik)', color: 'cyan', desc: 'Karena Primary Key hanya terdiri dari 1 atribut tunggal <code>STU_NUM</code>, maka tabel otomatis tidak memiliki Partial Dependency (sudah 2NF), namun memiliki <strong>3 rantai Transitive Dependency</strong>!' },
+          { type: 'Transitive Dependency #1 (Departemen)', color: 'amber', desc: '<code>STU_NUM → DEPT_CODE → DEPT_NAME, DEPT_PHONE, COLLEGE_NAME</code>' },
+          { type: 'Transitive Dependency #2 (Dosen Wali / Advisor)', color: 'purple', desc: '<code>STU_NUM → ADVISOR_ID (ADVISOR_LNAME) → ADVISOR_OFFICE, ADVISOR_BLDG, ADVISOR_PHONE</code>' },
+          { type: 'Transitive Dependency #3 (Klasifikasi Tingkat / Class)', color: 'rose', desc: '<code>STU_NUM → STU_HOURS → STU_CLASS</code> (Tingkat Sophomore/Junior/Senior ditentukan oleh rentang kredit jam <code>STU_HOURS</code>).' }
+        ],
+        stagesHtml: `
+          <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2 text-xs font-mono">
+            <div class="text-emerald-300 font-bold">Hasil Dekomposisi 3NF (3 Tabel Utama):</div>
+            <div>1. <strong>DEPARTMENT</strong> (<u>DEPT_CODE</u> [PK], DEPT_NAME, DEPT_PHONE, COLLEGE_NAME)</div>
+            <div>2. <strong>ADVISOR</strong> (<u>ADVISOR_ID</u> [PK], ADVISOR_LNAME, ADVISOR_OFFICE, ADVISOR_BLDG, ADVISOR_PHONE, DEPT_CODE [FK])</div>
+            <div>3. <strong>STUDENT</strong> (<u>STU_NUM</u> [PK], STU_LNAME, STU_MAJOR, STU_GPA, STU_HOURS, STU_CLASS, DEPT_CODE [FK], ADVISOR_ID [FK])</div>
+          </div>`,
+        afterTablesHtml: `
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">1. Tabel DEPARTMENT (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>DEPT_CODE</u></th><th class="p-1.5">DEPT_NAME</th><th class="p-1.5">PHONE</th><th class="p-1.5">COLLEGE</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">ACCT</td><td class="p-1.5">Accounting</td><td class="p-1.5">4356</td><td class="p-1.5">Business Admin</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">MKTG</td><td class="p-1.5">Marketing</td><td class="p-1.5">4378</td><td class="p-1.5">Business Admin</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">MATH</td><td class="p-1.5">Mathematics</td><td class="p-1.5">3420</td><td class="p-1.5">Arts &amp; Sci</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">2. Tabel ADVISOR (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>ADV_ID</u></th><th class="p-1.5">LNAME</th><th class="p-1.5">OFFICE</th><th class="p-1.5">BLDG</th><th class="p-1.5">PHONE</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">A01</td><td class="p-1.5">Grastrand</td><td class="p-1.5">T201</td><td class="p-1.5">Torre</td><td class="p-1.5">2115</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">A02</td><td class="p-1.5">Gentry</td><td class="p-1.5">T228</td><td class="p-1.5">Torre</td><td class="p-1.5">2123</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">A03</td><td class="p-1.5">Tillery</td><td class="p-1.5">T356</td><td class="p-1.5">Torre</td><td class="p-1.5">2159</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">A04</td><td class="p-1.5">Chen</td><td class="p-1.5">J331</td><td class="p-1.5">Jones</td><td class="p-1.5">3209</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-300 font-bold">3. Tabel STUDENT (3NF — STU_NUM Unik!)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1.5"><u>STU_NUM</u></th><th class="p-1.5">LNAME</th><th class="p-1.5">GPA</th><th class="p-1.5">DEPT (FK)</th><th class="p-1.5">ADV (FK)</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1.5 text-amber-300">211343</td><td class="p-1.5">Stephanos</td><td class="p-1.5">3.87</td><td class="p-1.5 text-purple-300">ACCT</td><td class="p-1.5 text-cyan-300">A01</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">200128</td><td class="p-1.5">Smith</td><td class="p-1.5">2.78</td><td class="p-1.5 text-purple-300">ACCT</td><td class="p-1.5 text-cyan-300">A01</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">199876</td><td class="p-1.5">Jones</td><td class="p-1.5">2.31</td><td class="p-1.5 text-purple-300">MKTG</td><td class="p-1.5 text-cyan-300">A02</td></tr>
+                  <tr class="bg-emerald-950/30"><td class="p-1.5 text-emerald-300 font-bold">199877*</td><td class="p-1.5 text-emerald-300">Ortiz</td><td class="p-1.5">3.45</td><td class="p-1.5 text-purple-300">MKTG</td><td class="p-1.5 text-cyan-300">A03</td></tr>
+                  <tr><td class="p-1.5 text-amber-300">223456</td><td class="p-1.5">McKulski</td><td class="p-1.5">3.58</td><td class="p-1.5 text-purple-300">MATH</td><td class="p-1.5 text-cyan-300">A04</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>`,
+        erdSvg: `
+          <svg viewBox="0 0 740 165" class="w-full bg-slate-900/95 rounded-xl border border-slate-800 p-2 font-mono">
+            <line x1="205" y1="82" x2="275" y2="82" stroke="#38bdf8" stroke-width="2.2" />
+            <text x="215" y="72" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+            <text x="255" y="72" fill="#38bdf8" font-size="10" font-weight="bold">M</text>
+
+            <line x1="465" y1="82" x2="535" y2="82" stroke="#c084fc" stroke-width="2.2" />
+            <text x="475" y="72" fill="#c084fc" font-size="10" font-weight="bold">M</text>
+            <text x="518" y="72" fill="#fbbf24" font-size="10" font-weight="bold">1</text>
+
+            <!-- DEPARTMENT -->
+            <rect x="20" y="22" width="185" height="118" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="2" />
+            <rect x="20" y="22" width="185" height="24" rx="6" fill="#0284c7" />
+            <text x="112" y="38" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">DEPARTMENT</text>
+            <text x="30" y="62" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  DEPT_CODE</text>
+            <text x="30" y="80" fill="#e2e8f0" font-size="9.5">    DEPT_NAME</text>
+            <text x="30" y="98" fill="#e2e8f0" font-size="9.5">    DEPT_PHONE</text>
+            <text x="30" y="116" fill="#e2e8f0" font-size="9.5">    COLLEGE_NAME</text>
+
+            <!-- STUDENT -->
+            <rect x="275" y="14" width="190" height="135" rx="8" fill="#0f172a" stroke="#34d399" stroke-width="2" />
+            <rect x="275" y="14" width="190" height="24" rx="6" fill="#059669" />
+            <text x="370" y="30" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">STUDENT</text>
+            <text x="285" y="52" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  STU_NUM (Unik)</text>
+            <text x="285" y="69" fill="#e2e8f0" font-size="9.5">    STU_LNAME, MAJOR</text>
+            <text x="285" y="86" fill="#e2e8f0" font-size="9.5">    STU_GPA, HOURS, CLASS</text>
+            <text x="285" y="105" fill="#38bdf8" font-size="9.5" font-weight="bold">FK1 DEPT_CODE</text>
+            <text x="285" y="123" fill="#c084fc" font-size="9.5" font-weight="bold">FK2 ADVISOR_ID</text>
+
+            <!-- ADVISOR -->
+            <rect x="535" y="22" width="185" height="118" rx="8" fill="#0f172a" stroke="#c084fc" stroke-width="2" />
+            <rect x="535" y="22" width="185" height="24" rx="6" fill="#7c3aed" />
+            <text x="627" y="38" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">ADVISOR</text>
+            <text x="545" y="62" fill="#fbbf24" font-size="9.5" font-weight="bold">PK  ADVISOR_ID</text>
+            <text x="545" y="80" fill="#e2e8f0" font-size="9.5">    ADVISOR_LNAME</text>
+            <text x="545" y="98" fill="#e2e8f0" font-size="9.5">    ADVISOR_OFFICE</text>
+            <text x="545" y="116" fill="#e2e8f0" font-size="9.5">    ADVISOR_BLDG, PHONE</text>
+          </svg>`,
+        sql: `CREATE TABLE department (
+  dept_code VARCHAR(10) PRIMARY KEY,
+  dept_name VARCHAR(50) NOT NULL,
+  dept_phone VARCHAR(10) NOT NULL,
+  college_name VARCHAR(60) NOT NULL
+);
+
+CREATE TABLE advisor (
+  advisor_id INT PRIMARY KEY,
+  advisor_lname VARCHAR(50) NOT NULL,
+  advisor_office VARCHAR(10) NOT NULL,
+  advisor_bldg VARCHAR(50) NOT NULL,
+  advisor_phone VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE student (
+  stu_num INT PRIMARY KEY,
+  stu_lname VARCHAR(50) NOT NULL,
+  stu_major VARCHAR(50) NOT NULL,
+  stu_gpa DECIMAL(3,2) NOT NULL,
+  stu_hours INT NOT NULL,
+  stu_class VARCHAR(20) NOT NULL,
+  dept_code VARCHAR(10) NOT NULL,
+  advisor_id INT NOT NULL,
+  FOREIGN KEY (dept_code) REFERENCES department(dept_code),
+  FOREIGN KEY (advisor_id) REFERENCES advisor(advisor_id)
+);`
+      },
+
+      // LATIHAN 6 (SLIDE 7)
+      {
+        badge: 'SBD09 • Latihan 6 (Slide 7 — Bengkel Servis Kendaraan)',
+        title: 'Normalisasi Nota Servis Bengkel (1NF → 2NF → 3NF & ERD Logikal)',
+        instruction: 'Lakukan normalisasi dengan langkah: (a) Buat diagram dependency 1NF & tentukan composite PK, (b) Uraikan ke 2NF & tandai FK, (c) Uraikan ke 3NF, tandai FK, dan buat ERD logikalnya.',
+        beforeHtml: `
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-[11px] font-mono border-collapse">
+              <thead class="bg-slate-900 text-cyan-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-2">No_Nota</th><th class="p-2">Tgl_Service</th><th class="p-2">Nama_Pemilik</th><th class="p-2">Alamat</th>
+                  <th class="p-2">No_Plat</th><th class="p-2">Jenis_Kendaraan</th><th class="p-2">Teknisi (Keahlian)</th>
+                  <th class="p-2">Kasir</th><th class="p-2">Nama_Sparepart</th><th class="p-2">Jml × Harga</th><th class="p-2">Total_Bayar</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 bg-slate-950/60">
+                <tr><td class="p-2 text-amber-300">1</td><td class="p-2">2025-11-10</td><td class="p-2">Budi Santoso</td><td class="p-2">Jl. Melati 5</td><td class="p-2">AB1234CD</td><td class="p-2">Toyota Avanza</td><td class="p-2">Dedi (Mesin)</td><td class="p-2">Rina</td><td class="p-2">Oli Mesin (1×75) &amp; Busi (4×25)</td><td class="p-2">75 &amp; 100</td><td class="p-2">150 (Nota)</td></tr>
+                <tr><td class="p-2 text-amber-300">2</td><td class="p-2">2025-11-11</td><td class="p-2">Joko Prasetyo</td><td class="p-2">Jl. Mawar 9</td><td class="p-2">AD9876FG</td><td class="p-2">Honda Beat</td><td class="p-2">Andi (Kelistrikan)</td><td class="p-2">Sari</td><td class="p-2">Aki (1×250)</td><td class="p-2">250</td><td class="p-2">250</td></tr>
+                <tr><td class="p-2 text-amber-300">3</td><td class="p-2">2025-11-12</td><td class="p-2">Lina Kartika</td><td class="p-2">Jl. Kenanga 12</td><td class="p-2">AE2233HI</td><td class="p-2">Yamaha NMAX</td><td class="p-2">Eko (Body Repair)</td><td class="p-2">Rina</td><td class="p-2">Cat Body (2×100) &amp; Kampas Rem (1×120)</td><td class="p-2">200 &amp; 120</td><td class="p-2">200</td></tr>
+              </tbody>
+            </table>
+          </div>`,
+        fdAnalysis: [
+          { type: 'Langkah (a) — Diagram Dependency 1NF & Composite PK', color: 'cyan', desc: 'Setelah baris berulang pada Nota 1 dan Nota 3 diratakan, <strong>Composite Primary Key adalah <code>{No_Nota, ID_Sparepart}</code></strong> (atau <code>{No_Nota, Nama_Sparepart}</code>).<br>• <strong>FFD:</strong> <code>{No_Nota, ID_Sparepart} → Jumlah</code>' },
+          { type: 'Langkah (b) — Uraian ke 2NF (Pisahkan Partial Dependencies)', color: 'amber', desc: '• <strong>PD terhadap No_Nota:</strong> <code>No_Nota → Tgl_Service, No_Plat, Jenis_Kendaraan, ID_Pemilik, Nama_Pemilik, Alamat_Pemilik, ID_Teknisi, Nama_Teknisi, Keahlian_Teknisi, ID_Kasir, Nama_Kasir, Total_Bayar</code><br>• <strong>PD terhadap ID_Sparepart:</strong> <code>ID_Sparepart → Nama_Sparepart, Harga_Satuan</code><br>Sehingga di 2NF terbentuk 3 tabel: <strong>NOTA_SERVIS</strong>, <strong>SPAREPART</strong>, dan <strong>DETAIL_SERVIS</strong>.' },
+          { type: 'Langkah (c) — Uraian ke 3NF (Pisahkan Transitive Dependencies di Tabel NOTA_SERVIS)', color: 'emerald', desc: 'Di dalam tabel <code>NOTA_SERVIS</code> terdapat 4 Transitive Dependency:<br>1. <code>No_Nota → No_Plat → Jenis_Kendaraan, ID_Pemilik</code><br>2. <code>No_Plat → ID_Pemilik → Nama_Pemilik, Alamat_Pemilik</code><br>3. <code>No_Nota → ID_Teknisi → Nama_Teknisi, Keahlian_Teknisi</code><br>4. <code>No_Nota → ID_Kasir → Nama_Kasir</code>' }
+        ],
+        stagesHtml: `
+          <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2 text-xs font-mono">
+            <div class="text-emerald-300 font-bold">Skema Final 3NF &amp; ERD Logikal (7 Tabel Relasional):</div>
+            <div>1. <strong>PEMILIK</strong> (<u>ID_Pemilik</u> [PK], Nama_Pemilik, Alamat_Pemilik)</div>
+            <div>2. <strong>KENDARAAN</strong> (<u>No_Plat</u> [PK], Jenis_Kendaraan, ID_Pemilik [FK])</div>
+            <div>3. <strong>TEKNISI</strong> (<u>ID_Teknisi</u> [PK], Nama_Teknisi, Keahlian_Teknisi)</div>
+            <div>4. <strong>KASIR</strong> (<u>ID_Kasir</u> [PK], Nama_Kasir)</div>
+            <div>5. <strong>SPAREPART</strong> (<u>ID_Sparepart</u> [PK], Nama_Sparepart, Harga_Satuan)</div>
+            <div>6. <strong>NOTA_SERVIS</strong> (<u>No_Nota</u> [PK], Tgl_Service, No_Plat [FK], ID_Teknisi [FK], ID_Kasir [FK], Total_Bayar)</div>
+            <div>7. <strong>DETAIL_SERVIS</strong> (<u>No_Nota</u> [PK,FK], <u>ID_Sparepart</u> [PK,FK], Jumlah)</div>
+          </div>`,
+        afterTablesHtml: `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-[11px] font-mono">
+            <div class="p-3 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1.5">
+              <div class="text-emerald-300 font-bold">1. PEMILIK (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1"><u>ID_Pemilik</u></th><th class="p-1">Nama</th><th class="p-1">Alamat</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1 text-amber-300">P01</td><td class="p-1">Budi Santoso</td><td class="p-1">Jl. Melati 5</td></tr>
+                  <tr><td class="p-1 text-amber-300">P02</td><td class="p-1">Joko Prasetyo</td><td class="p-1">Jl. Mawar 9</td></tr>
+                  <tr><td class="p-1 text-amber-300">P03</td><td class="p-1">Lina Kartika</td><td class="p-1">Jl. Kenanga 12</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1.5">
+              <div class="text-emerald-300 font-bold">2. KENDARAAN (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1"><u>No_Plat</u></th><th class="p-1">Jenis</th><th class="p-1">ID_Pemilik (FK)</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1 text-amber-300">AB1234CD</td><td class="p-1">Toyota Avanza</td><td class="p-1 text-purple-300">P01</td></tr>
+                  <tr><td class="p-1 text-amber-300">AD9876FG</td><td class="p-1">Honda Beat</td><td class="p-1 text-purple-300">P02</td></tr>
+                  <tr><td class="p-1 text-amber-300">AE2233HI</td><td class="p-1">Yamaha NMAX</td><td class="p-1 text-purple-300">P03</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1.5">
+              <div class="text-emerald-300 font-bold">3. TEKNISI &amp; 4. KASIR (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1"><u>ID_Teknisi</u></th><th class="p-1">Nama (Keahlian)</th><th class="p-1"><u>ID_Kasir</u></th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1 text-amber-300">T01</td><td class="p-1">Dedi (Mesin)</td><td class="p-1 text-cyan-300">K01 (Rina)</td></tr>
+                  <tr><td class="p-1 text-amber-300">T02</td><td class="p-1">Andi (Kelistrikan)</td><td class="p-1 text-cyan-300">K02 (Sari)</td></tr>
+                  <tr><td class="p-1 text-amber-300">T03</td><td class="p-1">Eko (Body Repair)</td><td class="p-1 text-slate-500">-</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1.5">
+              <div class="text-emerald-300 font-bold">5. SPAREPART (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1"><u>ID_Part</u></th><th class="p-1">Nama_Sparepart</th><th class="p-1">Harga</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1 text-amber-300">S01</td><td class="p-1">Oli Mesin</td><td class="p-1">75</td></tr>
+                  <tr><td class="p-1 text-amber-300">S02</td><td class="p-1">Busi</td><td class="p-1">25</td></tr>
+                  <tr><td class="p-1 text-amber-300">S03</td><td class="p-1">Aki</td><td class="p-1">250</td></tr>
+                  <tr><td class="p-1 text-amber-300">S04</td><td class="p-1">Cat Body</td><td class="p-1">100</td></tr>
+                  <tr><td class="p-1 text-amber-300">S05</td><td class="p-1">Kampas Rem</td><td class="p-1">120</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1.5">
+              <div class="text-emerald-300 font-bold">6. NOTA_SERVIS (3NF)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1"><u>No_Nota</u></th><th class="p-1">Tgl</th><th class="p-1">Plat (FK)</th><th class="p-1">Tek/Kasir</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1 text-amber-300">1</td><td class="p-1">10/11</td><td class="p-1 text-purple-300">AB1234CD</td><td class="p-1">T01 / K01</td></tr>
+                  <tr><td class="p-1 text-amber-300">2</td><td class="p-1">11/11</td><td class="p-1 text-purple-300">AD9876FG</td><td class="p-1">T02 / K02</td></tr>
+                  <tr><td class="p-1 text-amber-300">3</td><td class="p-1">12/11</td><td class="p-1 text-purple-300">AE2233HI</td><td class="p-1">T03 / K01</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1.5">
+              <div class="text-emerald-300 font-bold">7. DETAIL_SERVIS (3NF — FFD)</div>
+              <table class="w-full text-left border border-slate-800">
+                <thead class="bg-slate-950 text-cyan-300"><tr><th class="p-1"><u>No_Nota (PK,FK)</u></th><th class="p-1"><u>ID_Part (PK,FK)</u></th><th class="p-1">Jumlah</th></tr></thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-1 text-amber-300">1</td><td class="p-1 text-purple-300">S01 (Oli)</td><td class="p-1">1</td></tr>
+                  <tr><td class="p-1 text-amber-300">1</td><td class="p-1 text-purple-300">S02 (Busi)</td><td class="p-1">4</td></tr>
+                  <tr><td class="p-1 text-amber-300">2</td><td class="p-1 text-purple-300">S03 (Aki)</td><td class="p-1">1</td></tr>
+                  <tr><td class="p-1 text-amber-300">3</td><td class="p-1 text-purple-300">S04 &amp; S05</td><td class="p-1">2 &amp; 1</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>`,
+        erdSvg: `
+          <svg viewBox="0 0 800 250" class="w-full bg-slate-900/95 rounded-xl border border-slate-800 p-2 font-mono">
+            <!-- PEMILIK to KENDARAAN -->
+            <line x1="150" y1="55" x2="205" y2="55" stroke="#38bdf8" stroke-width="2" />
+            <text x="158" y="47" fill="#fbbf24" font-size="9.5" font-weight="bold">1</text>
+            <text x="190" y="47" fill="#38bdf8" font-size="9.5" font-weight="bold">M</text>
+
+            <!-- KENDARAAN to NOTA_SERVIS -->
+            <line x1="345" y1="55" x2="405" y2="90" stroke="#34d399" stroke-width="2" />
+            <text x="355" y="55" fill="#fbbf24" font-size="9.5" font-weight="bold">1</text>
+            <text x="388" y="82" fill="#34d399" font-size="9.5" font-weight="bold">M</text>
+
+            <!-- TEKNISI to NOTA_SERVIS -->
+            <line x1="150" y1="145" x2="405" y2="115" stroke="#c084fc" stroke-width="1.8" />
+            <text x="160" y="140" fill="#fbbf24" font-size="9.5" font-weight="bold">1</text>
+            <text x="385" y="112" fill="#c084fc" font-size="9.5" font-weight="bold">M</text>
+
+            <!-- KASIR to NOTA_SERVIS -->
+            <line x1="345" y1="195" x2="405" y2="140" stroke="#f472b6" stroke-width="1.8" />
+            <text x="355" y="190" fill="#fbbf24" font-size="9.5" font-weight="bold">1</text>
+            <text x="388" y="155" fill="#f472b6" font-size="9.5" font-weight="bold">M</text>
+
+            <!-- NOTA_SERVIS to DETAIL_SERVIS -->
+            <line x1="565" y1="115" x2="620" y2="80" stroke="#f59e0b" stroke-width="2.2" />
+            <text x="575" y="102" fill="#fbbf24" font-size="9.5" font-weight="bold">1</text>
+            <text x="605" y="78" fill="#f59e0b" font-size="9.5" font-weight="bold">M</text>
+
+            <!-- SPAREPART to DETAIL_SERVIS -->
+            <line x1="700" y1="165" x2="700" y2="115" stroke="#38bdf8" stroke-width="2.2" />
+            <text x="708" y="160" fill="#fbbf24" font-size="9.5" font-weight="bold">1</text>
+            <text x="708" y="128" fill="#38bdf8" font-size="9.5" font-weight="bold">M</text>
+
+            <!-- 1. PEMILIK -->
+            <rect x="15" y="20" width="135" height="72" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="1.8" />
+            <rect x="15" y="20" width="135" height="20" rx="5" fill="#0284c7" />
+            <text x="82" y="34" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">PEMILIK</text>
+            <text x="22" y="54" fill="#fbbf24" font-size="8.5" font-weight="bold">PK ID_Pemilik</text>
+            <text x="22" y="69" fill="#e2e8f0" font-size="8.5">   Nama, Alamat</text>
+
+            <!-- 2. KENDARAAN -->
+            <rect x="205" y="20" width="140" height="72" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.8" />
+            <rect x="205" y="20" width="140" height="20" rx="5" fill="#059669" />
+            <text x="275" y="34" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">KENDARAAN</text>
+            <text x="212" y="54" fill="#fbbf24" font-size="8.5" font-weight="bold">PK No_Plat</text>
+            <text x="212" y="68" fill="#e2e8f0" font-size="8.5">   Jenis_Kendaraan</text>
+            <text x="212" y="82" fill="#c084fc" font-size="8.5" font-weight="bold">FK ID_Pemilik</text>
+
+            <!-- 3. TEKNISI -->
+            <rect x="15" y="112" width="135" height="68" rx="6" fill="#0f172a" stroke="#c084fc" stroke-width="1.8" />
+            <rect x="15" y="112" width="135" height="20" rx="5" fill="#7c3aed" />
+            <text x="82" y="126" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">TEKNISI</text>
+            <text x="22" y="145" fill="#fbbf24" font-size="8.5" font-weight="bold">PK ID_Teknisi</text>
+            <text x="22" y="160" fill="#e2e8f0" font-size="8.5">   Nama, Keahlian</text>
+
+            <!-- 4. KASIR -->
+            <rect x="205" y="162" width="140" height="65" rx="6" fill="#0f172a" stroke="#f472b6" stroke-width="1.8" />
+            <rect x="205" y="162" width="140" height="20" rx="5" fill="#db2777" />
+            <text x="275" y="176" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">KASIR</text>
+            <text x="212" y="195" fill="#fbbf24" font-size="8.5" font-weight="bold">PK ID_Kasir</text>
+            <text x="212" y="210" fill="#e2e8f0" font-size="8.5">   Nama_Kasir</text>
+
+            <!-- 6. NOTA_SERVIS -->
+            <rect x="405" y="55" width="160" height="115" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="2" />
+            <rect x="405" y="55" width="160" height="22" rx="5" fill="#059669" />
+            <text x="485" y="70" fill="#fff" font-size="9.5" font-weight="bold" text-anchor="middle">NOTA_SERVIS</text>
+            <text x="413" y="90" fill="#fbbf24" font-size="8.5" font-weight="bold">PK  No_Nota</text>
+            <text x="413" y="105" fill="#e2e8f0" font-size="8.5">    Tgl, Total_Bayar</text>
+            <text x="413" y="122" fill="#34d399" font-size="8.5" font-weight="bold">FK1 No_Plat</text>
+            <text x="413" y="137" fill="#c084fc" font-size="8.5" font-weight="bold">FK2 ID_Teknisi</text>
+            <text x="413" y="152" fill="#f472b6" font-size="8.5" font-weight="bold">FK3 ID_Kasir</text>
+
+            <!-- 7. DETAIL_SERVIS -->
+            <rect x="620" y="30" width="165" height="85" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="2" />
+            <rect x="620" y="30" width="165" height="22" rx="5" fill="#d97706" />
+            <text x="702" y="45" fill="#fff" font-size="9.5" font-weight="bold" text-anchor="middle">DETAIL_SERVIS</text>
+            <text x="628" y="66" fill="#fbbf24" font-size="8.5" font-weight="bold">PK,FK1 No_Nota</text>
+            <text x="628" y="82" fill="#fbbf24" font-size="8.5" font-weight="bold">PK,FK2 ID_Sparepart</text>
+            <text x="628" y="98" fill="#34d399" font-size="8.5">       Jumlah</text>
+
+            <!-- 5. SPAREPART -->
+            <rect x="620" y="165" width="165" height="70" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="1.8" />
+            <rect x="620" y="165" width="165" height="20" rx="5" fill="#0284c7" />
+            <text x="702" y="179" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">SPAREPART</text>
+            <text x="628" y="198" fill="#fbbf24" font-size="8.5" font-weight="bold">PK ID_Sparepart</text>
+            <text x="628" y="214" fill="#e2e8f0" font-size="8.5">   Nama, Harga_Satuan</text>
+          </svg>`,
+        sql: `CREATE TABLE pemilik (
+  id_pemilik INT PRIMARY KEY AUTO_INCREMENT,
+  nama_pemilik VARCHAR(60) NOT NULL,
+  alamat_pemilik VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE kendaraan (
+  no_plat VARCHAR(12) PRIMARY KEY,
+  jenis_kendaraan VARCHAR(40) NOT NULL,
+  id_pemilik INT NOT NULL,
+  FOREIGN KEY (id_pemilik) REFERENCES pemilik(id_pemilik)
+);
+
+CREATE TABLE teknisi (
+  id_teknisi INT PRIMARY KEY AUTO_INCREMENT,
+  nama_teknisi VARCHAR(50) NOT NULL,
+  keahlian_teknisi VARCHAR(40) NOT NULL
+);
+
+CREATE TABLE kasir (
+  id_kasir INT PRIMARY KEY AUTO_INCREMENT,
+  nama_kasir VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE sparepart (
+  id_sparepart INT PRIMARY KEY AUTO_INCREMENT,
+  nama_sparepart VARCHAR(60) NOT NULL,
+  harga_satuan DECIMAL(10,2) NOT NULL
+);
+
+CREATE TABLE nota_servis (
+  no_nota INT PRIMARY KEY,
+  tgl_service DATE NOT NULL,
+  no_plat VARCHAR(12) NOT NULL,
+  id_teknisi INT NOT NULL,
+  id_kasir INT NOT NULL,
+  total_bayar DECIMAL(12,2) DEFAULT 0,
+  FOREIGN KEY (no_plat) REFERENCES kendaraan(no_plat),
+  FOREIGN KEY (id_teknisi) REFERENCES teknisi(id_teknisi),
+  FOREIGN KEY (id_kasir) REFERENCES kasir(id_kasir)
+);
+
+CREATE TABLE detail_servis (
+  no_nota INT NOT NULL,
+  id_sparepart INT NOT NULL,
+  jumlah INT NOT NULL,
+  PRIMARY KEY (no_nota, id_sparepart),
+  FOREIGN KEY (no_nota) REFERENCES nota_servis(no_nota),
+  FOREIGN KEY (id_sparepart) REFERENCES sparepart(id_sparepart)
+);`
+      },
+
+      // PROJECT 3 - MILESTONE 2 (SLIDE 8)
+      {
+        badge: 'SBD09 • Project 3 - Milestone 2 (Slide 8)',
+        title: 'Panduan & Template SQL BAB 5 Implementasi (DDL, DML, Trigger, & Stored Procedure)',
+        instruction: 'Dari hasil Project 2 Milestone 1: (1) Pilih DBMS dan libatkan Trigger serta Stored Procedure/Function untuk mendukung business process, (2) Pastikan tipe data Physical Diagram sesuai DBMS, (3) Buat DDL dan DML (minimal 10 row master data dan 50 row transaksi).',
+        beforeHtml: `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-cyan-500/30">
+              <div class="font-bold text-cyan-300 font-mono">1. Trigger Otomatisasi Bisnis</div>
+              <p class="text-slate-300 mt-1">Contoh nyata pada kasus Bengkel (Latihan 6): Trigger <code>AFTER INSERT ON detail_servis</code> yang otomatis menghitung ulang <code>total_bayar</code> di tabel <code>nota_servis</code> dan memotong stok sparepart.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-purple-500/30">
+              <div class="font-bold text-purple-300 font-mono">2. Stored Procedure &amp; Function</div>
+              <p class="text-slate-300 mt-1">Prosedur tersimpan untuk menambahkan transaksi baru secara aman dan fungsi kalkulasi diskon/pajak layanan.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30">
+              <div class="font-bold text-emerald-300 font-mono">3. Syarat Volume Data DML</div>
+              <p class="text-slate-300 mt-1">Minimal <strong>10 baris</strong> untuk setiap tabel Master (Pemilik, Kendaraan, Sparepart) dan minimal <strong>50 baris</strong> untuk tabel Transaksi.</p>
+            </div>
+          </div>`,
+        fdAnalysis: [
+          { type: 'Implementasi Trigger (AFTER INSERT)', color: 'cyan', desc: 'Menjaga konsistensi nilai agregat <code>total_bayar</code> pada tabel induk setiap kali item rincian ditambahkan ke tabel anak.' },
+          { type: 'Implementasi Stored Procedure', color: 'purple', desc: 'Membungkus logika bisnis transaksi ke dalam satu pemanggilan <code>CALL sp_tambah_item_servis(...)</code>.' }
+        ],
+        stagesHtml: `
+          <div class="p-3.5 rounded-xl bg-amber-950/25 border border-amber-500/30 text-xs text-amber-200">
+            Salin template Trigger dan Stored Procedure MySQL/MariaDB di bawah ini sebagai referensi langsung pengerjaan <strong>BAB 5 Implementasi Project 3 Milestone 2</strong> Anda:
+          </div>`,
+        sql: `DELIMITER $$
+
+-- 1. TRIGGER: Otomatis update total_bayar di nota_servis saat detail_servis ditambah
+CREATE TRIGGER trg_update_total_bayar
+AFTER INSERT ON detail_servis
+FOR EACH ROW
+BEGIN
+  UPDATE nota_servis
+  SET total_bayar = (
+    SELECT SUM(d.jumlah * s.harga_satuan)
+    FROM detail_servis d
+    JOIN sparepart s ON d.id_sparepart = s.id_sparepart
+    WHERE d.no_nota = NEW.no_nota
+  )
+  WHERE no_nota = NEW.no_nota;
+END$$
+
+-- 2. STORED PROCEDURE: Menambahkan rincian sparepart servis & menampilkan nota
+CREATE PROCEDURE sp_input_detail_servis(
+  IN p_no_nota INT,
+  IN p_id_sparepart INT,
+  IN p_jumlah INT
+)
+BEGIN
+  INSERT INTO detail_servis (no_nota, id_sparepart, jumlah)
+  VALUES (p_no_nota, p_id_sparepart, p_jumlah);
+
+  SELECT no_nota, tgl_service, no_plat, total_bayar
+  FROM nota_servis
+  WHERE no_nota = p_no_nota;
+END$$
+
+DELIMITER ;`
+      }
+    ];
+
+    function selectPart2Case(idx) {
+      [0, 1, 2, 3, 4, 5, 6].forEach(i => {
+        const b = document.getElementById(`btn-p2-${i}`);
+        if (!b) return;
+        if (i === idx) {
+          b.className = 'p-3 rounded-xl border text-left transition-all bg-amber-500/20 text-amber-200 border-amber-400 font-bold';
+        } else {
+          b.className = 'p-3 rounded-xl border text-left transition-all bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40';
+        }
+      });
+
+      const c = PART2_CASES[idx];
+      const box = document.getElementById('box-part2-viewer');
+      box.innerHTML = `
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">${c.badge}</span>
+              <h3 class="text-lg font-bold text-white mt-1">${c.title}</h3>
+              <p class="text-xs text-slate-300 mt-1"><strong class="text-amber-300">Instruksi Modul:</strong> ${c.instruction}</p>
+            </div>
+            <button onclick="copyPart2Sql(${idx})" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700">
+              <i class="fa-regular fa-copy mr-1"></i> Salin SQL DDL / Trigger
+            </button>
+          </div>
+
+          <!-- Kondisi Awal (Before) -->
+          <div class="space-y-2">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-rose-400">1. Kondisi Awal Tabel (BEFORE Normalization):</div>
+            ${c.beforeHtml}
+          </div>
+
+          <!-- Analisis Functional Dependency -->
+          <div class="space-y-2">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">2. Analisis Diagram Dependency (FFD, Partial, &amp; Transitive):</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              ${c.fdAnalysis.map(f => `
+                <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                  <div class="font-mono font-bold text-${f.color}-400">${f.type}</div>
+                  <div class="text-slate-300 leading-relaxed">${f.desc}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Dekomposisi 2NF -> 3NF & ERD -->
+          <div class="space-y-2">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">3. Skema Dekomposisi Tabel (2NF → 3NF):</div>
+            ${c.stagesHtml}
+          </div>
+
+          ${c.afterTablesHtml ? `
+          <!-- Kondisi Tabel Setelah Normalisasi (AFTER 3NF Tables) -->
+          <div class="space-y-2">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-amber-300">4. Kondisi Tabel Setelah Normalisasi (AFTER 3NF — Beserta Data Sampel):</div>
+            ${c.afterTablesHtml}
+          </div>
+          ` : ''}
+
+          ${c.erdSvg ? `
+          <!-- Ilustrasi Visual ERD Logikal -->
+          <div class="space-y-2">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">5. Ilustrasi Visual Entity Relationship Diagram (ERD Logikal 3NF):</div>
+            ${c.erdSvg}
+          </div>
+          ` : ''}
+
+          <!-- Implementasi SQL -->
+          <div class="space-y-2">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">${c.erdSvg ? '6.' : '4.'} Source Code Implementasi SQL (DDL / Trigger / Procedure):</div>
+            <pre class="p-4 sql-code rounded-xl border border-slate-800 overflow-x-auto"><code>${highlightSQL(c.sql)}</code></pre>
+          </div>
+        </div>`;
+    }
+
+    function copyPart2Sql(idx) {
+      if (PART2_CASES[idx]) copyRawText(PART2_CASES[idx].sql);
+    }
+
+    // 9. KUIS EVALUASI (GABUNGAN PART 1 & PART 2)
+    const NORM_QUIZ = [
+      {
+        q: '1. Pada SBD09 Latihan 2 (Tabel Invoice dengan PK komposit {INV_NUM, PROD_NUM}), ketergantungan PROD_NUM → VEND_CODE → VEND_NAME merupakan contoh dari apa?',
+        options: [
+          'Partial Dependency dari PROD_NUM ke PROD_LABEL, lalu Transitive Dependency dari PROD_NUM ke VEND_NAME melalui VEND_CODE.',
+          'Multivalued Dependency murni.',
+          'Fully Functional Dependency terhadap INV_NUM.',
+          'Anomali Insert tingkat pertama.'
+        ],
+        correct: 0,
+        exp: 'Atribut produk hanya bergantung pada <code>PROD_NUM</code> (Partial Dependency terhadap PK komposit), dan di dalam tabel Produk sendiri, <code>VEND_NAME</code> bergantung pada <code>VEND_CODE</code> (Transitive Dependency).'
+      },
+      {
+        q: '2. Kesalahan kecil apakah yang terdapat pada tabel Mahasiswa di SBD09 Latihan 5 (Slide 6)?',
+        options: [
+          'Tidak ada kolom GPA.',
+          'Nomor mahasiswa STU_NUM = 199876 digunakan ganda oleh dua mahasiswa berbeda (Jones dan Ortiz), sehingga melanggar keunikan Primary Key dan Functional Dependency.',
+          'Semua mahasiswa mengambil jurusan Accounting.',
+          'Kolom STU_HOURS berisi huruf.'
+        ],
+        correct: 1,
+        exp: 'Pada Slide 6, nilai <code>STU_NUM = 199876</code> muncul dua kali dengan nama berbeda (Jones dan Ortiz), padahal <code>STU_NUM</code> adalah identifier unik mahasiswa.'
+      },
+      {
+        q: '3. Mengapa pada SBD09 Latihan 4 (Pelatihan Karyawan), karyawan Emp_ID 190 (Larry King) yang belum pernah mengikuti kursus menjadi bukti pentingnya dekomposisi ke 2NF?',
+        options: [
+          'Karena gaji Larry King paling besar.',
+          'Karena di tabel 1NF dengan PK komposit {Emp_ID, Course_Title}, nilai Course_Title milik Larry King bernilai NULL (melanggar Entity Integrity). Setelah dipisah ke tabel EMPLOYEE dan EMP_TRAINING pada 2NF, Larry King tetap tercatat di tabel EMPLOYEE tanpa error.',
+          'Karena Finance berada di California.',
+          'Karena Larry King mengambil kursus Java.'
+        ],
+        correct: 1,
+        exp: 'Aturan <em>Entity Integrity</em> melarang atribut penyusun Primary Key bernilai <code>NULL</code>. Memisahkan tabel <code>EMPLOYEE</code> dari <code>EMP_TRAINING</code> menghilangkan <em>Insert Anomaly</em> tersebut.'
+      },
+      {
+        q: '4. Pada SBD09 Latihan 6 (Nota Servis Bengkel), manakah yang merupakan Fully Functional Dependency (FFD) pada tahap 1NF?',
+        options: [
+          'No_Nota → Nama_Kasir',
+          'No_Plat → Jenis_Kendaraan',
+          '{No_Nota, ID_Sparepart} → Jumlah (kuantitas sparepart yang dibeli pada nota tersebut)',
+          'ID_Teknisi → Keahlian_Teknisi'
+        ],
+        correct: 2,
+        exp: 'Jumlah/kuantitas item yang diganti bergantung penuh pada kombinasi nomor nota servis dan kode sparepart yang digunakan.'
+      }
+    ];
+
+    function renderNormQuiz() {
+      const box = document.getElementById('norm-quiz-container');
+      box.innerHTML = NORM_QUIZ.map((item, qIdx) => `
+        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div class="font-bold text-xs sm:text-sm text-white leading-relaxed">${item.q}</div>
+          <div class="space-y-2 text-xs font-mono">
+            ${item.options.map((opt, oIdx) => `
+              <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-indigo-500/50">
+                <input type="radio" name="nquiz-${qIdx}" value="${oIdx}" class="accent-indigo-500">
+                <span class="text-slate-200">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="nquiz-exp-${qIdx}" class="hidden p-3 rounded-xl text-xs leading-relaxed"></div>
+        </div>
+      `).join('');
+    }
+
+    function gradeNormQuiz() {
+      let score = 0;
+      NORM_QUIZ.forEach((item, qIdx) => {
+        const chosen = document.querySelector(`input[name="nquiz-${qIdx}"]:checked`);
+        const expEl = document.getElementById(`nquiz-exp-${qIdx}`);
+        expEl.classList.remove('hidden');
+        if (chosen && parseInt(chosen.value) === item.correct) {
+          score++;
+          expEl.className = 'p-3 rounded-xl text-xs leading-relaxed bg-emerald-950/50 border border-emerald-500/40 text-emerald-200';
+          expEl.innerHTML = `<strong class="text-emerald-400">✓ Benar!</strong> ${item.exp}`;
+        } else {
+          expEl.className = 'p-3 rounded-xl text-xs leading-relaxed bg-rose-950/50 border border-rose-500/40 text-rose-200';
+          expEl.innerHTML = `<strong class="text-rose-400">✗ Kurang Tepat.</strong> ${item.exp}`;
+        }
+      });
+      document.getElementById('norm-quiz-score').textContent = `Skor: ${score} / ${NORM_QUIZ.length} (${Math.round((score / NORM_QUIZ.length) * 100)}%)`;
+      showToast(`Kuis selesai dinilai! Skor Anda: ${score}/${NORM_QUIZ.length}`);
+    }
+
+    // 10. NAVIGATION & CLIPBOARD HELPERS
+    function switchMainTab(tabId) {
+      document.querySelectorAll('.main-tab-panel').forEach(p => p.classList.add('hidden'));
+      const target = document.getElementById(tabId);
+      if (target) target.classList.remove('hidden');
+
+      ['tab-intro', 'tab-1nf', 'tab-2nf', 'tab-3nf', 'tab-cobain', 'tab-mandiri', 'tab-part2', 'tab-quiz'].forEach(id => {
+        const btn = document.getElementById(`nav-${id}`);
+        if (!btn) return;
+        if (id === tabId) {
+          btn.className = 'main-nav-btn px-3 py-1.5 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-400 whitespace-nowrap font-bold';
+        } else if (id === 'tab-part2') {
+          btn.className = 'main-nav-btn px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 whitespace-nowrap';
+        } else {
+          btn.className = 'main-nav-btn px-3 py-1.5 rounded-lg bg-slate-800/80 text-slate-300 hover:bg-slate-800 whitespace-nowrap';
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function copyRawText(text) {
+      if (!text) return;
+      const fallback = (str) => {
+        const ta = document.createElement('textarea');
+        ta.value = str;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast('Kode SQL berhasil disalin ke clipboard!');
+        } catch (e) {
+          showToast('Gagal menyalin.');
+        }
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => showToast('Kode SQL berhasil disalin ke clipboard!')).catch(() => fallback(text));
+      } else {
+        fallback(text);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 2600);
+    }
+
+    // INITIALIZE ON LOAD
+    window.addEventListener('DOMContentLoaded', () => {
+      simAnomaly('update');
+      select1nfCase(0);
+      select2nfCase(0);
+      set3nfStep(1);
+      selectCobainCase(0);
+      selectMandiriCase(0);
+      selectPart2Case(0);
+      renderNormQuiz();
+    });
+  </script>
+</body>
+</html>
