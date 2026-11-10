@@ -133,6 +133,82 @@
         </div>
       </div>
 
+      <!-- Panduan Fundamental: 4 Jenis Ketergantungan (Dependencies) & Cara Membaca Diagram -->
+      <div class="bg-slate-900 border border-indigo-500/30 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">Konsep Kunci Normalisasi (UNF – 3NF)</span>
+            <h3 class="text-lg sm:text-xl font-bold text-white mt-0.5">Mengenal 4 Jenis Ketergantungan (Dependencies) &amp; Notasi Diagram</h3>
+          </div>
+          <span class="px-3 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-xs font-mono">
+            Pangkal (●) = Determinan &bull; Ujung Panah (▼/▲) = Dependen
+          </span>
+        </div>
+
+        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          Seluruh tahapan normalisasi dari <strong>1NF ke 2NF hingga 3NF</strong> berpusat pada analisis <strong>Functional Dependency (FD)</strong> antar-atribut. Berikut adalah pengertian umum keempat jenis dependency beserta cara membacanya pada ilustrasi diagram di seluruh modul ini:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <!-- 1. Functional Dependency (FD Dasar) -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-bold text-cyan-400 text-sm">1. Functional Dependency (X → Y)</span>
+              <span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 font-mono text-[10px]">Konsep Dasar</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Atribut <strong>Y</strong> dikatakan bergantung secara fungsional pada atribut <strong>X</strong> (ditulis <strong>X → Y</strong>, dibaca <em>"X menentukan Y"</em>) jika dan hanya jika setiap nilai <strong>X</strong> yang sama pasti berpasangan dengan nilai <strong>Y</strong> yang sama persis: <code>∀(t₁.X = t₂.X) ⇒ (t₁.Y = t₂.Y)</code>.
+            </p>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-300">
+              • <strong>X (Determinan / Penentu):</strong> Digambarkan dengan titik pangkal bulat (<code>●</code>).<br>
+              • <strong>Y (Dependen / Ditentukan):</strong> Digambarkan dengan ujung mata panah (<code>▼</code> atau <code>▲</code>).
+            </div>
+          </div>
+
+          <!-- 2. Full Functional Dependency (FFD) -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-bold text-emerald-400 text-sm">2. Full Functional Dependency (FFD)</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono text-[10px]">Garis Atas (Hijau)</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Kondisi di mana suatu atribut non-kunci (misal <code>C</code>) bergantung penuh pada <strong>keseluruhan atribut penyusun Composite Primary Key</strong> <code>(A, B) → C</code>, dan <strong>tidak bisa</strong> ditentukan hanya oleh salah satu bagian kunci saja (<code>A ↛ C</code> dan <code>B ↛ C</code>).
+            </p>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[11px] text-emerald-300">
+              • <strong>Ciri di Diagram:</strong> Garis panah warna <strong>Hijau di bagian ATAS kotak</strong> yang menghubungkan seluruh PK ke atribut transaksi (contoh: <code>{NIM, Kode_MK} → Nilai</code>).
+            </div>
+          </div>
+
+          <!-- 3. Partial Dependency (PD) -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-amber-500/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-bold text-amber-400 text-sm">3. Partial Dependency (Ketergantungan Parsial)</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 font-mono text-[10px]">Dibuang saat 1NF → 2NF</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Terjadi <strong>hanya pada tabel yang memiliki Composite Primary Key</strong> (PK lebih dari 1 kolom, misal <code>{A, B}</code>), di mana terdapat atribut non-kunci yang "numpang" bergantung hanya pada <strong>salah satu bagian/subset PK saja</strong> (misal <code>A → D</code> atau <code>B → E</code>).
+            </p>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[11px] text-amber-300">
+              • <strong>Ciri di Diagram:</strong> Garis panah warna <strong>Kuning/Biru di bagian BAWAH kotak</strong> yang berpangkal dari 1 kotak PK menuju atribut non-kunci. Wajib dipisah ke tabel baru agar mencapai <strong>2NF</strong>!
+            </div>
+          </div>
+
+          <!-- 4. Transitive Dependency (TD) -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-pink-500/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-bold text-pink-400 text-sm">4. Transitive Dependency (Ketergantungan Transitif)</span>
+              <span class="px-2 py-0.5 rounded bg-pink-500/15 text-pink-300 font-mono text-[10px]">Dibuang saat 2NF → 3NF</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Terjadi ketika suatu atribut <strong>non-kunci</strong> menentukan atribut <strong>non-kunci lainnya</strong> (rantai tidak langsung: <code>PK (A) → Non-Key (B) → Non-Key (C)</code>, dengan syarat <code>B ↛ A</code> dan <code>B</code> bukan bagian dari Primary Key).
+            </p>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[11px] text-pink-300">
+              • <strong>Ciri di Diagram:</strong> Garis panah warna <strong>Merah Muda/Ungu di bagian BAWAH kotak</strong> yang berpangkal dari kotak <em>Non-PK</em> menuju kotak <em>Non-PK</em> lainnya. Wajib dipisah agar mencapai <strong>3NF</strong>!
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Simulator Interaktif Anomali (Slide 4 & 5: Kasus Rudi & Siti) -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -200,6 +276,16 @@
           Suatu relasi berada dalam <strong>1NF</strong> jika setiap sel bernilai tunggal (<em>atomic value</em>), tidak ada atribut berulang (seperti <code>use1, use2, use3</code> atau <code>ID_Pengarang1, ID_Pengarang2</code>), dan telah ditentukan <strong>Primary Key / Identifier</strong>-nya.
         </p>
 
+        <!-- Ringkasan Peran Diagram Dependency pada Tahap 1NF -->
+        <div class="p-4 rounded-xl bg-slate-950 border border-cyan-500/30 text-xs text-slate-300 space-y-1.5">
+          <div class="font-bold text-cyan-300 font-mono flex items-center gap-2">
+            <i class="fa-solid fa-circle-info"></i> Mengapa Setelah 1NF Kita Menggambar Diagram Dependency?
+          </div>
+          <p class="leading-relaxed">
+            Begitu tabel UNF diratakan menjadi <strong>1NF</strong> dan ditentukan <strong>Composite Primary Key</strong>-nya (kotak bergaris bawah kuning), seluruh atribut dalam 1 tabel masih bercampur. Dengan menggambar <strong>Diagram Dependency 1NF</strong>, kita dapat langsung memetakan 3 jenis panah sekaligus: (1) <strong>Panah Atas (Hijau — FFD)</strong> yang bergantung penuh pada seluruh PK komposit, (2) <strong>Panah Bawah dari Sebagian PK (Kuning/Biru — Partial Dependency)</strong> yang melanggar 2NF, serta (3) <strong>Panah Bawah antar Non-PK (Merah Muda — Transitive Dependency)</strong> yang melanggar 3NF.
+          </p>
+        </div>
+
         <div class="flex flex-wrap gap-2 text-xs font-mono pt-2">
           <button onclick="select1nfCase(0)" id="btn-1nf-0" class="px-3 py-1.5 rounded-xl bg-cyan-600 text-white font-bold">Kasus 1: Proyek (Slide 8)</button>
           <button onclick="select1nfCase(1)" id="btn-1nf-1" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300">Kasus 2: Supervisor-Warehouse (Slide 12)</button>
@@ -221,6 +307,22 @@
         <p class="text-sm text-slate-300 leading-relaxed">
           Ketergantungan fungsional <strong>X → Y</strong> berlaku jika untuk setiap dua tuple <strong>∀(t₁.X = t₂.X) ⇒ (t₁.Y = t₂.Y)</strong> (nilai X menentukan secara unik nilai Y). Suatu tabel 1NF berada dalam <strong>2NF</strong> jika semua atribut non-kunci bergantung penuh (<em>Fully Functional Dependency</em>) pada <strong>seluruh Composite Primary Key</strong>, bukan hanya menumpang pada salah satu subset kunci (<em>Partial Dependency</em>).
         </p>
+
+        <!-- Kotak Perbandingan FFD vs Partial Dependency pada Tahap 2NF -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-1">
+            <div class="font-mono font-bold text-emerald-400">✅ Fully Functional Dependency (FFD): (A, B) → C</div>
+            <p class="text-slate-300 leading-relaxed">
+              Atribut <code>C</code> membutuhkan <strong>kedua kunci A dan B sekaligus</strong> untuk dapat ditentukan nilainya. Jika salah satu kunci (A atau B) dihilangkan, ketergantungannya gugur. Atribut FFD ini tetap tinggal di tabel relasi/transaksi bersama kunci komposit <code>(A, B)</code>.
+            </p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-amber-500/30 space-y-1">
+            <div class="font-mono font-bold text-amber-400">⚠️ Partial Dependency (PD): A → D atau B → E</div>
+            <p class="text-slate-300 leading-relaxed">
+              Atribut <code>D</code> ternyata sudah bisa ditentukan hanya dengan mengetahui <strong>sebagian kunci <code>A</code> saja</strong> tanpa peduli nilai <code>B</code>. Ketergantungan parsial ini menimbulkan redundansi parah dan wajib dipisahkan menjadi tabel master baru dengan PK tunggal <code>A</code>.
+            </p>
+          </div>
+        </div>
 
         <div class="flex flex-wrap gap-2 text-xs font-mono pt-2">
           <button onclick="select2nfCase(0)" id="btn-2nf-0" class="px-3 py-1.5 rounded-xl bg-purple-600 text-white font-bold">Kasus 1: KRS Mahasiswa (Slide 22)</button>
@@ -250,6 +352,25 @@
         <p class="text-sm text-slate-300 leading-relaxed">
           Suatu relasi berada dalam <strong>3NF</strong> jika sudah <strong>2NF</strong> dan tidak ada atribut non-kunci yang bergantung pada atribut non-kunci lainnya (<strong>A → B</strong> dan <strong>B → C</strong> di mana <strong>B ↛ A</strong> dan <strong>B</strong> bukan identifier).
         </p>
+
+        <!-- Kotak Penjelasan Syarat Matematis Transitive Dependency pada 3NF -->
+        <div class="p-4 rounded-xl bg-slate-950 border border-pink-500/30 text-xs text-slate-300 space-y-1.5">
+          <div class="font-mono font-bold text-pink-400">🔍 Syarat Suatu Ketergantungan Disebut Transitive Dependency (A → B → C):</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+              <strong class="text-amber-300 font-mono">1. A adalah PK, B &amp; C Non-PK:</strong><br>
+              <code>A</code> merupakan Primary Key tabel, sedangkan <code>B</code> dan <code>C</code> bukan bagian dari Primary Key.
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+              <strong class="text-cyan-300 font-mono">2. Rantai A → B dan B → C:</strong><br>
+              Kunci <code>A</code> menentukan <code>B</code>, lalu atribut non-kunci <code>B</code> menentukan nilai <code>C</code>.
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+              <strong class="text-pink-300 font-mono">3. B Tidak Menentukan A (B ↛ A):</strong><br>
+              <code>B</code> bukan candidate key bagi <code>A</code>. Solusi 3NF: keluarkan <code>C</code> ke tabel baru dengan <code>B</code> sebagai PK, dan jadikan <code>B</code> sebagai FK di tabel pertama.
+            </div>
+          </div>
+        </div>
 
         <!-- Simulator Visual Interaktif 3NF -->
         <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
@@ -484,6 +605,12 @@
             <polygon points="585,86 580,94 590,94" fill="#f472b6" />
             <text x="545" y="178" fill="#f472b6" font-size="9" font-weight="bold" text-anchor="middle">TD: JOB_CLASS → CHG_HOUR</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Panah Atas (Hijau — Full FD / FFD):</strong> Kombinasi kunci komposit <code>{PROJ_NUM, EMP_NUM} (●)</code> secara bersama-sama menentukan <code>HOURS</code> (jumlah jam kerja karyawan pada proyek tersebut) serta seluruh atribut baris (<code>▼</code>).',
+          '<strong class="text-sky-400">Panah Bawah Kiri (Biru — Partial Dependency 1):</strong> Sebagian kunci <code>PROJ_NUM (●) → PROJ_NAME (▲)</code>. Nama proyek hanya bergantung pada nomor proyek saja.',
+          '<strong class="text-amber-400">Panah Bawah Tengah (Kuning — Partial Dependency 2):</strong> Sebagian kunci <code>EMP_NUM (●) → EMP_NAME, JOB_CLASS, CHG_HOUR (▲)</code>. Data profil karyawan hanya bergantung pada nomor induk karyawan.',
+          '<strong class="text-pink-400">Panah Bawah Kanan (Merah Muda — Transitive Dependency / TD):</strong> Atribut non-kunci <code>JOB_CLASS (●) → CHG_HOUR (▲)</code>. Tarif per jam ditentukan oleh golongan jabatan (misal Database Designer = $105.00), bukan oleh individu karyawannya.'
+        ],
         afterDesc: 'Setiap baris diratakan (flattened) sehingga setiap sel bernilai atomik, baris Subtotal dibuang (karena merupakan nilai turunan), dan ditentukan Composite Primary Key: (PROJ_NUM, EMP_NUM).',
         pk: '{PROJ_NUM, EMP_NUM}',
         afterRows: [
@@ -564,6 +691,12 @@
             <polygon points="615,86 610,94 620,94" fill="#f472b6" />
             <text x="580" y="180" fill="#f472b6" font-size="9" font-weight="bold" text-anchor="middle">TD: W-No → Ware-loc</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Panah Atas (Hijau — Full FD / FFD):</strong> <code>{Sp-No, C-No} (●) → Sales (▼)</code>. Nilai penjualan (Sales) bergantung penuh pada kombinasi Supervisor dan Komponen yang dijual.',
+          '<strong class="text-sky-400">Panah Bawah Kiri (Biru — Partial Dependency 1):</strong> <code>Sp-No (●) → Sp-Name, Area (▲)</code>. Nama supervisor dan area kerjanya hanya bergantung pada nomor supervisor.',
+          '<strong class="text-amber-400">Panah Bawah Tengah (Kuning — Partial Dependency 2):</strong> <code>C-No (●) → C-Name, W-No, Ware-loc (▲)</code>. Nama komponen dan gudang penyimpanannya hanya bergantung pada nomor komponen.',
+          '<strong class="text-pink-400">Panah Bawah Kanan (Merah Muda — Transitive Dependency / TD):</strong> <code>W-No (●) → Ware-loc (▲)</code>. Lokasi gudang (misal W-No 7 → Jamestown) ditentukan oleh nomor gudang yang merupakan atribut non-kunci.'
+        ],
         afterDesc: 'Grup berulang dipisahkan menjadi baris-baris mandiri dengan mengulang identitas Supervisor, lalu ditetapkan Composite Primary Key: (Sp-No, C-No).',
         pk: '{Sp-No, C-No}',
         afterRows: [
@@ -612,6 +745,11 @@
             <polygon points="577,82 572,90 582,90" fill="#38bdf8" />
             <text x="495" y="135" fill="#38bdf8" font-size="9.5" font-weight="bold" text-anchor="middle">PD 2: ID_Pengarang → Nama_Pengarang</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Panah Atas (Hijau — Composite PK):</strong> Pasangan kunci <code>{ISBN, ID_Pengarang} (●)</code> menjadi identitas unik setiap baris hubungan penulisan buku.',
+          '<strong class="text-amber-400">Panah Bawah Kiri (Kuning — Partial Dependency 1):</strong> <code>ISBN (●) → Thn_Terbit (▲)</code>. Tahun terbit hanya bergantung pada ISBN buku, tidak peduli siapa pengarangnya.',
+          '<strong class="text-sky-400">Panah Bawah Kanan (Biru — Partial Dependency 2):</strong> <code>ID_Pengarang (●) → Nama_Pengarang (▲)</code>. Nama pengarang hanya bergantung pada ID_Pengarang.<br><span class="text-slate-400">• <em>Tidak ada Transitive Dependency</em> pada tabel ini.</span>'
+        ],
         afterDesc: 'Kolom pengarang digabung menjadi satu pasang (ID_Pengarang, Nama_Pengarang) dan dipecah ke bawah per baris. Composite Primary Key adalah (ISBN, ID_Pengarang).',
         pk: '{ISBN, ID_Pengarang}',
         afterRows: [
@@ -653,6 +791,10 @@
             <polygon points="490,74 485,82 495,82" fill="#f59e0b" />
             <text x="295" y="130" fill="#fbbf24" font-size="9.5" font-weight="bold" text-anchor="middle">Partial Dependency: plantID (●) → genus, species, common_name (▲)</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-cyan-400">Composite Primary Key:</strong> Karena satu <code>plantID</code> memiliki banyak kegunaan (<code>use</code>), maka kunci utama tabel 1NF adalah gabungan <code>{plantID, use}</code>.',
+          '<strong class="text-amber-400">Panah Bawah (Kuning — Partial Dependency):</strong> <code>plantID (●) → genus, species, common_name (▲)</code>. Ketiga atribut taksonomi tanaman tersebut hanya bergantung pada sebagian kunci yaitu <code>plantID</code> saja (sehingga saat menuju 2NF harus dipisahkan menjadi tabel Master Tanaman dan tabel Kegunaan Tanaman).'
+        ],
         afterDesc: 'Ketiga kolom use1, use2, use3 disatukan menjadi satu kolom tunggal "use", sehingga setiap kegunaan tanaman menjadi satu baris terpisah. Composite Primary Key: (plantID, use).',
         pk: '{plantID, use}',
         afterRows: [
@@ -694,9 +836,14 @@
             </table>
           </div>
           ${c.diagramSvg ? `
-          <div class="pt-2 space-y-1.5">
+          <div class="pt-2 space-y-2">
             <div class="font-mono font-bold text-amber-300">Ilustrasi Visual Diagram Dependency pada Tahap 1NF:</div>
             ${c.diagramSvg}
+            ${c.diagramNotes ? `
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs">
+              <div class="font-mono font-bold text-cyan-300"><i class="fa-solid fa-compass-drafting mr-1.5"></i>Keterangan Detail Arah Panah &amp; Jenis Dependency pada Diagram:</div>
+              ${c.diagramNotes.map(n => `<div class="text-slate-300 leading-relaxed">• ${n}</div>`).join('')}
+            </div>` : ''}
           </div>
           ` : ''}
         </div>`;
@@ -751,6 +898,11 @@
             <polygon points="502,88 497,96 507,96" fill="#38bdf8" />
             <text x="415" y="159" fill="#38bdf8" font-size="9.5" font-weight="bold" text-anchor="middle">PD 2: KODE_MK → NAMA_MK</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Full Functional Dependency (FFD — Garis Hijau Atas):</strong> Hanya atribut <code>NILAI</code> yang benar-benar bergantung penuh pada gabungan <code>{NIM, KODE_MK}</code> (karena nilai huruf A/B milik seorang mahasiswa berbeda untuk setiap mata kuliah).',
+          '<strong class="text-amber-400">Partial Dependency 1 (PD 1 — Garis Kuning Bawah):</strong> <code>NIM (●) → NAMA_MHS (▲)</code>. Untuk mengetahui nama mahasiswa (Budi), kita cukup melihat <code>NIM</code> saja tanpa memerlukan <code>KODE_MK</code>.',
+          '<strong class="text-sky-400">Partial Dependency 2 (PD 2 — Garis Biru Bawah):</strong> <code>KODE_MK (●) → NAMA_MK (▲)</code>. Untuk mengetahui nama mata kuliah (Basis Data / Algoritma), kita cukup melihat <code>KODE_MK</code> saja tanpa memerlukan <code>NIM</code>.'
+        ],
         fds: [
           '{NIM, KODE_MK} → NILAI (Fully Functional Dependency — tetap di tabel relasi)',
           'NIM → NAMA_MHS (Partial Dependency — hanya bergantung pada NIM, pisahkan ke tabel Mahasiswa!)',
@@ -806,6 +958,10 @@
             <polygon points="505,88 500,96 510,96" fill="#f59e0b" />
             <text x="365" y="145" fill="#fbbf24" font-size="9.5" font-weight="bold" text-anchor="middle">Partial Dependency (B → C, D): project_num (●) → project_name, contact (▲)</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Full Functional Dependency (FFD — Garis Hijau Atas):</strong> <code>(A, B) → E</code> yaitu <code>{empID, project_num} (●) → hours (▼)</code>. Jumlah jam kerja (hours) bergantung penuh pada siapa karyawannya dan nomor proyek yang dikerjakan.',
+          '<strong class="text-amber-400">Partial Dependency (PD — Garis Kuning Bawah):</strong> <code>B → C, D</code> yaitu <code>project_num (●) → project_name, contact (▲)</code>. Nama proyek dan nomor kontak proyek hanya bergantung pada sebagian kunci komposit yaitu <code>project_num</code>, sehingga wajib dipisahkan ke tabel <code>Project</code>.'
+        ],
         fds: [
           '{empID, project_num} → hours (Fully Functional Dependency — jam kerja bergantung pada karyawan & proyek)',
           'project_num → project_name, contact (Partial Dependency — nama proyek & kontak hanya bergantung pada project_num)'
@@ -846,6 +1002,11 @@
             <polygon points="577,72 572,80 582,80" fill="#38bdf8" />
             <text x="495" y="125" fill="#38bdf8" font-size="9.5" font-weight="bold" text-anchor="middle">PD 2: ID_Pengarang → Nama_Pengarang</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-amber-400">Partial Dependency 1 (Garis Kuning):</strong> <code>ISBN → Thn_Terbit</code>. Mengakibatkan tahun terbit buku berulang setiap kali buku ditulis oleh lebih dari 1 pengarang. Dipisahkan menjadi tabel <code>Buku(<u>ISBN</u>, Thn_Terbit)</code>.',
+          '<strong class="text-sky-400">Partial Dependency 2 (Garis Biru):</strong> <code>ID_Pengarang → Nama_Pengarang</code>. Mengakibatkan nama pengarang (seperti Aris M dan Kosim P) berulang setiap kali menulis buku baru. Dipisahkan menjadi tabel <code>Pengarang(<u>ID_Pengarang</u>, Nama_Pengarang)</code>.',
+          '<strong class="text-emerald-400">Tabel Relasi 2NF:</strong> Kunci komposit <code>{ISBN, ID_Pengarang}</code> tetap dipertahankan sebagai tabel jembatan <code>Buku_Pengarang(<u>ISBN, ID_Pengarang</u>)</code>.'
+        ],
         fds: [
           'ISBN → Thn_Terbit (Partial Dependency — tahun terbit hanya ditentukan oleh ISBN buku)',
           'ID_Pengarang → Nama_Pengarang (Partial Dependency — nama pengarang hanya ditentukan oleh ID_Pengarang)',
@@ -879,9 +1040,14 @@
             </table>
           </div>
           ${c.diagramSvg ? `
-          <div class="space-y-1.5 pt-1">
+          <div class="space-y-2 pt-1">
             <div class="font-mono font-bold text-amber-300">Ilustrasi Visual Diagram Dependency Sebelum Normalisasi ke 2NF:</div>
             ${c.diagramSvg}
+            ${c.diagramNotes ? `
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs">
+              <div class="font-mono font-bold text-purple-300"><i class="fa-solid fa-compass-drafting mr-1.5"></i>Keterangan Detail Ilustrasi Diagram Dependency:</div>
+              ${c.diagramNotes.map(n => `<div class="text-slate-300 leading-relaxed">• ${n}</div>`).join('')}
+            </div>` : ''}
           </div>
           ` : ''}
           <div class="space-y-1 pt-1">
@@ -972,6 +1138,11 @@
                 <polygon points="712,86 707,94 717,94" fill="#f472b6" />
                 <text x="677" y="134" fill="#f472b6" font-size="8.5" font-weight="bold" text-anchor="middle">Transitive: C4 → C5</text>
               </svg>
+              <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs mt-2">
+                <div class="font-mono font-bold text-emerald-300"><i class="fa-solid fa-compass-drafting mr-1.5"></i>Keterangan Detail Kedua Ilustrasi Diagram Dependency (Slide 28 &amp; Slide 29):</div>
+                <div class="text-slate-300 leading-relaxed">• <strong class="text-amber-300">Diagram Kiri (Slide 28 — Book):</strong> Memiliki PK tunggal <code>Book</code> (sehingga otomatis sudah 2NF dan tidak mungkin punya Partial Dependency). Namun di bagian bawah terdapat panah merah muda <code>Author → Nationality</code> antar sesama atribut non-kunci (<strong>Transitive Dependency</strong>).</div>
+                <div class="text-slate-300 leading-relaxed">• <strong class="text-sky-300">Diagram Kanan (Slide 29 — C1..C5):</strong> Merangkum ketiga jenis dependency sekaligus: (1) Panah Hijau Atas = <strong>Full FD</strong> <code>{C1, C3} → C4, C5</code>; (2) Panah Kuning Bawah Kiri = <strong>Partial Dependency</strong> dari sebagian kunci <code>C1 → C2</code>; (3) Panah Merah Muda Bawah Kanan = <strong>Transitive Dependency</strong> dari non-kunci <code>C4 → C5</code>.</div>
+              </div>
             </div>
           </div>`;
       } else if (step === 2) {
@@ -1057,6 +1228,11 @@
             <polygon points="385,86 380,94 390,94" fill="#38bdf8" />
             <text x="415" y="170" fill="#38bdf8" font-size="9" font-weight="bold" text-anchor="middle">PD 2: IdPenulis (●) → NamaBelakang (▲)</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Full Functional Dependency (FFD — Garis Hijau Atas):</strong> Ketiga titik pangkal <code>ISBN (●)</code>, <code>IdPenulis (●)</code>, dan <code>Edisi (●)</code> membentuk Composite PK yang menentukan <code>Royalti (▼)</code>, karena persentase royalti berbeda tergantung buku, siapa penulisnya, dan edisi ke berapa.',
+          '<strong class="text-amber-400">Partial Dependency 1 (PD 1 — Garis Kuning Bawah):</strong> <code>ISBN (●) → JudulBuku, Penerbit (▲)</code>. Judul buku dan nama penerbit hanya bergantung pada ISBN buku saja.',
+          '<strong class="text-sky-400">Partial Dependency 2 (PD 2 — Garis Biru Bawah):</strong> <code>IdPenulis (●) → NamaBelakang (▲)</code>. Nama belakang penulis hanya bergantung pada IdPenulis saja.'
+        ],
         fds: [
           'Composite PK pada 1NF: {ISBN, IdPenulis, Edisi} → Royalti (Full Functional Dependency, karena royalti bervariasi menurut buku, penulis, dan edisi)',
           'ISBN → JudulBuku, Penerbit (Partial Dependency terhadap ISBN)',
@@ -1104,6 +1280,11 @@
             <polygon points="655,72 650,80 660,80" fill="#38bdf8" />
             <text x="600" y="132" fill="#38bdf8" font-size="9" font-weight="bold" text-anchor="middle">PD 2: Skill_ID → Skill_Name</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-amber-400">Partial Dependency 1 (PD 1 — Garis Kuning Bawah):</strong> <code>Emp_ID → Name, Address, Job_Name</code>. Identitas karyawan, alamat rumah, dan jabatan utamanya hanya bergantung pada <code>Emp_ID</code>.',
+          '<strong class="text-sky-400">Partial Dependency 2 (PD 2 — Garis Biru Bawah):</strong> <code>Skill_ID → Skill_Name</code>. Nama keahlian (sales, dictation, dll.) hanya bergantung pada <code>Skill_ID</code>.',
+          '<strong class="text-emerald-400">Relasi Many-to-Many:</strong> Pasangan <code>{Emp_ID, Skill_ID}</code> menjadi tabel penghubung <code>Karyawan_Skill</code>.'
+        ],
         fds: [
           '1NF: Buat ID_Karyawan (atau Name), pecah kolom berulang Skill menjadi baris. Composite PK: {Emp_ID, Skill_ID}',
           'Emp_ID → Name, Address, Job_Name (Partial Dependency terhadap Emp_ID)',
@@ -1154,6 +1335,11 @@
             <polygon points="702,76 697,84 707,84" fill="#f472b6" />
             <text x="655" y="152" fill="#f472b6" font-size="9" font-weight="bold" text-anchor="middle">TD 2: City_Code → Dest_City</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Tidak Ada Partial Dependency (Sudah 2NF):</strong> Karena Primary Key tabel tiket hanya 1 kolom tunggal yaitu <code>Ticket_ID</code>, maka seluruh atribut non-kunci bergantung penuh pada <code>Ticket_ID</code>.',
+          '<strong class="text-sky-400">Transitive Dependency 1 (TD 1 — Garis Biru Bawah):</strong> <code>Ticket_ID → Flight_Code (●) → Gate_Number, City_Code (▲)</code>. Nomor gate keberangkatan dan kode kota tujuan ditentukan oleh kode penerbangan (Flight_Code).',
+          '<strong class="text-pink-400">Transitive Dependency 2 (TD 2 — Garis Merah Muda Bawah):</strong> <code>Flight_Code → City_Code (●) → Dest_City (▲)</code>. Nama kota tujuan (Tokyo / Singapura) ditentukan oleh kode bandara/kota (TYO / SIN).'
+        ],
         fds: [
           'PK Tunggal: {Ticket_ID} → Flight_Code, Passenger_Name, Seat_Number (Sudah 2NF begitu sel kosong diisi)',
           'Transitive 1: Ticket_ID → Flight_Code → Gate_Number, City_Code',
@@ -1184,9 +1370,14 @@
             </table>
           </div>
           ${c.diagramSvg ? `
-          <div class="pt-1 space-y-1.5">
+          <div class="pt-1 space-y-2">
             <div class="font-mono font-bold text-amber-300">Ilustrasi Visual Diagram Dependency Sebelum Normalisasi (1NF):</div>
             ${c.diagramSvg}
+            ${c.diagramNotes ? `
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs">
+              <div class="font-mono font-bold text-cyan-300"><i class="fa-solid fa-compass-drafting mr-1.5"></i>Keterangan Detail Ilustrasi Diagram Dependency:</div>
+              ${c.diagramNotes.map(n => `<div class="text-slate-300 leading-relaxed">• ${n}</div>`).join('')}
+            </div>` : ''}
           </div>
           ` : ''}
         </div>
@@ -1253,6 +1444,12 @@
             <polygon points="625,86 620,94 630,94" fill="#f59e0b" />
             <text x="535" y="150" fill="#fbbf24" font-size="8.5" font-weight="bold" text-anchor="middle">PD 2: Product_ID → Desc, Finish, Unit_Price</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Full FD (Garis Hijau Atas):</strong> <code>{Order_ID, Product_ID} (●) → Ordered_Qty (▼)</code>. Jumlah barang yang dipesan bergantung penuh pada nomor nota dan kode produk.',
+          '<strong class="text-sky-400">Partial Dependency 1 (Garis Biru Bawah):</strong> <code>Order_ID (●) → Order_Date, Customer_ID, Cust_Name/Addr (▲)</code>.',
+          '<strong class="text-amber-400">Partial Dependency 2 (Garis Kuning Bawah):</strong> <code>Product_ID (●) → Product_Description, Product_Finish, Unit_Price (▲)</code>.',
+          '<strong class="text-pink-400">Transitive Dependency (Garis Merah Muda Bawah):</strong> Di dalam kelompok atribut pesanan, <code>Customer_ID (●) → Customer_Name, Customer_Address (▲)</code>.'
+        ],
         fds: [
           'Composite PK 1NF: {Order_ID, Product_ID} → Ordered_Quantity (Full FD)',
           'Order_ID → Order_Date, Customer_ID, Customer_Name, Customer_Address (Partial Dependency)',
@@ -1303,6 +1500,11 @@
             <polygon points="340,86 335,94 345,94" fill="#f472b6" />
             <text x="495" y="158" fill="#f472b6" font-size="9" font-weight="bold" text-anchor="middle">TD: Nama_Pelanggan (ID_Pelanggan) → Alamat_Pelanggan</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Full FD (Garis Hijau Atas):</strong> <code>{No_Pesanan, Produk_Dipesan} (●) → Jumlah (▼)</code>. Kuantitas barang yang dibeli bergantung penuh pada nomor pesanan dan produk yang dipesan.',
+          '<strong class="text-amber-400">Partial Dependency (Garis Kuning Bawah):</strong> <code>No_Pesanan (●) → Nama_Pelanggan, Alamat_Pelanggan (▲)</code>. Identitas pembeli hanya bergantung pada nomor pesanan.',
+          '<strong class="text-pink-400">Transitive Dependency (Garis Merah Muda Bawah):</strong> <code>Nama_Pelanggan / ID_Pelanggan (●) → Alamat_Pelanggan (▲)</code>. Alamat pelanggan ditentukan oleh siapa pelanggannya (Ali selalu beralamat di Jl. Merdeka No.1).'
+        ],
         fds: [
           '1NF: Pecah "Laptop, Smartphone" dan "2, 1" menjadi 2 baris atomik. Composite PK: {No_Pesanan, ID_Produk}',
           'No_Pesanan → ID_Pelanggan → Nama_Pelanggan, Alamat_Pelanggan (Partial & Transitive Dependency)',
@@ -1362,6 +1564,11 @@
             <polygon points="697,76 692,84 702,84" fill="#38bdf8" />
             <text x="640" y="148" fill="#38bdf8" font-size="9" font-weight="bold" text-anchor="middle">PD 2: ID_Karyawan → Nama</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-amber-400">Partial Dependency 1 (Garis Kuning Bawah):</strong> <code>Aset_ID (●) → Nama_Aset, Proyek_ID, Nama_Proyek, Lokasi_Proyek (▲)</code>. Setiap aset ditugaskan ke satu proyek tertentu.',
+          '<strong class="text-pink-400">Transitive Dependency (Garis Merah Muda Bawah):</strong> <code>Aset_ID → Proyek_ID (●) → Nama_Proyek, Lokasi_Proyek (▲)</code>. Nama proyek (Alpha Launch) dan lokasinya (Jakarta) ditentukan oleh atribut non-kunci <code>Proyek_ID (P100)</code>.',
+          '<strong class="text-sky-400">Partial Dependency 2 (Garis Biru Bawah):</strong> <code>ID_Karyawan (●) → Nama_Karyawan (▲)</code>.'
+        ],
         fds: [
           'Composite PK: {Aset_ID, ID_Karyawan} (atau {Aset_ID, Proyek_ID, ID_Karyawan})',
           'Aset_ID → Nama_Aset, Proyek_ID (Partial Dependency)',
@@ -1399,9 +1606,14 @@
           <div class="font-bold text-amber-300">${c.title}</div>
           <p class="text-slate-300">${c.beforeInfo}</p>
           ${c.diagramSvg ? `
-          <div class="space-y-1.5 pt-1">
+          <div class="space-y-2 pt-1">
             <div class="font-mono font-bold text-cyan-300">Ilustrasi Visual Diagram Dependency Sebelum Normalisasi (1NF):</div>
             ${c.diagramSvg}
+            ${c.diagramNotes ? `
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs">
+              <div class="font-mono font-bold text-emerald-300"><i class="fa-solid fa-compass-drafting mr-1.5"></i>Keterangan Detail Ilustrasi Diagram Dependency:</div>
+              ${c.diagramNotes.map(n => `<div class="text-slate-300 leading-relaxed">• ${n}</div>`).join('')}
+            </div>` : ''}
           </div>
           ` : ''}
           <div class="space-y-1 font-mono text-slate-300 pt-2">${c.fds.map(f => `<div>• ${f}</div>`).join('')}</div>
@@ -1505,6 +1717,12 @@
             <!-- Note on Transitive Dependency if Publisher has ID/Details -->
             <text x="395" y="184" fill="#f472b6" font-size="9" font-weight="bold" text-anchor="middle">*Catatan 3NF: Jika Publisher memiliki atribut detail (Pub_ID → Publisher_Name), maka ISBN → Pub_ID → Publisher_Name adalah Transitive Dependency</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Panah Atas (Hijau — Full Functional Dependency / FFD):</strong> Ketiga atribut kunci komposit <code>{ISBN, Author Num, Edition} (●)</code> secara bersama-sama menentukan <code>Royalty (▼)</code>.',
+          '<strong class="text-amber-400">Panah Bawah 1 (Kuning — Partial Dependency 1):</strong> Pangkal <code>ISBN (●)</code> menunjuk ke <code>Book Title (▲)</code> dan <code>Publisher (▲)</code> karena judul dan penerbit hanya bergantung pada ISBN buku.',
+          '<strong class="text-sky-400">Panah Bawah 2 (Biru — Partial Dependency 2):</strong> Pangkal <code>Author Num (●)</code> menunjuk ke <code>LastName (▲)</code> karena nama belakang penulis hanya bergantung pada nomor penulis.',
+          '<strong class="text-pink-400">Catatan Transitive Dependency (3NF):</strong> Apabila entitas Penerbit memiliki kode pengenal (<code>Pub_ID → Publisher_Name</code>), maka <code>ISBN → Pub_ID → Publisher_Name</code> membentuk rantai transitif sehingga <code>PUBLISHER</code> dipisahkan menjadi tabel master tersendiri.'
+        ],
         fdAnalysis: [
           { type: 'Full Functional Dependency (FFD)', color: 'emerald', desc: '<code>{ISBN, Author_Num, Edition} → Royalty</code><br>Besaran royalti bergantung penuh pada kombinasi buku (ISBN), siapa penulisnya (Author_Num), dan edisi ke berapa (Edition).' },
           { type: 'Partial Dependency (PD #1)', color: 'amber', desc: '<code>ISBN → Book_Title, Publisher</code><br>Judul buku dan nama penerbit hanya bergantung pada sebagian kunci utama yaitu <code>ISBN</code>.' },
@@ -1735,6 +1953,12 @@ CREATE TABLE book_royalty (
             <polygon points="522,89 517,97 527,97" fill="#f472b6" />
             <text x="490" y="184" fill="#f472b6" font-size="9.5" font-weight="bold" text-anchor="middle">Transitive: VEND_CODE (●) → VEND_NAME (▲)</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Panah Atas (Hijau — Full FD / FFD):</strong> Pasangan kunci komposit <code>{INV_NUM, PROD_NUM} (●)</code> menentukan secara penuh <code>QUANT_SOLD (▼)</code> (jumlah unit produk yang terjual pada nomor invoice tersebut).',
+          '<strong class="text-sky-400">Panah Bawah Kiri (Biru — Partial Dependency 1):</strong> <code>INV_NUM (●) → SALE_DATE (▲)</code>. Tanggal transaksi hanya bergantung pada nomor invoice, sehingga dipisahkan menjadi tabel <code>INVOICE</code> saat menuju 2NF.',
+          '<strong class="text-amber-400">Panah Bawah Panjang (Kuning — Partial Dependency 2):</strong> <code>PROD_NUM (●) → PROD_LABEL, VEND_CODE, VEND_NAME, PROD_PRICE (▲)</code>. Keempat atribut tersebut hanya bergantung pada kode produk, sehingga dipisahkan menjadi tabel <code>PRODUCT</code> saat menuju 2NF.',
+          '<strong class="text-pink-400">Panah Bawah Pendek (Merah Muda — Transitive Dependency / TD):</strong> Di dalam kelompok atribut produk, <code>VEND_CODE (●) → VEND_NAME (▲)</code>. Nama pemasok bergantung pada kode pemasok (bukan PK), sehingga saat menuju 3NF harus dipisahkan menjadi tabel <code>VENDOR</code>.'
+        ],
         fdAnalysis: [
           { type: 'Composite Primary Key (1NF)', color: 'cyan', desc: '<code>{INV_NUM, PROD_NUM}</code> menjadi kunci komposit karena satu nomor invoice (211347) memuat banyak produk.' },
           { type: 'Full Functional Dependency (FFD)', color: 'emerald', desc: '<code>{INV_NUM, PROD_NUM} → QUANT_SOLD</code> (Jumlah barang terjual bergantung penuh pada nomor nota dan kode barang).' },
@@ -1949,6 +2173,11 @@ CREATE TABLE line (
             <polygon points="698,74 693,82 703,82" fill="#f472b6" />
             <text x="610" y="160" fill="#f472b6" font-size="9" font-weight="bold" text-anchor="middle">TD: ID_Film → ID_Kategori (●) → Nama_Kategori (▲)</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-amber-400">Panah Bawah Kiri (Kuning — Partial Dependency 1):</strong> <code>ID_Member (●) → Nama_Lengkap, Alamat_Fisik, Pembayaran (▲)</code>. Data penyewa hanya bergantung pada ID_Member.',
+          '<strong class="text-sky-400">Panah Bawah Kanan (Biru — Partial Dependency 2):</strong> <code>ID_Film (●) → Judul_Film, Kategori (▲)</code>. Judul film dan kategorinya hanya bergantung pada ID_Film.',
+          '<strong class="text-pink-400">Panah Bawah Pendek (Merah Muda — Transitive Dependency):</strong> <code>ID_Film → ID_Kategori (●) → Nama_Kategori (▲)</code> (serta pada alamat: <code>Kota → Negara</code>), sehingga kategori film dipisahkan ke tabel master <code>KATEGORI_FILM</code> pada 3NF.'
+        ],
         fdAnalysis: [
           { type: 'UNF → 1NF (Atomisasi & Surrogate Key)', color: 'cyan', desc: 'Setiap film dan kategorinya yang dipisahkan koma dipecah menjadi baris tunggal (8 baris sewa). Tambahkan pengenal unik <code>ID_Member</code> dan <code>ID_Film</code>. Composite PK 1NF: <code>{ID_Member, ID_Film}</code>.' },
           { type: 'Partial Dependency (PD #1)', color: 'amber', desc: '<code>ID_Member → Nama_Lengkap, Jalan, Kota, Negara, Metode_Pembayaran</code> (Data profil penyewa hanya bergantung pada <code>ID_Member</code>).' },
@@ -2157,6 +2386,11 @@ CREATE TABLE penyewaan (
             <polygon points="366,86 361,94 371,94" fill="#f472b6" />
             <text x="540" y="168" fill="#f472b6" font-size="9.5" font-weight="bold" text-anchor="middle">Transitive Dependency: Dept_Name (●) → Dept_Office (▲)</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Panah Atas (Hijau — Full FD / FFD):</strong> <code>{Emp_ID, Course_Title} (●) → Date_Completed (▼)</code>. Tanggal kelulusan kursus bergantung penuh pada siapa karyawannya dan kursus apa yang diselesaikan.',
+          '<strong class="text-amber-400">Panah Bawah Panjang (Kuning — Partial Dependency):</strong> <code>Emp_ID (●) → Name, Dept_Name, Dept_Office, Salary (▲)</code>. Seluruh atribut profil karyawan ini hanya bergantung pada <code>Emp_ID</code> saja (memisahkannya ke tabel <code>EMPLOYEE</code> di 2NF juga menyelamatkan data Larry King yang belum mengambil kursus!).',
+          '<strong class="text-pink-400">Panah Bawah Pendek (Merah Muda — Transitive Dependency):</strong> <code>Dept_Name (●) → Dept_Office (▲)</code>. Lokasi kantor departemen ditentukan oleh nama departemen (bukan PK), sehingga wajib dipisah ke tabel <code>DEPARTMENT</code> pada 3NF.'
+        ],
         fdAnalysis: [
           { type: 'Masalah Entity Integrity pada 1NF', color: 'rose', desc: 'Jika Composite PK adalah <code>{Emp_ID, Course_Title}</code>, maka baris <strong>190 (Larry King)</strong> melanggar aturan <em>Entity Integrity</em> karena bagian dari Primary Key (<code>Course_Title</code>) tidak boleh bernilai <code>NULL</code>! Pemisahan ke 2NF menuntaskan masalah ini.' },
           { type: 'Full Functional Dependency (FFD)', color: 'emerald', desc: '<code>{Emp_ID, Course_Title} → Date_Completed</code> (Tanggal selesai kursus bergantung penuh pada siapa karyawannya dan kursus apa yang diambil).' },
@@ -2360,6 +2594,12 @@ CREATE TABLE emp_training (
             <polygon points="742,84 737,92 747,92" fill="#f59e0b" />
             <text x="700" y="140" fill="#fbbf24" font-size="8.5" font-weight="bold" text-anchor="middle">TD 3: HOURS (●) → CLASS (▲)</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Panah Atas (Hijau — Single PK = Sudah 2NF):</strong> Karena Primary Key hanya 1 atribut tunggal yaitu <code>STU_NUM (●)</code>, maka tidak ada Partial Dependency.',
+          '<strong class="text-sky-400">Panah Bawah 1 (Biru — Transitive Dependency 1):</strong> <code>DEPT_CODE (●) → DEPT_NAME, DEPT_PHONE, COLLEGE_NAME (▲)</code>. Detail departemen ditentukan oleh kode departemen.',
+          '<strong class="text-pink-400">Panah Bawah 2 (Merah Muda — Transitive Dependency 2):</strong> <code>ADVISOR_ID / LNAME (●) → ADVISOR_OFFICE, ADVISOR_BLDG, ADVISOR_PHONE (▲)</code>. Ruangan, gedung, dan telepon dosen wali ditentukan oleh siapa dosen walinya.',
+          '<strong class="text-amber-400">Panah Bawah 3 (Kuning — Transitive Dependency 3):</strong> <code>STU_HOURS (●) → STU_CLASS (▲)</code>. Klasifikasi tingkat mahasiswa (Sophomore/Junior/Senior) ditentukan oleh jumlah jam SKS (STU_HOURS).'
+        ],
         fdAnalysis: [
           { type: 'Sudah 2NF (Setelah STU_NUM Diperbaiki Unik)', color: 'cyan', desc: 'Karena Primary Key hanya terdiri dari 1 atribut tunggal <code>STU_NUM</code>, maka tabel otomatis tidak memiliki Partial Dependency (sudah 2NF), namun memiliki <strong>3 rantai Transitive Dependency</strong>!' },
           { type: 'Transitive Dependency #1 (Departemen)', color: 'amber', desc: '<code>STU_NUM → DEPT_CODE → DEPT_NAME, DEPT_PHONE, COLLEGE_NAME</code>' },
@@ -2593,6 +2833,12 @@ CREATE TABLE student (
             <polygon points="476,84 472,91 480,91" fill="#f472b6" />
             <text x="400" y="192" fill="#f472b6" font-size="8.5" font-weight="bold" text-anchor="middle">Transitive (TD): No_Plat (●) → Jenis_Kdr, Pemilik (▲) | Pemilik (●) → Alamat (▲) | Teknisi (●) → Keahlian (▲)</text>
           </svg>`,
+        diagramNotes: [
+          '<strong class="text-emerald-400">Panah Atas (Hijau — Full FD / FFD):</strong> <code>{No_Nota, Sparepart} (●) → Jumlah (▼)</code>. Banyaknya unit sparepart yang dipakai bergantung penuh pada nomor nota servis dan kode sparepart.',
+          '<strong class="text-amber-400">Panah Bawah Panjang (Kuning — Partial Dependency 1):</strong> <code>No_Nota (●) → Tgl_Srv, Pemilik, Alamat, No_Plat, Jenis_Kdr, Teknisi, Keahlian, Kasir, Total_Bayar (▲)</code>. Semua atribut header nota ini hanya bergantung pada <code>No_Nota</code>.',
+          '<strong class="text-sky-400">Panah Bawah Kanan (Biru — Partial Dependency 2):</strong> <code>Sparepart (●) → Harga_Satuan (▲)</code>. Harga satuan sparepart hanya bergantung pada item sparepart-nya.',
+          '<strong class="text-pink-400">3 Panah Bawah Pendek (Merah Muda — Transitive Dependencies):</strong> Di dalam kelompok atribut nota, terdapat ketergantungan transitif: (1) <code>No_Plat (●) → Jenis_Kendaraan, Pemilik (▲)</code>, (2) <code>Pemilik (●) → Alamat_Pemilik (▲)</code>, serta (3) <code>Teknisi (●) → Keahlian_Teknisi (▲)</code>.'
+        ],
         fdAnalysis: [
           { type: 'Langkah (a) — Diagram Dependency 1NF & Composite PK', color: 'cyan', desc: 'Setelah baris berulang pada Nota 1 dan Nota 3 diratakan, <strong>Composite Primary Key adalah <code>{No_Nota, ID_Sparepart}</code></strong> (atau <code>{No_Nota, Nama_Sparepart}</code>).<br>• <strong>FFD:</strong> <code>{No_Nota, ID_Sparepart} → Jumlah</code>' },
           { type: 'Langkah (b) — Uraian ke 2NF (Pisahkan Partial Dependencies)', color: 'amber', desc: '• <strong>PD terhadap No_Nota:</strong> <code>No_Nota → Tgl_Service, No_Plat, Jenis_Kendaraan, ID_Pemilik, Nama_Pemilik, Alamat_Pemilik, ID_Teknisi, Nama_Teknisi, Keahlian_Teknisi, ID_Kasir, Nama_Kasir, Total_Bayar</code><br>• <strong>PD terhadap ID_Sparepart:</strong> <code>ID_Sparepart → Nama_Sparepart, Harga_Satuan</code><br>Sehingga di 2NF terbentuk 3 tabel: <strong>NOTA_SERVIS</strong>, <strong>SPAREPART</strong>, dan <strong>DETAIL_SERVIS</strong>.' },
@@ -2920,6 +3166,11 @@ DELIMITER ;`
           <div class="space-y-2">
             <div class="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">1B. Ilustrasi Visual Diagram Dependency Sebelum Normalisasi (1NF — FFD, Partial, &amp; Transitive):</div>
             ${c.beforeDiagramSvg}
+            ${c.diagramNotes ? `
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs">
+              <div class="font-mono font-bold text-amber-300"><i class="fa-solid fa-compass-drafting mr-1.5"></i>Keterangan Detail Arah Panah &amp; Jenis Dependency pada Ilustrasi Diagram:</div>
+              ${c.diagramNotes.map(n => `<div class="text-slate-300 leading-relaxed">• ${n}</div>`).join('')}
+            </div>` : ''}
           </div>
           ` : ''}
 
