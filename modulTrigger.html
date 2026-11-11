@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Praktikum Sistem Basis Data — Modul 10 / 12: Trigger pada MySQL</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#131c2e',
+              900: '#0f172a',
+              950: '#070b14'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .sql-code {
+      background-color: #080c14;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.79rem;
+      line-height: 1.65;
+    }
+    .kw { color: #38bdf8; font-weight: 600; } /* SQL Keywords */
+    .fn { color: #c084fc; font-weight: 600; } /* Built-in Functions */
+    .st { color: #34d399; } /* Strings */
+    .nm { color: #fbbf24; } /* Numbers */
+    .ps { color: #f472b6; font-weight: 700; } /* Pseudo-records OLD / NEW */
+    .cm { color: #64748b; font-style: italic; } /* Comments */
+    .ln {
+      user-select: none;
+      color: #475569;
+      text-align: right;
+      padding-right: 1rem;
+      min-width: 2.3rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-cyan-500/50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toast-msg">Berhasil disalin ke clipboard!</span>
+  </div>
+
+  <!-- Top Sticky Header -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/95 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-rose-500 flex items-center justify-center shadow-md shadow-cyan-500/20">
+            <i class="fa-solid fa-bolt-lightning text-white text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-sm sm:text-base font-bold tracking-tight text-white">Praktikum Sistem Basis Data — Modul 10 / 12: Trigger pada MySQL</h1>
+              <span class="hidden md:inline-block px-2 py-0.5 text-[10px] font-mono font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-md">Database: [nama]_p12 • 165 Menit</span>
+            </div>
+            <p class="text-xs text-slate-400">BEFORE/AFTER Trigger, Pseudo-record `OLD` &amp; `NEW`, Audit Trail `employeesaudit`, &amp; Solusi Lengkap Latihan Unguided `buku`</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Dropdown Unduh Script SQL -->
+          <div class="relative group">
+            <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all">
+              <i class="fa-solid fa-download"></i>
+              <span class="hidden sm:inline">Unduh</span> Script .SQL
+              <i class="fa-solid fa-chevron-down text-[10px] ml-0.5"></i>
+            </button>
+            <div class="absolute right-0 mt-1 w-64 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl py-1.5 hidden group-hover:block z-50 text-xs font-mono">
+              <button onclick="downloadSqlFile('guided')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-slate-200">
+                <span>👔 guided_employees_trigger.sql</span><span class="text-[10px] text-cyan-400">Materi</span>
+              </button>
+              <button onclick="downloadSqlFile('unguided')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-emerald-300">
+                <span>📚 unguided_buku_lengkap.sql</span><span class="text-[10px] text-emerald-400">No 1–10</span>
+              </button>
+              <button onclick="downloadSqlFile('posttest')" class="w-full px-3.5 py-2 text-left hover:bg-slate-800 flex items-center justify-between text-amber-300">
+                <span>🔥 posttest_toko_trigger.sql</span><span class="text-[10px] text-amber-400">Simulasi</span>
+              </button>
+            </div>
+          </div>
+
+          <a href="#unguided-section" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30 transition-all">
+            <i class="fa-solid fa-book-bookmark text-rose-400"></i>
+            <span>Solusi Unguided (1–10)</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Horizontal Quick Navigation -->
+      <nav class="flex space-x-1 overflow-x-auto py-2 text-xs font-medium border-t border-slate-800/80">
+        <a href="#teori-section" class="px-3 py-1.5 rounded-lg bg-slate-800/90 text-cyan-300 hover:bg-slate-700 whitespace-nowrap">📚 1. Konsep, 6 Jenis Trigger, &amp; `OLD`/`NEW`</a>
+        <a href="#cheatsheet-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-indigo-300 whitespace-nowrap">📑 2. Kumpulan Sintaks (Cheat Sheet)</a>
+        <a href="#guided-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-emerald-300 whitespace-nowrap">👔 3. Praktik Terbimbing: `employeesaudit` + Simulator</a>
+        <a href="#unguided-section" class="px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:bg-rose-500/25 whitespace-nowrap">📚 4. Latihan Unguided (No. 1–7 + Hidden A, B, C)</a>
+        <a href="#rak-simulator-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-amber-300 whitespace-nowrap">🎛️ 5. Live Simulator Validasi Rak Buku</a>
+        <a href="#posttest-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-purple-300 whitespace-nowrap">🔥 6. Simulasi Kasus Posttest</a>
+        <a href="#quiz-section" class="px-3 py-1.5 rounded-lg hover:bg-slate-800 text-sky-300 whitespace-nowrap">🎯 7. Kuis Evaluasi</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 flex-1 w-full">
+
+    <!-- HERO BANNER -->
+    <section class="bg-gradient-to-br from-slate-900 via-indigo-950/35 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div class="lg:col-span-8 space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
+            <i class="fa-solid fa-database"></i>
+            <span>Praktikum Sistem Basis Data • Modul 10 / 12: Trigger pada MySQL</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Otomatisasi Validasi &amp; Audit Data dengan <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-rose-400">Database Trigger</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            <strong>Trigger</strong> adalah <em>stored program</em> khusus di dalam server basis data MySQL yang dieksekusi <strong>secara otomatis (di-invoke)</strong> ketika terjadi peristiwa manipulasi data DML (<code>INSERT</code>, <code>UPDATE</code>, atau <code>DELETE</code>) pada suatu tabel. Berbeda dengan <em>Stored Procedure</em> yang harus dipanggil secara eksplisit dengan <code>CALL</code>, trigger tidak dapat dilewati (*bypass*) oleh aplikasi luar selama transaksi melalui SQL MySQL.
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Waktu Eksekusi</div>
+              <div class="font-mono font-bold text-cyan-400 text-sm mt-0.5">BEFORE / AFTER</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Event Pemicu DML</div>
+              <div class="font-mono font-bold text-emerald-400 text-sm mt-0.5">INSERT / UPDATE / DELETE</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Akses Nilai Baris</div>
+              <div class="font-mono font-bold text-rose-400 text-sm mt-0.5">OLD.col &amp; NEW.col</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400">Cakupan Unguided</div>
+              <div class="font-mono font-bold text-amber-400 text-sm mt-0.5">No. 1–7 + Hidden A,B,C</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tujuan & Pembagian Waktu -->
+        <div class="lg:col-span-4 bg-slate-950/90 border border-slate-800 rounded-xl p-5 space-y-3 text-xs">
+          <h3 class="font-bold text-cyan-400 uppercase tracking-wider flex items-center justify-between">
+            <span><i class="fa-regular fa-clock mr-1.5"></i> Pembagian Waktu</span>
+            <span class="font-mono text-amber-300">165 Menit</span>
+          </h3>
+          <div class="space-y-1.5 font-mono">
+            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-300">1. Pre-test</span><span class="text-slate-400">15 menit</span></div>
+            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-cyan-300">2. Materi Trigger</span><span class="text-cyan-300 font-bold">60 menit</span></div>
+            <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-rose-300">3. Latihan Unguided</span><span class="text-rose-300 font-bold">30–45 menit</span></div>
+            <div class="flex justify-between py-1"><span class="text-amber-300 font-bold">4. Post-test</span><span class="text-amber-300 font-bold">60 menit</span></div>
+          </div>
+          <div class="pt-2 border-t border-slate-800 text-slate-300 space-y-1">
+            <div class="font-bold text-slate-200">Kompetensi Utama:</div>
+            <p class="leading-relaxed text-[11px]">Menjelaskan konsep trigger, membedakan 6 macam trigger sesuai fungsinya, dan membuat trigger validasi (`BEFORE`) maupun pencatatan log/audit (`AFTER`).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 1: TEORI TRIGGER, KEUNTUNGAN/KELEMAHAN, 6 JENIS, & OLD VS NEW   -->
+    <!-- ======================================================================= -->
+    <section id="teori-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-cyan-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Bagian 1 – 4 Materi Praktikum (Halaman 1 – 4)</span>
+        <h2 class="text-2xl font-bold text-white">1. Arsitektur Trigger, 6 Macam Trigger MySQL, &amp; Aturan `OLD` vs `NEW`</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Memahami bagaimana operasi DML dari aplikasi memicu eksekusi trigger di dalam tabel, kapan harus memilih waktu <code>BEFORE</code> vs <code>AFTER</code>, serta bagaimana mengakses data sebelum dan sesudah perubahan.
+        </p>
+      </div>
+
+      <!-- Ilustrasi Visual Arsitektur Trigger (Gambar 1 Halaman 3 Modul) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <h3 class="text-sm font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-diagram-project"></i> Ilustrasi Alur Kerja Trigger di Dalam Database Server (Gambar 1 Modul)
+        </h3>
+        <svg viewBox="0 0 800 190" class="w-full bg-slate-950 rounded-xl border border-slate-800 p-2 font-mono">
+          <!-- Applications Box -->
+          <rect x="18" y="30" width="195" height="130" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2" />
+          <rect x="18" y="30" width="195" height="26" rx="8" fill="#0284c7" />
+          <text x="115" y="47" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">Applications (PHP/Python/Web)</text>
+          <text x="30" y="78" fill="#34d399" font-size="9.5" font-weight="bold">1. INSERT INTO t ...</text>
+          <text x="30" y="108" fill="#fbbf24" font-size="9.5" font-weight="bold">2. UPDATE t SET ...</text>
+          <text x="30" y="138" fill="#f43f5e" font-size="9.5" font-weight="bold">3. DELETE FROM t ...</text>
+
+          <!-- Arrows from App to Table t -->
+          <line x1="213" y1="74" x2="292" y2="74" stroke="#34d399" stroke-width="2" />
+          <polygon points="298,74 290,69 290,79" fill="#34d399" />
+          <line x1="213" y1="104" x2="292" y2="104" stroke="#fbbf24" stroke-width="2" />
+          <polygon points="298,104 290,99 290,109" fill="#fbbf24" />
+          <line x1="213" y1="134" x2="292" y2="134" stroke="#f43f5e" stroke-width="2" />
+          <polygon points="298,134 290,129 290,139" fill="#f43f5e" />
+
+          <!-- Database Cylinder / Container -->
+          <rect x="275" y="12" width="505" height="166" rx="14" fill="#131c2e" stroke="#6366f1" stroke-width="2" stroke-dasharray="6,3" />
+          <text x="527" y="28" fill="#a5b4fc" font-size="10" font-weight="bold" text-anchor="middle">MySQL Database Server (Tidak Bisa Di-bypass oleh Aplikasi Luar)</text>
+
+          <!-- Table t Box -->
+          <rect x="300" y="42" width="145" height="120" rx="8" fill="#0f172a" stroke="#e2e8f0" stroke-width="2" />
+          <text x="372" y="62" fill="#fbbf24" font-size="11" font-weight="bold" text-anchor="middle">Table t</text>
+          <line x1="315" y1="72" x2="430" y2="72" stroke="#475569" stroke-width="1.5" />
+          <line x1="355" y1="72" x2="355" y2="148" stroke="#475569" stroke-width="1.5" />
+          <text x="372" y="102" fill="#94a3b8" font-size="8.5" text-anchor="middle">Event DML</text>
+          <text x="372" y="118" fill="#94a3b8" font-size="8.5" text-anchor="middle">mengaktifkan</text>
+          <text x="372" y="134" fill="#38bdf8" font-size="8.5" font-weight="bold" text-anchor="middle">FOR EACH ROW</text>
+
+          <!-- Arrows from Table t to Triggers -->
+          <line x1="445" y1="66" x2="525" y2="66" stroke="#34d399" stroke-width="2" />
+          <polygon points="532,66 524,61 524,71" fill="#34d399" />
+          <line x1="445" y1="104" x2="555" y2="104" stroke="#fbbf24" stroke-width="2" />
+          <polygon points="562,104 554,99 554,109" fill="#fbbf24" />
+          <line x1="445" y1="142" x2="585" y2="142" stroke="#f43f5e" stroke-width="2" />
+          <polygon points="592,142 584,137 584,147" fill="#f43f5e" />
+
+          <!-- 3 Cascading Trigger Boxes -->
+          <rect x="535" y="42" width="175" height="38" rx="6" fill="#064e3b" stroke="#34d399" stroke-width="1.8" />
+          <text x="622" y="58" fill="#6ee7b7" font-size="9.5" font-weight="bold" text-anchor="middle">Insert Trigger (NEW)</text>
+          <text x="622" y="71" fill="#e2e8f0" font-size="8.5" text-anchor="middle">BEGIN ... END;</text>
+
+          <rect x="565" y="85" width="175" height="38" rx="6" fill="#78350f" stroke="#fbbf24" stroke-width="1.8" />
+          <text x="652" y="101" fill="#fde68a" font-size="9.5" font-weight="bold" text-anchor="middle">Update Trigger (OLD &amp; NEW)</text>
+          <text x="652" y="114" fill="#e2e8f0" font-size="8.5" text-anchor="middle">BEGIN ... END;</text>
+
+          <rect x="595" y="128" width="170" height="38" rx="6" fill="#881337" stroke="#f43f5e" stroke-width="1.8" />
+          <text x="680" y="144" fill="#fda4af" font-size="9.5" font-weight="bold" text-anchor="middle">Delete Trigger (OLD)</text>
+          <text x="680" y="157" fill="#e2e8f0" font-size="8.5" text-anchor="middle">BEGIN ... END;</text>
+        </svg>
+
+        <!-- Keuntungan vs Kelemahan Trigger -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
+          <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-2">
+            <div class="font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-circle-check"></i> 5 Keuntungan Trigger (Halaman 2 Modul)
+            </div>
+            <ul class="space-y-1 text-slate-300 list-disc list-inside leading-relaxed">
+              <li>Cara alternatif untuk mengecek <strong>integritas data</strong> secara terpusat di database.</li>
+              <li>Dapat <strong>memvalidasi dan mengoreksi input data</strong> sebelum masuk ke tabel (contoh: koreksi rak <code>U-00</code> &rarr; <code>U-01</code> pada Soal Unguided No. 6).</li>
+              <li>Menangkap error pada aturan bisnis (<em>business logic</em>).</li>
+              <li>Otomatis berjalan saat terjadi operasi DML tanpa perlu dipanggil manual dari aplikasi.</li>
+              <li>Sangat andal untuk <strong>mengaudit perubahan data</strong> (mencatat data lama <code>OLD</code> dan data baru <code>NEW</code> beserta waktu <code>NOW()</code> ke tabel log).</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/30 space-y-2">
+            <div class="font-bold text-rose-300 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation"></i> 3 Kelemahan &amp; Batasan Trigger (Halaman 2 Modul)
+            </div>
+            <ul class="space-y-1.5 text-slate-300 list-disc list-inside leading-relaxed">
+              <li><strong>Hanya validasi tambahan:</strong> Validasi utama antarmuka pengguna tetap wajib dibuat di level aplikasi (PHP / JavaScript / Python).</li>
+              <li><strong>Tidak terlihat (Invisible) dari sisi aplikasi client:</strong> Programmer aplikasi sering kesulitan melacak perubahan nilai atau proses di balik layar jika dokumentasi trigger tidak jelas.</li>
+              <li><strong>Menambah beban (Overhead) server database:</strong> Karena dieksekusi untuk setiap baris (<code>FOR EACH ROW</code>), operasi DML massal ribuan baris akan memicu ribuan eksekusi trigger sekaligus.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel Matriks 6 Jenis Trigger + Ketersediaan Keyword OLD dan NEW -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">Konsep Paling Penting Saat Praktikum &amp; Posttest</span>
+            <h3 class="text-base font-bold text-white mt-0.5">Matriks 6 Macam Trigger MySQL &amp; Aturan Penggunaan Pseudo-Record `OLD` vs `NEW`</h3>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-pink-500/20 text-pink-300 border border-pink-500/30 text-xs font-mono font-bold">
+            SET NEW.kolom = ... HANYA BISA DI BEFORE!
+          </span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-900/90 text-slate-300 font-mono border-b border-slate-800">
+              <tr>
+                <th class="p-3">No</th>
+                <th class="p-3">Jenis Trigger</th>
+                <th class="p-3">Contoh Penamaan Standar Modul</th>
+                <th class="p-3">Akses `OLD.kolom`</th>
+                <th class="p-3">Akses `NEW.kolom`</th>
+                <th class="p-3">Kegunaan Utama dalam Praktikum</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr>
+                <td class="p-3 font-mono text-slate-500">1</td>
+                <td class="p-3 font-mono font-bold text-cyan-300">BEFORE INSERT</td>
+                <td class="p-3 font-mono text-slate-300">before_buku_insert</td>
+                <td class="p-3 font-mono text-rose-400">❌ Tidak Ada</td>
+                <td class="p-3 font-mono text-emerald-300 font-bold">✅ Bisa Baca &amp; UBAH (SET NEW.col = ...)</td>
+                <td class="p-3">Memvalidasi &amp; memodifikasi nilai input sebelum disimpan ke tabel (Contoh: <strong>Unguided No. 6</strong> koreksi rak buku <code>00 &rarr; 01</code> dan <code>&gt;50 &rarr; 50</code>).</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-mono text-slate-500">2</td>
+                <td class="p-3 font-mono font-bold text-emerald-300">AFTER INSERT</td>
+                <td class="p-3 font-mono text-slate-300">after_buku_insert</td>
+                <td class="p-3 font-mono text-rose-400">❌ Tidak Ada</td>
+                <td class="p-3 font-mono text-cyan-300">✅ Hanya Baca (Read-Only)</td>
+                <td class="p-3">Mencatat log penambahan data baru ke tabel audit/log setelah data resmi tersimpan (Contoh: <strong>Unguided No. 2</strong> <code>log_pindah_buku</code>).</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-mono text-slate-500">3</td>
+                <td class="p-3 font-mono font-bold text-amber-300">BEFORE UPDATE</td>
+                <td class="p-3 font-mono text-slate-300">before_employee_update</td>
+                <td class="p-3 font-mono text-cyan-300">✅ Hanya Baca (Nilai Lama)</td>
+                <td class="p-3 font-mono text-emerald-300 font-bold">✅ Bisa Baca &amp; UBAH (SET NEW.col = ...)</td>
+                <td class="p-3">Menyimpan arsip data lama sebelum tertimpa (Contoh: <strong>Guided `employeesaudit`</strong>) atau memvalidasi nilai baru sebelum di-update (<strong>Hidden Question A</strong>).</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-mono text-slate-500">4</td>
+                <td class="p-3 font-mono font-bold text-purple-300">AFTER UPDATE</td>
+                <td class="p-3 font-mono text-slate-300">after_buku_update</td>
+                <td class="p-3 font-mono text-cyan-300">✅ Hanya Baca (Nilai Lama)</td>
+                <td class="p-3 font-mono text-cyan-300">✅ Hanya Baca (Nilai Baru)</td>
+                <td class="p-3">Mencatat riwayat perpindahan dari <code>OLD.posisi_buku</code> ke <code>NEW.posisi_buku</code> setelah update berhasil (Contoh: <strong>Unguided No. 3</strong>).</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-mono text-slate-500">5</td>
+                <td class="p-3 font-mono font-bold text-rose-300">BEFORE DELETE</td>
+                <td class="p-3 font-mono text-slate-300">before_buku_delete</td>
+                <td class="p-3 font-mono text-cyan-300">✅ Hanya Baca (Data yang akan dihapus)</td>
+                <td class="p-3 font-mono text-rose-400">❌ Tidak Ada</td>
+                <td class="p-3">Memeriksa syarat otorisasi atau membatalkan penghapusan data penting dengan <code>SIGNAL SQLSTATE '45000'</code> (<strong>Hidden Question C</strong>).</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-mono text-slate-500">6</td>
+                <td class="p-3 font-mono font-bold text-pink-300">AFTER DELETE</td>
+                <td class="p-3 font-mono text-slate-300">after_buku_delete</td>
+                <td class="p-3 font-mono text-cyan-300">✅ Hanya Baca (Data yang baru dihapus)</td>
+                <td class="p-3 font-mono text-rose-400">❌ Tidak Ada</td>
+                <td class="p-3">Mencatat jejak data yang telah dihapus ke tabel arsip/log (Contoh: <strong>Hidden Question B</strong>).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 2: KUMPULAN SINTAKS PENTING TRIGGER (CHEAT SHEET)               -->
+    <!-- ======================================================================= -->
+    <section id="cheatsheet-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-indigo-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">Referensi Cepat Praktikum Modul 12</span>
+        <h2 class="text-2xl font-bold text-white">2. Kumpulan Sintaks Trigger, Manipulasi String Rak, &amp; Manajemen Trigger</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Kumpulan pola perintah SQL yang wajib dikuasai untuk menyelesaikan contoh terbimbing maupun soal Unguided (termasuk fungsi string dan konversi dari Modul 8 untuk memvalidasi nomor rak buku).
+        </p>
+      </div>
+
+      <div id="trigger-cheatsheet-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 3: PRAKTIK TERBIMBING (EMPLOYEES & EMPLOYEESAUDIT)              -->
+    <!-- ======================================================================= -->
+    <section id="guided-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-emerald-500 pl-4">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Bagian 4 Materi Praktikum (Halaman 4 – 5 Modul)</span>
+        <h2 class="text-2xl font-bold text-white">3. Praktik Terbimbing: Audit Perubahan Data Karyawan (`employees` &rarr; `employeesaudit`)</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Membuat tabel <code>employees</code> dan <code>employeesaudit</code>, memasang trigger <strong><code>before_employee_update</code></strong>, menambahkan karyawan <strong>Agatha Filiana (`1056`)</strong>, lalu menguji bagaimana trigger otomatis merekam nama lama (<code>OLD.firstName = 'Agatha'</code>) ke tabel audit saat namanya diubah menjadi <code>'Agata'</code>.
+        </p>
+      </div>
+
+      <!-- Source Code Lengkap & Bedah Kode Guided -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+          <div class="px-5 py-3.5 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+            <span class="text-emerald-300 font-bold"><i class="fa-solid fa-code mr-1.5"></i>Script Lengkap Guided Lab (`employees` &amp; `before_employee_update`)</span>
+            <div class="flex gap-2">
+              <button onclick="copyRawText(SQL_GUIDED_EMPLOYEES)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+                <i class="fa-regular fa-copy mr-1"></i> Salin SQL
+              </button>
+              <button onclick="downloadSqlFile('guided')" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-semibold">
+                Unduh .sql
+              </button>
+            </div>
+          </div>
+          <pre id="code-guided-employees" class="p-4 sql-code overflow-x-auto flex-1 max-h-[520px]"></pre>
+        </div>
+
+        <!-- Penjelasan Baris demi Baris Guided Lab -->
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 text-xs">
+          <h3 class="font-mono font-bold uppercase tracking-wider text-emerald-400">
+            <i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i> Bedah Sintaks Penting (Halaman 4–5)
+          </h3>
+          <div class="space-y-2.5">
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-cyan-300">DELIMITER $$ ... END$$ DELIMITER ;</div>
+              <p class="text-slate-300 mt-1 leading-relaxed">Secara default MySQL memakai titik-koma (<code>;</code>) sebagai penanda akhir perintah. Karena di dalam blok <code>BEGIN ... END</code> terdapat perintah SQL yang diakhiri <code>;</code>, kita mengubah pembatas sementara menjadi <code>$$</code> agar MySQL tidak mengeksekusi trigger secara prematur di tengah jalan.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-amber-300">BEFORE UPDATE ON employees FOR EACH ROW</div>
+              <p class="text-slate-300 mt-1 leading-relaxed">Menentukan bahwa trigger aktif pada tabel <code>employees</code> sesaat <strong>sebelum</strong> operasi <code>UPDATE</code> diterapkan, dan dijalankan satu kali untuk setiap baris yang terkena dampak (<code>FOR EACH ROW</code>).</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-purple-300">INSERT INTO employeesaudit SET action = 'update', ...</div>
+              <p class="text-slate-300 mt-1 leading-relaxed">Di MySQL, perintah <code>INSERT INTO nama_tabel SET col1 = val1, col2 = val2</code> adalah bentuk alternatif yang sah dari <code>INSERT INTO ... VALUES (...)</code> yang memudahkan pembacaan karena nama kolom ditulis berdampingan langsung dengan nilainya.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="font-mono font-bold text-pink-300">OLD.employeeNumber, OLD.firstName, OLD.lastName</div>
+              <p class="text-slate-300 mt-1 leading-relaxed">Mengambil nilai kolom <strong>sebelum</strong> diubah oleh perintah <code>UPDATE</code> (yakni <code>firstName = 'Agatha'</code>), lalu menyimpannya ke tabel <code>employeesaudit</code> bersama waktu saat ini <code>NOW()</code>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Simulator: Guided Lab employees -> employeesaudit -->
+      <div class="bg-slate-900 border-2 border-emerald-500/30 rounded-3xl p-6 shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase text-emerald-400">⚡ Live Simulator Guided Lab (Before vs After Trigger Execution)</span>
+            <h3 class="text-base font-bold text-white mt-0.5">Uji Eksekusi `INSERT` Agatha Filiana (1056) &amp; `UPDATE` firstName Menjadi `'Agata'`</h3>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs font-mono">
+            <button onclick="setGuidedSimStep(1)" id="gstep-btn-1" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold">1. Kondisi Setelah INSERT Agatha (1056)</button>
+            <button onclick="setGuidedSimStep(2)" id="gstep-btn-2" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">2. Eksekusi UPDATE firstName = 'Agata'</button>
+            <button onclick="setGuidedSimStep(3)" id="gstep-btn-3" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">3. Eksekusi UPDATE ke-2 (lastName = 'Wijaya')</button>
+          </div>
+        </div>
+        <div id="guided-sim-box" class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs font-mono"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 4: PEMBAHASAN LENGKAP LATIHAN UNGUIDED (NO 1–7 + HIDDEN A,B,C)  -->
+    <!-- ======================================================================= -->
+    <section id="unguided-section" class="space-y-8 scroll-mt-24">
+      <div class="border-l-4 border-rose-500 pl-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-rose-400">Bagian Latihan Unguided (Halaman 5 – 6 Modul)</span>
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+            Pembahasan Lengkap Soal 1 s.d. 10 (Termasuk Hidden Question A, B, C)
+          </span>
+        </div>
+        <h2 class="text-2xl font-bold text-white mt-1">
+          4. Solusi Lengkap Latihan Unguided: Tabel `buku`, `log_pindah_buku`, &amp; Trigger Validasi Rak Fleksibel
+        </h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Membahas secara tuntas pembuatan kedua tabel (Soal 1), trigger <code>after_buku_insert</code> (Soal 2), trigger <code>after_buku_update</code> (Soal 3), pengujian <code>RE112</code> *The Fault in Our Stars* (Soal 4 &amp; 5), trigger validasi otomatis <code>before_buku_insert</code> untuk nomor rak fleksibel <code>01..50</code> (Soal 6 &amp; 7), serta 3 skenario **Hidden Question A, B, dan C** (Soal 8, 9, dan 10) yang biasa diberikan asisten saat praktikum berlangsung.
+        </p>
+      </div>
+
+      <!-- Tombol Salin & Unduh Seluruh Script Unguided -->
+      <div class="bg-gradient-to-r from-slate-900 via-rose-950/30 to-slate-900 border border-rose-500/40 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-file-code text-rose-400"></i>
+            <span>Bundel Lengkap Script SQL Latihan Unguided (`unguided_buku_lengkap.sql`)</span>
+          </div>
+          <p class="text-xs text-slate-300">Berisi seluruh perintah DDL, pembuatan 5 Trigger, dan pengujian DML Soal 1 s.d. Soal 10 yang siap dijalankan di phpMyAdmin / DataGrip.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="copyRawText(FULL_UNGUIDED_SQL_SCRIPT)" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono font-bold text-white border border-slate-700">
+            <i class="fa-regular fa-copy mr-1"></i> Salin Semua SQL Unguided
+          </button>
+          <button onclick="downloadSqlFile('unguided')" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white shadow-lg">
+            <i class="fa-solid fa-download mr-1"></i> Unduh unguided_buku_lengkap.sql
+          </button>
+        </div>
+      </div>
+
+      <!-- Container Kartu Pembahasan Soal 1 s.d. 10 -->
+      <div id="unguided-cards-wrapper" class="space-y-6"></div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 5: LIVE SIMULATOR VALIDASI RAK BUKU & LOG PINDAH BUKU           -->
+    <!-- ======================================================================= -->
+    <section id="rak-simulator-section" class="space-y-6 scroll-mt-24">
+      <div class="bg-slate-900 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">🎛️ Interactive Sandbox — Soal Unguided 1 s.d. 10</span>
+            <h2 class="text-2xl font-bold text-white mt-0.5">Live Simulator Trigger `buku` &amp; `log_pindah_buku` (Uji Validasi Rak `01–50`)</h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Uji langsung bagaimana trigger <code>before_buku_insert</code> mengoreksi posisi rak yang tidak valid (seperti <code>U-00 &rarr; U-01</code> atau <code>M-77 &rarr; M-50</code>) sebelum masuk ke tabel <code>buku</code>, lalu trigger <code>after_buku_insert</code> / <code>after_buku_update</code> otomatis mencatat jejaknya ke <code>log_pindah_buku</code>!
+            </p>
+          </div>
+          <button onclick="resetBukuSimulator()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-rose-300 border border-rose-500/30">
+            <i class="fa-solid fa-rotate-left mr-1"></i> Reset Tabel ke Awal
+          </button>
+        </div>
+
+        <!-- Preset Tombol Uji Cepat Sesuai Soal Modul -->
+        <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+          <span class="text-slate-400 font-sans">Uji Cepat Skenario Soal:</span>
+          <button onclick="simPresetBuku('soal4')" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30">
+            Soal 4: INSERT RE112 ('R-02')
+          </button>
+          <button onclick="simPresetBuku('soal5')" class="px-3 py-1.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30">
+            Soal 5: UPDATE RE112 ke 'R-33'
+          </button>
+          <button onclick="simPresetBuku('soal7a')" class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 font-bold">
+            Soal 7a: INSERT UM228 ('U-00' &rarr; 'U-01')
+          </button>
+          <button onclick="simPresetBuku('soal7b')" class="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30 font-bold">
+            Soal 7b: INSERT IN339 ('M-77' &rarr; 'M-50')
+          </button>
+        </div>
+
+        <!-- Form Input Kustom -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs font-mono">
+          <div class="md:col-span-2">
+            <label class="block text-slate-400 mb-1">kode_buku:</label>
+            <input id="sim-kode" type="text" value="BK901" maxlength="5" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-amber-300">
+          </div>
+          <div class="md:col-span-4">
+            <label class="block text-slate-400 mb-1">nama_buku:</label>
+            <input id="sim-judul" type="text" value="Allegiant" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-sans">
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-slate-400 mb-1">pengarang:</label>
+            <input id="sim-pengarang" type="text" value="Veronica Roth" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-sans">
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-slate-400 mb-1">posisi_buku (Coba R-00 / K-88):</label>
+            <div class="flex gap-2">
+              <input id="sim-posisi" type="text" value="K-88" maxlength="5" class="w-24 px-3 py-2 rounded-xl bg-slate-900 border border-amber-500/50 text-emerald-300 font-bold">
+              <button onclick="simCustomInsertOrUpdate()" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold shadow">
+                INSERT / UPDATE
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Log Eksekusi Trigger Real-Time -->
+        <div id="buku-trigger-banner" class="p-4 rounded-xl bg-slate-950 border border-amber-500/40 text-xs font-mono text-slate-200 leading-relaxed"></div>
+
+        <!-- Dua Tabel Berdampingan: Tabel `buku` dan Tabel `log_pindah_buku` -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-xs font-mono">
+          <div class="lg:col-span-6 p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-cyan-400 font-bold">
+              <span>📘 Isi Tabel `buku` Saat Ini:</span>
+              <span id="buku-count-label" class="text-slate-400"></span>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
+                  <tr><th class="p-2">kode_buku</th><th class="p-2">nama_buku</th><th class="p-2">pengarang</th><th class="p-2">posisi_buku</th></tr>
+                </thead>
+                <tbody id="sim-buku-tbody" class="divide-y divide-slate-800"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 space-y-2">
+            <div class="flex items-center justify-between text-emerald-400 font-bold">
+              <span>📜 Isi Tabel `log_pindah_buku` (Otomatis dari Trigger):</span>
+              <span id="log-count-label" class="text-slate-400"></span>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
+                  <tr><th class="p-2">log_id</th><th class="p-2">kode_buku</th><th class="p-2">posisi_lama</th><th class="p-2">posisi_baru</th><th class="p-2">waktu_pindah</th></tr>
+                </thead>
+                <tbody id="sim-log-tbody" class="divide-y divide-slate-800"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 6: SIMULASI KASUS POSTTEST BERKESINAMBUNGAN                     -->
+    <!-- ======================================================================= -->
+    <section id="posttest-section" class="space-y-6 scroll-mt-24">
+      <div class="border-l-4 border-purple-500 pl-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">Persiapan Post-test (60 Menit)</span>
+          <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold">2 Kasus Lengkap: Trigger Murni &amp; Integrasi Trigger + Subquery</span>
+        </div>
+        <h2 class="text-2xl font-bold text-white mt-0.5">6. Simulasi Soal Posttest: Otomatisasi Stok Gudang &amp; Integrasi Trigger + Subquery</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Pilih salah satu dari <strong>2 skenario kasus Posttest</strong> di bawah ini: <strong>Kasus 1</strong> berfokus pada otomatisasi stok &amp; audit harga toko, sedangkan <strong>Kasus 2</strong> mengombinasikan <strong>Trigger (Modul 12) + Subquery Bersarang (Modul 11: <code>IN</code>, <code>AVG</code>, <code>MAX</code>, <code>EXISTS</code>, &amp; Skalar Subquery)</strong> lengkap dengan simulasi tabel <em>Before vs After</em> dan penjelasan per bagian.
+        </p>
+      </div>
+
+      <!-- Tombol Pemilih Kasus Posttest 1 vs Kasus Posttest 2 (Trigger + Subquery) -->
+      <div class="flex flex-wrap gap-2 text-xs font-mono">
+        <button onclick="selectPosttestCase(0)" id="pt-btn-0" class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold shadow-lg transition-all">
+          📦 Kasus Posttest 1: Otomatisasi Stok Gudang &amp; Audit Harga
+        </button>
+        <button onclick="selectPosttestCase(1)" id="pt-btn-1" class="px-4 py-2 rounded-xl bg-slate-800 text-amber-300 border border-amber-500/40 hover:bg-slate-700 font-bold transition-all">
+          🔥 Kasus Posttest 2 (BARU!): Integrasi Trigger + Subquery (HRD, Plafon Gaji &amp; Audit Karir)
+        </button>
+      </div>
+
+      <!-- Kontainer Dinamis Simulasi Posttest -->
+      <div id="posttest-case-viewer" class="space-y-6"></div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 7: KUIS EVALUASI PEMAHAMAN TRIGGER                              -->
+    <!-- ======================================================================= -->
+    <section id="quiz-section" class="space-y-6 scroll-mt-24">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-sky-400">Evaluasi Mandiri</span>
+            <h2 class="text-2xl font-bold text-white">7. Kuis Evaluasi Pemahaman Trigger MySQL (Persiapan Pre-test &amp; Post-test)</h2>
+          </div>
+          <div id="trig-quiz-score" class="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 font-mono text-sm font-bold text-cyan-400">
+            Skor: Belum Dinilai
+          </div>
+        </div>
+
+        <div id="trig-quiz-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+        <button onclick="gradeTriggerQuiz()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg transition-all">
+          <i class="fa-solid fa-check-double mr-1.5"></i> Periksa Jawaban &amp; Tampilkan Pembahasan
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-12 border-t border-slate-800 py-6 bg-slate-950 text-center text-xs text-slate-500">
+    Praktikum Sistem Basis Data — Modul 10 / 12: Trigger pada MySQL • Interactive Learning &amp; Simulator Environment
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT ENGINE: SQL HIGHLIGHTER, CHEAT SHEET, UNGUIDED 1-10, SIMULATOR -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. SQL SYNTAX HIGHLIGHTER DENGAN NOMOR BARIS
+    function highlightSQL(sql) {
+      if (!sql) return '';
+      const escaped = sql
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      return escaped.split('\n').map((line, idx) => {
+        if (line.trim().startsWith('--')) {
+          return `<span class="ln">${idx + 1}</span><span class="cm">${line}</span>`;
+        }
+        let codePart = line;
+        let commentPart = '';
+        const dashIdx = line.indexOf('--');
+        if (dashIdx !== -1 && !line.slice(0, dashIdx).includes("'")) {
+          codePart = line.slice(0, dashIdx);
+          commentPart = `<span class="cm">${line.slice(dashIdx)}</span>`;
+        }
+
+        const strings = [];
+        let processed = codePart.replace(/('[^']*')/g, (m) => {
+          strings.push(m);
+          return `___STR_${strings.length - 1}___`;
+        });
+
+        processed = processed.replace(/\b(OLD|NEW)\b/g, '<span class="ps">$1</span>');
+        processed = processed.replace(/\b(CREATE|DROP|SHOW|TRIGGERS|TRIGGER|BEFORE|AFTER|INSERT|UPDATE|DELETE|ON|FOR|EACH|ROW|BEGIN|END|DELIMITER|TABLE|IF|ELSEIF|ELSE|THEN|SET|INTO|VALUES|WHERE|FROM|SELECT|DECLARE|INT|VARCHAR|DATETIME|DECIMAL|PRIMARY|KEY|AUTO_INCREMENT|NOT|NULL|DEFAULT|SIGNAL|SQLSTATE|MESSAGE_TEXT|UNSIGNED|SIGNED|AS|AND|OR)\b/g, '<span class="kw">$1</span>');
+        processed = processed.replace(/\b(NOW|CONCAT|LEFT|RIGHT|MID|SUBSTR|SUBSTRING|SUBSTRING_INDEX|LPAD|CAST|CONVERT|CHAR_LENGTH|LOCATE|TRIM|UPPER|LOWER)\b/g, '<span class="fn">$1</span>');
+        processed = processed.replace(/\b(\d+(\.\d+)?)\b/g, '<span class="nm">$1</span>');
+
+        processed = processed.replace(/___STR_(\d+)___/g, (_, i) => `<span class="st">${strings[Number(i)]}</span>`);
+        return `<span class="ln">${idx + 1}</span>${processed}${commentPart}`;
+      }).join('\n');
+    }
+
+    // 2. DATA KUMPULAN SINTAKS (CHEAT SHEET)
+    const TRIGGER_CHEATSHEET = [
+      {
+        badge: 'Struktur Dasar',
+        title: 'Template Kerangka Pembuatan Trigger',
+        desc: 'Gunakan DELIMITER $$ agar titik-koma di dalam blok BEGIN...END tidak menghentikan deklarasi trigger.',
+        code: `DELIMITER $$\nCREATE TRIGGER before_namaTabel_insert\nBEFORE INSERT ON namaTabel\nFOR EACH ROW\nBEGIN\n    -- tulis logika SQL di sini;\nEND$$\nDELIMITER ;`
+      },
+      {
+        badge: 'Modifikasi Nilai Input',
+        title: 'Mengubah Nilai Kolom Sebelum Disimpan (BEFORE)',
+        desc: 'Pada BEFORE INSERT atau BEFORE UPDATE, kita dapat memvalidasi dan mengubah nilai yang sedang masuk dengan SET NEW.kolom = nilai_baru.',
+        code: `IF NEW.harga < 0 THEN\n    SET NEW.harga = 0;\nEND IF;`
+      },
+      {
+        badge: 'Audit Log Insert',
+        title: 'INSERT ... SET di Dalam Trigger Audit',
+        desc: 'Sintaks INSERT INTO tabel_log SET col = val memudahkan pencatatan nilai OLD maupun NEW beserta waktu NOW().',
+        code: `INSERT INTO employeesaudit\nSET action = 'update',\n    employeeNumber = OLD.employeeNumber,\n    firstName = OLD.firstName,\n    lastName = OLD.lastName,\n    changeDate = NOW();`
+      },
+      {
+        badge: 'Manipulasi String Rak (Soal 6)',
+        title: 'Memisahkan Huruf Rak & Angka Rak Fleksibel',
+        desc: 'Menggunakan SUBSTRING_INDEX untuk memisahkan awalan huruf rak (R-, U-, M-) dan mengonversi angkanya ke integer dengan CAST/CONVERT.',
+        code: `DECLARE v_prefix VARCHAR(5);\nDECLARE v_angka INT;\nSET v_prefix = CONCAT(SUBSTRING_INDEX(NEW.posisi_buku, '-', 1), '-');\nSET v_angka  = CONVERT(SUBSTRING_INDEX(NEW.posisi_buku, '-', -1), UNSIGNED);`
+      },
+      {
+        badge: 'Formatting 2 Digit (LPAD)',
+        title: 'Merakit Kembali Kode Rak 2 Digit (01..50)',
+        desc: 'Menggunakan LPAD(v_angka, 2, \'0\') agar angka 1 diformat menjadi \'01\' lalu digabung dengan CONCAT.',
+        code: `IF v_angka <= 0 THEN SET v_angka = 1;\nELSEIF v_angka > 50 THEN SET v_angka = 50;\nEND IF;\nSET NEW.posisi_buku = CONCAT(v_prefix, LPAD(v_angka, 2, '0'));`
+      },
+      {
+        badge: 'Manajemen & Error Signal',
+        title: 'Melihat, Menghapus, & Membatalkan Aksi (SIGNAL)',
+        desc: 'Gunakan SHOW TRIGGERS untuk memeriksa daftar trigger, DROP TRIGGER untuk menghapus, dan SIGNAL SQLSTATE \'45000\' untuk menolak aksi DML ilegal.',
+        code: `SHOW TRIGGERS;\nDROP TRIGGER IF EXISTS before_buku_insert;\n\n-- Menolak aksi DELETE pada BEFORE DELETE:\nSIGNAL SQLSTATE '45000'\nSET MESSAGE_TEXT = 'Buku di rak referensi tidak boleh dihapus!';`
+      }
+    ];
+
+    function renderCheatSheet() {
+      const grid = document.getElementById('trigger-cheatsheet-grid');
+      grid.innerHTML = TRIGGER_CHEATSHEET.map((item, idx) => `
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between space-y-3">
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${item.badge}</span>
+              <button onclick="copyCheatCode(${idx})" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-slate-300"><i class="fa-regular fa-copy mr-1"></i>Salin</button>
+            </div>
+            <h4 class="font-bold text-xs sm:text-sm text-white">${item.title}</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">${item.desc}</p>
+          </div>
+          <pre class="p-3 rounded-xl sql-code border border-slate-800 overflow-x-auto text-[11px]"><code>${highlightSQL(item.code)}</code></pre>
+        </div>
+      `).join('');
+    }
+
+    function copyCheatCode(idx) {
+      if (TRIGGER_CHEATSHEET[idx]) copyRawText(TRIGGER_CHEATSHEET[idx].code);
+    }
+
+    // 3. SCRIPT GUIDED LAB (EMPLOYEES & EMPLOYEESAUDIT — HALAMAN 4-5 MODUL)
+    const SQL_GUIDED_EMPLOYEES = `-- ====================================================================
+-- PRAKTIK TERBIMBING MODUL 12: TRIGGER AUDIT EMPLOYEES
+-- ====================================================================
+
+-- 1. Buat tabel utama employees (sesuai skema halaman 4 modul)
+CREATE TABLE IF NOT EXISTS employees (
+    employeeNumber INT(11) PRIMARY KEY,
+    lastName VARCHAR(50) NOT NULL,
+    firstName VARCHAR(50) NOT NULL,
+    extension VARCHAR(10) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    officeCode VARCHAR(10) NOT NULL,
+    reportsTo INT(11) DEFAULT NULL,
+    jobTitle VARCHAR(50) NOT NULL
+);
+
+-- 2. Buat tabel penampung log audit: employeesaudit
+CREATE TABLE IF NOT EXISTS employeesaudit (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employeeNumber INT NOT NULL,
+    firstName VARCHAR(50) NOT NULL,
+    lastName VARCHAR(50),
+    changeDate DATETIME DEFAULT NULL,
+    action VARCHAR(50) DEFAULT NULL
+);
+
+-- 3. Buat trigger before_employee_update pada tabel employees
+DROP TRIGGER IF EXISTS before_employee_update;
+
+DELIMITER $$
+CREATE TRIGGER before_employee_update
+    BEFORE UPDATE ON employees
+    FOR EACH ROW
+BEGIN
+    INSERT INTO employeesaudit
+    SET action = 'update',
+        employeeNumber = OLD.employeeNumber,
+        firstName = OLD.firstName,
+        lastName = OLD.lastName,
+        changeDate = NOW();
+END$$
+DELIMITER ;
+
+-- 4. Periksa trigger yang terdaftar di database
+SHOW TRIGGERS;
+
+-- 5. Tambahkan 1 data karyawan baru (Halaman 5 Modul)
+INSERT INTO employees (
+    employeeNumber, lastName, firstName, extension, email, officeCode, reportsTo, jobTitle
+) VALUES (
+    1056, 'Filiana', 'Agatha', '123', 'filiana@informatics.ukdw.ac.id', '100', 1, 'MGR'
+);
+
+-- 6. Uji trigger dengan melakukan UPDATE pada firstName
+UPDATE employees
+SET firstName = 'Agata'
+WHERE employeeNumber = 1056;
+
+-- 7. Periksa isi tabel employees (data baru) dan employeesaudit (arsip data lama)
+SELECT * FROM employees;
+SELECT * FROM employeesaudit;`;
+
+    function setGuidedSimStep(step) {
+      [1, 2, 3].forEach(s => {
+        const b = document.getElementById(`gstep-btn-${s}`);
+        if (b) {
+          b.className = s === step
+            ? 'px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold'
+            : 'px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700';
+        }
+      });
+
+      const box = document.getElementById('guided-sim-box');
+      if (step === 1) {
+        box.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="text-cyan-400 font-bold">Tabel \`employees\` (Setelah INSERT 1056):</div>
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-900 text-slate-400"><tr><th class="p-2">empNumber</th><th class="p-2">lastName</th><th class="p-2">firstName</th><th class="p-2">jobTitle</th></tr></thead>
+              <tbody><tr><td class="p-2 text-amber-300">1056</td><td class="p-2">Filiana</td><td class="p-2 text-emerald-300 font-bold">Agatha</td><td class="p-2">MGR</td></tr></tbody>
+            </table>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="text-amber-400 font-bold">Tabel \`employeesaudit\` (Masih Kosong):</div>
+            <div class="p-3 rounded bg-slate-900 text-slate-400">Belum ada aktivitas UPDATE pada tabel employees (0 rows).</div>
+          </div>`;
+      } else if (step === 2) {
+        box.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-950 border border-cyan-500/40 space-y-2">
+            <div class="text-cyan-400 font-bold">Tabel \`employees\` (Setelah UPDATE firstName = 'Agata'):</div>
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-900 text-slate-400"><tr><th class="p-2">empNumber</th><th class="p-2">lastName</th><th class="p-2">firstName (NEW)</th><th class="p-2">jobTitle</th></tr></thead>
+              <tbody><tr><td class="p-2 text-amber-300">1056</td><td class="p-2">Filiana</td><td class="p-2 text-cyan-300 font-bold">Agata</td><td class="p-2">MGR</td></tr></tbody>
+            </table>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/40 space-y-2">
+            <div class="text-emerald-400 font-bold">Tabel \`employeesaudit\` (Otomatis Terisi Nilai OLD!):</div>
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-900 text-slate-400"><tr><th class="p-2">id</th><th class="p-2">empNumber</th><th class="p-2">firstName (OLD)</th><th class="p-2">lastName (OLD)</th><th class="p-2">action</th><th class="p-2">changeDate</th></tr></thead>
+              <tbody><tr><td class="p-2">1</td><td class="p-2 text-amber-300">1056</td><td class="p-2 text-rose-300 font-bold">Agatha</td><td class="p-2">Filiana</td><td class="p-2 text-emerald-300">update</td><td class="p-2 text-slate-400">2026-11-11 21:15:00</td></tr></tbody>
+            </table>
+          </div>`;
+      } else {
+        box.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-950 border border-cyan-500/40 space-y-2">
+            <div class="text-cyan-400 font-bold">Tabel \`employees\` (Setelah UPDATE ke-2 lastName = 'Wijaya'):</div>
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-900 text-slate-400"><tr><th class="p-2">empNumber</th><th class="p-2">lastName (NEW)</th><th class="p-2">firstName</th><th class="p-2">jobTitle</th></tr></thead>
+              <tbody><tr><td class="p-2 text-amber-300">1056</td><td class="p-2 text-cyan-300 font-bold">Wijaya</td><td class="p-2">Agata</td><td class="p-2">MGR</td></tr></tbody>
+            </table>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/40 space-y-2">
+            <div class="text-emerald-400 font-bold">Tabel \`employeesaudit\` (2 Baris Riwayat Perubahan):</div>
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-900 text-slate-400"><tr><th class="p-2">id</th><th class="p-2">empNumber</th><th class="p-2">firstName (OLD)</th><th class="p-2">lastName (OLD)</th><th class="p-2">action</th><th class="p-2">changeDate</th></tr></thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr><td class="p-2">1</td><td class="p-2 text-amber-300">1056</td><td class="p-2 text-rose-300">Agatha</td><td class="p-2">Filiana</td><td class="p-2 text-emerald-300">update</td><td class="p-2 text-slate-400">2026-11-11 21:15:00</td></tr>
+                <tr><td class="p-2">2</td><td class="p-2 text-amber-300">1056</td><td class="p-2 text-cyan-300">Agata</td><td class="p-2 text-rose-300 font-bold">Filiana</td><td class="p-2 text-emerald-300">update</td><td class="p-2 text-slate-400">2026-11-11 21:16:30</td></tr>
+              </tbody>
+            </table>
+          </div>`;
+      }
+    }
+
+    // 4. PEMBAHASAN LENGKAP LATIHAN UNGUIDED (SOAL 1 S.D. 10)
+    const UNGUIDED_ITEMS = [
+      {
+        no: 'Soal 1',
+        badge: 'DDL Tabel Utama & Tabel Log',
+        title: 'Membuat Tabel `buku` dan Tabel `log_pindah_buku`',
+        task: 'Buatlah sebuah tabel bernama buku (kode_buku varchar(5), nama_buku varchar(100), pengarang varchar(100), posisi_buku varchar(4)) dan tabel log_pindah_buku (log_id int(11) AUTO_INCREMENT, kode_buku varchar(5), posisi_lama varchar(4), posisi_baru varchar(4), waktu_pindah datetime).',
+        sql: `-- 1A. Membuat tabel buku
+CREATE TABLE buku (
+    kode_buku VARCHAR(5) NOT NULL PRIMARY KEY,
+    nama_buku VARCHAR(100) NOT NULL,
+    pengarang VARCHAR(100) NOT NULL,
+    posisi_buku VARCHAR(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- 1B. Membuat tabel log_pindah_buku
+CREATE TABLE log_pindah_buku (
+    log_id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    kode_buku VARCHAR(5) NOT NULL,
+    posisi_lama VARCHAR(4) NOT NULL,
+    posisi_baru VARCHAR(4) NOT NULL,
+    waktu_pindah DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;`,
+        explanation: `Pastikan panjang karakter <code>kode_buku VARCHAR(5)</code> dan <code>posisi_buku VARCHAR(4)</code> (contoh: <code>'R-02'</code> terdiri dari 4 karakter) serta <code>log_id</code> menggunakan atribut <code>AUTO_INCREMENT PRIMARY KEY</code> agar nomor urut log bertambah otomatis setiap kali trigger berjalan.`
+      },
+      {
+        no: 'Soal 2',
+        badge: 'AFTER INSERT Trigger',
+        title: 'Membuat Trigger Setelah Insert Data ke Tabel `buku` (`after_buku_insert`)',
+        task: 'Buat sebuah trigger pada tabel buku untuk mencatat kapan sebuah data buku ditambahkan ke dalam tabel log_pindah_buku. Masukkan kode_buku, posisi_lama = posisi awal yang dimasukkan, posisi_baru = posisi_lama, waktu_pindah = waktu sekarang.',
+        sql: `DELIMITER $$
+CREATE TRIGGER after_buku_insert
+    AFTER INSERT ON buku
+    FOR EACH ROW
+BEGIN
+    INSERT INTO log_pindah_buku
+    SET kode_buku = NEW.kode_buku,
+        posisi_lama = NEW.posisi_buku,
+        posisi_baru = NEW.posisi_buku,
+        waktu_pindah = NOW();
+END$$
+DELIMITER ;`,
+        explanation: `Karena pada peristiwa <code>INSERT</code> belum ada data lama (<code>OLD</code> tidak tersedia), maka baik <code>posisi_lama</code> maupun <code>posisi_baru</code> diisi menggunakan nilai yang baru saja masuk yaitu <strong><code>NEW.posisi_buku</code></strong>. Mengapa menggunakan <code>AFTER INSERT</code>? Agar jika ada trigger <code>BEFORE INSERT</code> yang mengoreksi posisi rak terlebih dahulu (pada Soal 6), nilai yang tercatat di tabel log adalah nilai yang sudah bersih/terkoreksi.`
+      },
+      {
+        no: 'Soal 3',
+        badge: 'AFTER UPDATE Trigger',
+        title: 'Membuat Trigger Setelah Update Data ke Tabel `buku` (`after_buku_update`)',
+        task: 'Buat sebuah trigger pada tabel buku untuk mencatat perubahan posisi buku ketika sebuah record buku selesai diupdate ke dalam tabel log_pindah_buku. Masukkan kode_buku, posisi_lama = posisi_terakhir, posisi_baru = posisi_terbaru, waktu_pindah = waktu sekarang.',
+        sql: `DELIMITER $$
+CREATE TRIGGER after_buku_update
+    AFTER UPDATE ON buku
+    FOR EACH ROW
+BEGIN
+    INSERT INTO log_pindah_buku
+    SET kode_buku = NEW.kode_buku,
+        posisi_lama = OLD.posisi_buku,
+        posisi_baru = NEW.posisi_buku,
+        waktu_pindah = NOW();
+END$$
+DELIMITER ;`,
+        explanation: `Pada peristiwa <code>UPDATE</code>, kita memiliki akses ke kedua pseudo-record sekaligus: <strong><code>OLD.posisi_buku</code></strong> menyimpan posisi rak sebelum diubah, sedangkan <strong><code>NEW.posisi_buku</code></strong> menyimpan posisi rak yang baru.`
+      },
+      {
+        no: 'Soal 4 & 5',
+        badge: 'Pengujian DML INSERT & UPDATE',
+        title: 'Menguji Trigger Insert (`RE112` di `R-02`) & Trigger Update (Pindah ke `R-33`)',
+        task: 'Soal 4: Masukkan buku kode RE112 judul "The Fault in Our Stars" pengarang "John Green" posisi "R-02". Soal 5: Ubah posisi buku RE112 ke rak "R-33". Buktikan di tabel log_pindah_buku!',
+        sql: `-- Soal 4: Jalankan perintah INSERT ke tabel buku
+INSERT INTO buku (kode_buku, nama_buku, pengarang, posisi_buku)
+VALUES ('RE112', 'The Fault in Our Stars', 'John Green', 'R-02');
+
+-- Cek hasil di kedua tabel setelah INSERT:
+SELECT * FROM buku;
+SELECT * FROM log_pindah_buku;
+-- Hasil di log_pindah_buku: log_id=1 | kode_buku='RE112' | posisi_lama='R-02' | posisi_baru='R-02'
+
+-- Soal 5: Jalankan perintah UPDATE posisi buku RE112 ke rak R-33
+UPDATE buku
+SET posisi_buku = 'R-33'
+WHERE kode_buku = 'RE112';
+
+-- Cek hasil di kedua tabel setelah UPDATE:
+SELECT * FROM buku;
+SELECT * FROM log_pindah_buku;
+-- Hasil di log_pindah_buku bertambah baris ke-2:
+-- log_id=2 | kode_buku='RE112' | posisi_lama='R-02' | posisi_baru='R-33'`,
+        explanation: `Saat perintah <code>INSERT</code> dijalankan pada Soal 4, trigger <code>after_buku_insert</code> mencatat baris pertama di <code>log_pindah_buku</code> dengan <code>posisi_lama = 'R-02'</code> dan <code>posisi_baru = 'R-02'</code>. Saat perintah <code>UPDATE</code> dijalankan pada Soal 5, trigger <code>after_buku_update</code> otomatis mencatat baris kedua dengan <code>posisi_lama = 'R-02'</code> dan <code>posisi_baru = 'R-33'</code>.`
+      },
+      {
+        no: 'Soal 6',
+        badge: 'BEFORE INSERT Trigger + Fungsi String & Cast',
+        title: 'Membuat Trigger Validasi Posisi Rak Buku Fleksibel (`before_buku_insert`: Rentang `01` s.d. `50`)',
+        task: 'Buatlah trigger before_buku_insert untuk memeriksa validitas posisi rak buku sebelum diinsert: jika digit angka di posisi_buku = 0 harus diset ke 01, jika lebih dari 50 harus diset ke 50. Huruf rak bersifat fleksibel (contoh: R-61 -> R-50, U-00 -> U-01). Hint: gunakan operator dan fungsi manipulasi string serta konversi pada modul ke 8.',
+        sql: `DROP TRIGGER IF EXISTS before_buku_insert;
+
+DELIMITER $$
+CREATE TRIGGER before_buku_insert
+    BEFORE INSERT ON buku
+    FOR EACH ROW
+BEGIN
+    DECLARE v_huruf_rak VARCHAR(5);
+    DECLARE v_angka_rak INT;
+
+    -- 1. Mengambil awalan huruf rak beserta tanda '-' (misal 'R-', 'U-', 'M-')
+    SET v_huruf_rak = CONCAT(SUBSTRING_INDEX(NEW.posisi_buku, '-', 1), '-');
+
+    -- 2. Mengambil bagian angka setelah '-' lalu dikonversi ke integer (UNSIGNED)
+    SET v_angka_rak = CONVERT(SUBSTRING_INDEX(NEW.posisi_buku, '-', -1), UNSIGNED);
+
+    -- 3. Validasi rentang nomor rak: minimal 01, maksimal 50
+    IF v_angka_rak <= 0 THEN
+        SET v_angka_rak = 1;
+    ELSEIF v_angka_rak > 50 THEN
+        SET v_angka_rak = 50;
+    END IF;
+
+    -- 4. Merakit kembali kode rak dengan format angka 2 digit menggunakan LPAD
+    SET NEW.posisi_buku = CONCAT(v_huruf_rak, LPAD(v_angka_rak, 2, '0'));
+END$$
+DELIMITER ;`,
+        explanation: `<strong>Mengapa wajib <code>BEFORE INSERT</code>?</strong> Karena kita ingin memodifikasi nilai <code>NEW.posisi_buku</code> sebelum ditulis ke tabel <code>buku</code>.<br>• <code>SUBSTRING_INDEX(NEW.posisi_buku, '-', 1)</code> mengekstrak huruf rak secara fleksibel (berfungsi untuk <code>R-</code>, <code>U-</code>, <code>M-</code>, <code>K-</code>, dll.).<br>• <code>CONVERT(SUBSTRING_INDEX(NEW.posisi_buku, '-', -1), UNSIGNED)</code> mengambil bagian angka di sebelah kanan tanda <code>'-'</code> lalu mengubahnya dari teks menjadi bilangan bulat positif.<br>• <code>LPAD(v_angka_rak, 2, '0')</code> memformat angka <code>1</code> menjadi 2 digit <code>'01'</code>.`
+      },
+      {
+        no: 'Soal 7',
+        badge: 'Pengujian Validasi Rak Buku',
+        title: 'Insert 2 Buku Uji Validasi (`U-00` &rarr; `U-01` dan `M-77` &rarr; `M-50`)',
+        task: 'Insert 2 buah buku: (1) Kode UM228 judul "Divergent", pengarang "Veronica Roth", posisi "U-00". (2) Kode RE112 (atau IN339 jika RE112 adalah PK yang sudah dipakai di Soal 4) judul "Insurgent", pengarang "Veronica Roth", posisi "M-77".',
+        sql: `-- Buku 1: Posisi awal 'U-00' otomatis dikoreksi oleh before_buku_insert menjadi 'U-01'
+INSERT INTO buku (kode_buku, nama_buku, pengarang, posisi_buku)
+VALUES ('UM228', 'Divergent', 'Veronica Roth', 'U-00');
+
+-- Buku 2: Posisi awal 'M-77' otomatis dikoreksi oleh before_buku_insert menjadi 'M-50'
+-- Catatan: Jika kode_buku diset PRIMARY KEY dan 'RE112' sudah ada dari Soal 4,
+-- gunakan REPLACE INTO atau kode unik seperti 'IN339' (atau hapus RE112 lama dulu).
+INSERT INTO buku (kode_buku, nama_buku, pengarang, posisi_buku)
+VALUES ('IN339', 'Insurgent', 'Veronica Roth', 'M-77');
+
+-- Periksa hasil koreksi otomatis di tabel buku & log_pindah_buku:
+SELECT * FROM buku;
+SELECT * FROM log_pindah_buku;`,
+        explanation: `Saat kedua perintah <code>INSERT</code> dieksekusi:<br>1. Trigger <strong><code>before_buku_insert</code></strong> bekerja lebih dulu mengubah <code>'U-00' &rarr; 'U-01'</code> dan <code>'M-77' &rarr; 'M-50'</code>.<br>2. Data yang masuk ke tabel <code>buku</code> sudah bernilai <code>'U-01'</code> dan <code>'M-50'</code>.<br>3. Trigger <strong><code>after_buku_insert</code></strong> kemudian mencatat nilai <code>NEW.posisi_buku</code> yang sudah terkoreksi tersebut (<code>'U-01'</code> dan <code>'M-50'</code>) ke dalam tabel <code>log_pindah_buku</code>!`
+      },
+      {
+        no: 'Soal 8 [Hidden A]',
+        badge: 'PREDIKSI HIDDEN QUESTION A • BEFORE UPDATE',
+        title: 'Membuat Trigger `before_buku_update` untuk Validasi Posisi Rak Saat Diupdate',
+        task: '[HIDDEN QUESTION A]: Buatlah trigger before_buku_update agar ketika posisi_buku diubah (UPDATE) ke nomor rak yang tidak valid (<= 0 atau > 50, misalnya diubah ke K-00 atau F-99), nilainya juga otomatis dikoreksi menjadi 01 atau 50!',
+        sql: `DROP TRIGGER IF EXISTS before_buku_update;
+
+DELIMITER $$
+CREATE TRIGGER before_buku_update
+    BEFORE UPDATE ON buku
+    FOR EACH ROW
+BEGIN
+    DECLARE v_huruf_rak VARCHAR(5);
+    DECLARE v_angka_rak INT;
+
+    SET v_huruf_rak = CONCAT(SUBSTRING_INDEX(NEW.posisi_buku, '-', 1), '-');
+    SET v_angka_rak = CONVERT(SUBSTRING_INDEX(NEW.posisi_buku, '-', -1), UNSIGNED);
+
+    IF v_angka_rak <= 0 THEN
+        SET v_angka_rak = 1;
+    ELSEIF v_angka_rak > 50 THEN
+        SET v_angka_rak = 50;
+    END IF;
+
+    SET NEW.posisi_buku = CONCAT(v_huruf_rak, LPAD(v_angka_rak, 2, '0'));
+END$$
+DELIMITER ;
+
+-- Contoh Pengujian Hidden Question A:
+UPDATE buku SET posisi_buku = 'F-99' WHERE kode_buku = 'UM228';
+-- Hasil: posisi_buku UM228 berubah menjadi 'F-50', dan log_pindah_buku mencatat U-01 -> F-50!`,
+        explanation: `Setelah membuat <code>before_buku_insert</code> di Soal 6, celah yang tersisa adalah ketika pengguna melakukan <code>UPDATE</code> ke nomor rak di luar <code>01..50</code>. Oleh karena itu, <strong>Hidden Question A</strong> hampir selalu meminta pembuatan <code>before_buku_update</code> dengan logika validasi yang identik.`
+      },
+      {
+        no: 'Soal 9 [Hidden B]',
+        badge: 'PREDIKSI HIDDEN QUESTION B • AFTER DELETE',
+        title: 'Membuat Trigger `after_buku_delete` untuk Mencatat Penghapusan Buku ke Tabel Log',
+        task: '[HIDDEN QUESTION B]: Buatlah trigger after_buku_delete pada tabel buku sehingga ketika sebuah buku dihapus (DELETE), riwayat penghapusannya tetap tercatat di log_pindah_buku dengan posisi_lama = posisi terakhir buku sebelum dihapus, dan posisi_baru = "DEL" (atau " Out")!',
+        sql: `DROP TRIGGER IF EXISTS after_buku_delete;
+
+DELIMITER $$
+CREATE TRIGGER after_buku_delete
+    AFTER DELETE ON buku
+    FOR EACH ROW
+BEGIN
+    INSERT INTO log_pindah_buku
+    SET kode_buku = OLD.kode_buku,
+        posisi_lama = OLD.posisi_buku,
+        posisi_baru = 'DEL',
+        waktu_pindah = NOW();
+END$$
+DELIMITER ;
+
+-- Contoh Pengujian Hidden Question B:
+DELETE FROM buku WHERE kode_buku = 'IN339';
+SELECT * FROM log_pindah_buku;`,
+        explanation: `Pada peristiwa <code>DELETE</code>, pseudo-record <code>NEW</code> tidak ada karena buku tersebut telah dihapus. Kita mengambil identitas dan posisi rak terakhir buku dari <strong><code>OLD.kode_buku</code></strong> dan <strong><code>OLD.posisi_buku</code></strong>, lalu menuliskan penanda <code>'DEL'</code> (maksimal 4 karakter sesuai <code>VARCHAR(4)</code>) pada kolom <code>posisi_baru</code>.`
+      },
+      {
+        no: 'Soal 10 [Hidden C]',
+        badge: 'PREDIKSI HIDDEN QUESTION C • BEFORE DELETE / PROTEKSI RAK',
+        title: 'Membuat Trigger `before_buku_delete` untuk Mencegah Penghapusan Buku di Rak Khusus',
+        task: '[HIDDEN QUESTION C]: Buatlah trigger before_buku_delete yang menolak/membatalkan penghapusan buku apabila buku tersebut sedang berada di rak khusus berawalan huruf "R-" (Rak Referensi Utama)!',
+        sql: `DROP TRIGGER IF EXISTS before_buku_delete;
+
+DELIMITER $$
+CREATE TRIGGER before_buku_delete
+    BEFORE DELETE ON buku
+    FOR EACH ROW
+BEGIN
+    IF LEFT(OLD.posisi_buku, 2) = 'R-' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERROR: Buku pada Rak Referensi (R-) tidak boleh dihapus!';
+    END IF;
+END$$
+DELIMITER ;`,
+        explanation: `Menggunakan fungsi string <code>LEFT(OLD.posisi_buku, 2) = 'R-'</code> pada tahap <code>BEFORE DELETE</code>. Jika kondisi terpenuhi, perintah <code>SIGNAL SQLSTATE '45000'</code> melempar eksepsi kustom yang langsung membatalkan operasi <code>DELETE</code> pada MySQL.`
+      }
+    ];
+
+    const FULL_UNGUIDED_SQL_SCRIPT = UNGUIDED_ITEMS.map(item => `-- ====================================================================\n-- ${item.no.toUpperCase()}: ${item.title}\n-- ====================================================================\n${item.sql}`).join('\n\n');
+
+    function renderUnguidedCards() {
+      const wrapper = document.getElementById('unguided-cards-wrapper');
+      if (!wrapper) return;
+      wrapper.innerHTML = UNGUIDED_ITEMS.map((item, idx) => `
+        <div class="bg-slate-900 border ${idx >= 6 ? 'border-amber-500/40' : 'border-slate-800'} rounded-2xl overflow-hidden shadow-xl">
+          <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold ${idx >= 6 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}">${item.no}</span>
+                <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-cyan-300">${item.badge}</span>
+              </div>
+              <h3 class="text-base font-bold text-white mt-1">${item.title}</h3>
+              <p class="text-xs text-slate-400 mt-0.5"><strong class="text-amber-300">Instruksi:</strong> ${item.task}</p>
+            </div>
+            <button onclick="copyUnguidedItemSql(${idx})" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700 shrink-0">
+              <i class="fa-regular fa-copy mr-1"></i> Salin SQL
+            </button>
+          </div>
+          <div class="p-6 space-y-4">
+            <pre class="p-4 sql-code rounded-xl border border-slate-800 overflow-x-auto"><code>${highlightSQL(item.sql)}</code></pre>
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+              <strong class="text-cyan-300"><i class="fa-solid fa-circle-info mr-1"></i>Penjelasan Logika &amp; Sintaks:</strong><br>${item.explanation}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function copyUnguidedItemSql(idx) {
+      if (UNGUIDED_ITEMS[idx]) copyRawText(UNGUIDED_ITEMS[idx].sql);
+    }
+
+    // 5. LIVE SIMULATOR TABEL BUKU & LOG_PINDAH_BUKU
+    let simBukuList = [];
+    let simLogList = [];
+    let simLogAutoId = 1;
+
+    function validateRakPosition(rawPos) {
+      const clean = (rawPos || 'R-01').trim().toUpperCase();
+      const parts = clean.split('-');
+      const prefix = (parts[0] || 'R').replace(/[^A-Z]/g, '') || 'R';
+      let num = parseInt(parts[1], 10);
+      if (isNaN(num) || num <= 0) num = 1;
+      else if (num > 50) num = 50;
+      const formatted = `${prefix}-${String(num).padStart(2, '0')}`;
+      return { original: clean, corrected: formatted, wasChanged: clean !== formatted };
+    }
+
+    function getNowTimestamp() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function executeSimInsertOrUpdate(kode, judul, pengarang, rawPosisi) {
+      const check = validateRakPosition(rawPosisi);
+      const now = getNowTimestamp();
+      const existing = simBukuList.find(b => b.kode_buku === kode);
+      const banner = document.getElementById('buku-trigger-banner');
+
+      if (!existing) {
+        simBukuList.push({
+          kode_buku: kode,
+          nama_buku: judul,
+          pengarang: pengarang,
+          posisi_buku: check.corrected
+        });
+        simLogList.push({
+          log_id: simLogAutoId++,
+          kode_buku: kode,
+          posisi_lama: check.corrected,
+          posisi_baru: check.corrected,
+          waktu_pindah: now
+        });
+        if (banner) {
+          banner.innerHTML = check.wasChanged
+            ? `<span class="text-amber-300 font-bold">⚡ [BEFORE INSERT TRIGGER]:</span> Input posisi <code>'${check.original}'</code> tidak valid! Dikoreksi otomatis menjadi <strong><code>'${check.corrected}'</code></strong>.<br><span class="text-emerald-400 font-bold">✅ [AFTER INSERT TRIGGER]:</span> Buku <code>${kode} (${judul})</code> ditambahkan &amp; dicatat ke <code>log_pindah_buku</code> dengan posisi_lama = <code>'${check.corrected}'</code>, posisi_baru = <code>'${check.corrected}'</code>.`
+            : `<span class="text-emerald-400 font-bold">✅ [BEFORE &amp; AFTER INSERT TRIGGER]:</span> Posisi <code>'${check.corrected}'</code> sudah valid (antara 01–50). Buku <code>${kode} (${judul})</code> disimpan ke <code>buku</code> dan dicatat ke <code>log_pindah_buku</code>.`;
+        }
+      } else {
+        const oldPos = existing.posisi_buku;
+        existing.nama_buku = judul || existing.nama_buku;
+        existing.pengarang = pengarang || existing.pengarang;
+        existing.posisi_buku = check.corrected;
+        simLogList.push({
+          log_id: simLogAutoId++,
+          kode_buku: kode,
+          posisi_lama: oldPos,
+          posisi_baru: check.corrected,
+          waktu_pindah: now
+        });
+        if (banner) {
+          banner.innerHTML = `<span class="text-purple-400 font-bold">🔄 [AFTER UPDATE TRIGGER]:</span> Posisi buku <code>${kode}</code> diperbarui dari <code>OLD.posisi_buku = '${oldPos}'</code> menjadi <code>NEW.posisi_buku = '${check.corrected}'</code>. Riwayat perpindahan berhasil direkam ke <code>log_pindah_buku</code>!`;
+        }
+      }
+      renderBukuSimTables();
+    }
+
+    function renderBukuSimTables() {
+      const bTbody = document.getElementById('sim-buku-tbody');
+      const lTbody = document.getElementById('sim-log-tbody');
+      if (!bTbody || !lTbody) return;
+
+      document.getElementById('buku-count-label').textContent = `${simBukuList.length} buku`;
+      document.getElementById('log-count-label').textContent = `${simLogList.length} log tercatat`;
+
+      bTbody.innerHTML = simBukuList.map(b => `
+        <tr class="hover:bg-slate-900">
+          <td class="p-2 font-bold text-amber-300">${b.kode_buku}</td>
+          <td class="p-2 font-sans text-white">${b.nama_buku}</td>
+          <td class="p-2 font-sans text-slate-300">${b.pengarang}</td>
+          <td class="p-2 font-bold text-emerald-300">${b.posisi_buku}</td>
+        </tr>
+      `).join('');
+
+      lTbody.innerHTML = simLogList.map(l => `
+        <tr class="hover:bg-slate-900">
+          <td class="p-2 text-slate-400">${l.log_id}</td>
+          <td class="p-2 font-bold text-amber-300">${l.kode_buku}</td>
+          <td class="p-2 text-rose-300">${l.posisi_lama}</td>
+          <td class="p-2 font-bold text-emerald-300">${l.posisi_baru}</td>
+          <td class="p-2 text-slate-400">${l.waktu_pindah}</td>
+        </tr>
+      `).join('');
+    }
+
+    function simPresetBuku(preset) {
+      if (preset === 'soal4') {
+        simBukuList = [];
+        simLogList = [];
+        simLogAutoId = 1;
+        executeSimInsertOrUpdate('RE112', 'The Fault in Our Stars', 'John Green', 'R-02');
+      } else if (preset === 'soal5') {
+        if (!simBukuList.find(b => b.kode_buku === 'RE112')) {
+          executeSimInsertOrUpdate('RE112', 'The Fault in Our Stars', 'John Green', 'R-02');
+        }
+        executeSimInsertOrUpdate('RE112', 'The Fault in Our Stars', 'John Green', 'R-33');
+      } else if (preset === 'soal7a') {
+        executeSimInsertOrUpdate('UM228', 'Divergent', 'Veronica Roth', 'U-00');
+      } else if (preset === 'soal7b') {
+        executeSimInsertOrUpdate('IN339', 'Insurgent', 'Veronica Roth', 'M-77');
+      }
+    }
+
+    function simCustomInsertOrUpdate() {
+      const kode = (document.getElementById('sim-kode').value || 'BK999').trim().toUpperCase();
+      const judul = (document.getElementById('sim-judul').value || 'Judul Buku').trim();
+      const pengarang = (document.getElementById('sim-pengarang').value || 'Anonim').trim();
+      const posisi = (document.getElementById('sim-posisi').value || 'R-01').trim();
+      executeSimInsertOrUpdate(kode, judul, pengarang, posisi);
+      showToast(`Trigger dieksekusi untuk kode buku ${kode}!`);
+    }
+
+    function resetBukuSimulator() {
+      simPresetBuku('soal4');
+      showToast('Tabel buku & log_pindah_buku di-reset ke langkah Soal 4.');
+    }
+
+    // 6. SCRIPT SIMULASI KASUS POSTTEST (KASUS 1 & KASUS 2: TRIGGER + SUBQUERY)
+    const SQL_POSTTEST_SIM = `-- ====================================================================
+-- KASUS POSTTEST 1: OTOMATISASI STOK BARANG & AUDIT PERUBAHAN HARGA
+-- ====================================================================
+
+CREATE TABLE produk (
+    kode_produk VARCHAR(6) PRIMARY KEY,
+    nama_produk VARCHAR(100) NOT NULL,
+    harga INT NOT NULL,
+    stok INT NOT NULL
+);
+
+CREATE TABLE transaksi_jual (
+    id_jual INT AUTO_INCREMENT PRIMARY KEY,
+    kode_produk VARCHAR(6) NOT NULL,
+    qty INT NOT NULL,
+    diskon_persen INT NOT NULL,
+    waktu_transaksi DATETIME NOT NULL
+);
+
+CREATE TABLE log_perubahan_harga (
+    id_log INT AUTO_INCREMENT PRIMARY KEY,
+    kode_produk VARCHAR(6) NOT NULL,
+    harga_lama INT NOT NULL,
+    harga_baru INT NOT NULL,
+    selisih INT NOT NULL,
+    waktu_ubah DATETIME NOT NULL
+);
+
+DELIMITER $$
+
+-- 1. TRIGGER BEFORE INSERT: Validasi batas diskon (0% s.d. 50%) & isi waktu otomatis
+CREATE TRIGGER before_transaksi_insert
+    BEFORE INSERT ON transaksi_jual
+    FOR EACH ROW
+BEGIN
+    IF NEW.diskon_persen < 0 THEN
+        SET NEW.diskon_persen = 0;
+    ELSEIF NEW.diskon_persen > 50 THEN
+        SET NEW.diskon_persen = 50;
+    END IF;
+    SET NEW.waktu_transaksi = NOW();
+END$$
+
+-- 2. TRIGGER AFTER INSERT: Otomatis mengurangi stok di tabel produk saat barang terjual
+CREATE TRIGGER after_transaksi_insert
+    AFTER INSERT ON transaksi_jual
+    FOR EACH ROW
+BEGIN
+    UPDATE produk
+    SET stok = stok - NEW.qty
+    WHERE kode_produk = NEW.kode_produk;
+END$$
+
+-- 3. TRIGGER AFTER UPDATE: Mencatat log audit jika harga produk berubah
+CREATE TRIGGER after_produk_update
+    AFTER UPDATE ON produk
+    FOR EACH ROW
+BEGIN
+    IF OLD.harga <> NEW.harga THEN
+        INSERT INTO log_perubahan_harga
+        SET kode_produk = NEW.kode_produk,
+            harga_lama = OLD.harga,
+            harga_baru = NEW.harga,
+            selisih = NEW.harga - OLD.harga,
+            waktu_ubah = NOW();
+    END IF;
+END$$
+
+DELIMITER ;`;
+
+    const SQL_POSTTEST_SUBQUERY = `-- ====================================================================
+-- KASUS POSTTEST 2: INTEGRASI TRIGGER + SUBQUERY (HRD, GAJI, & AUDIT)
+-- Menggabungkan Materi Modul 11 (Subquery IN, AVG, MAX, Scalar) & Modul 12 (Trigger)
+-- ====================================================================
+
+CREATE TABLE departemen (
+    id_departemen INT PRIMARY KEY,
+    nama_departemen VARCHAR(50) NOT NULL,
+    region INT NOT NULL,
+    anggaran_bonus INT DEFAULT 0
+);
+
+CREATE TABLE karyawan (
+    id_karyawan INT PRIMARY KEY,
+    nama_depan VARCHAR(50) NOT NULL,
+    nama_belakang VARCHAR(50) NOT NULL,
+    gaji INT NOT NULL,
+    id_departemen INT NOT NULL,
+    status_pajak VARCHAR(25) DEFAULT 'Reguler'
+);
+
+CREATE TABLE log_audit_karir (
+    id_audit INT AUTO_INCREMENT PRIMARY KEY,
+    id_karyawan INT NOT NULL,
+    nama_lengkap VARCHAR(100) NOT NULL,
+    dept_lama VARCHAR(50) NOT NULL,
+    dept_baru VARCHAR(50) NOT NULL,
+    gaji_lama INT NOT NULL,
+    gaji_baru INT NOT NULL,
+    keterangan VARCHAR(100) NOT NULL,
+    waktu_perubahan DATETIME NOT NULL
+);
+
+-- Data Awal (Sesuai Modul Subquery_emp.sql)
+INSERT INTO departemen VALUES
+(1, 'Finance', 2, 10000000),
+(2, 'IT', 2, 8000000),
+(3, 'Marketing', 1, 5000000),
+(4, 'HRD', 1, 4000000);
+
+INSERT INTO karyawan VALUES
+(110, 'Emil', 'Artanti', 4000000, 1, 'Wajib Pajak'),
+(111, 'Rino', 'Cheros', 3000000, 4, 'Reguler'),
+(112, 'Regina', 'Bella', 5000000, 1, 'Wajib Pajak'),
+(113, 'Richard', 'Adinata', 3500000, 3, 'Wajib Pajak'),
+(114, 'Angeline', 'Novi', 3500000, 2, 'Wajib Pajak'),
+(115, 'Tomi', 'Sudiro', 2000000, 1, 'Reguler'),
+(116, 'Setiawan', 'Setiawan', 1500000, 2, 'Reguler');
+
+DELIMITER $$
+
+-- ====================================================================
+-- 1. TRIGGER BEFORE INSERT + SUBQUERY (AVG, MIN, & Multi-Row IN)
+-- ====================================================================
+-- Aturan Bisnis:
+-- a) Jika gaji karyawan baru > rata-rata gaji seluruh karyawan di departemennya
+--    (Subquery AVG), maka plafon gaji awal dibatasi maksimal sebesar rata-rata tersebut.
+-- b) Jika gaji karyawan baru < gaji terendah di seluruh perusahaan (Subquery MIN),
+--    maka otomatis dinaikkan ke gaji terendah tersebut.
+-- c) Jika id_departemen berada di dalam daftar departemen Region 2 (Subquery IN),
+--    maka status_pajak diset 'Pajak Region 2', selain itu 'Pajak Region 1'.
+CREATE TRIGGER before_karyawan_insert_subq
+    BEFORE INSERT ON karyawan
+    FOR EACH ROW
+BEGIN
+    DECLARE v_rata_dept INT;
+    DECLARE v_gaji_min INT;
+
+    -- Subquery 1 (Single-Row Agregasi AVG): Menghitung rata-rata gaji di departemen tujuan
+    SET v_rata_dept = (
+        SELECT ROUND(AVG(gaji))
+        FROM karyawan
+        WHERE id_departemen = NEW.id_departemen
+    );
+
+    -- Subquery 2 (Single-Row Agregasi MIN): Mengambil gaji terendah di perusahaan
+    SET v_gaji_min = (SELECT MIN(gaji) FROM karyawan);
+
+    -- Validasi batas atas & batas bawah gaji menggunakan hasil subquery
+    IF v_rata_dept IS NOT NULL AND NEW.gaji > v_rata_dept THEN
+        SET NEW.gaji = v_rata_dept;
+    ELSEIF v_gaji_min IS NOT NULL AND NEW.gaji < v_gaji_min THEN
+        SET NEW.gaji = v_gaji_min;
+    END IF;
+
+    -- Subquery 3 (Multiple-Row IN): Cek apakah departemen berada di Region 2
+    IF NEW.id_departemen IN (SELECT id_departemen FROM departemen WHERE region = 2) THEN
+        SET NEW.status_pajak = 'Pajak Region 2';
+    ELSE
+        SET NEW.status_pajak = 'Pajak Region 1';
+    END IF;
+END$$
+
+-- ====================================================================
+-- 2. TRIGGER AFTER UPDATE + SCALAR SUBQUERY & SINKRONISASI TABEL LAIN
+-- ====================================================================
+-- Aturan Bisnis:
+-- a) Saat gaji atau departemen karyawan diupdate, catat riwayat ke log_audit_karir.
+--    Nama departemen lama & baru diambil otomatis menggunakan Scalar Subquery!
+-- b) Jika gaji baru melampaui rata-rata gaji di departemen baru (Subquery AVG),
+--    tambahkan anggaran_bonus departemen baru sebesar 500.000.
+CREATE TRIGGER after_karyawan_update_subq
+    AFTER UPDATE ON karyawan
+    FOR EACH ROW
+BEGIN
+    DECLARE v_ket VARCHAR(100);
+
+    IF OLD.id_departemen <> NEW.id_departemen AND OLD.gaji <> NEW.gaji THEN
+        SET v_ket = 'Mutasi Departemen & Penyesuaian Gaji';
+    ELSEIF OLD.id_departemen <> NEW.id_departemen THEN
+        SET v_ket = 'Mutasi Departemen';
+    ELSE
+        SET v_ket = 'Kenaikan / Penyesuaian Gaji';
+    END IF;
+
+    -- Insert ke tabel log dengan Scalar Subquery di dalam klausa SET
+    INSERT INTO log_audit_karir
+    SET id_karyawan = NEW.id_karyawan,
+        nama_lengkap = CONCAT(NEW.nama_depan, ' ', NEW.nama_belakang),
+        dept_lama = (SELECT nama_departemen FROM departemen WHERE id_departemen = OLD.id_departemen),
+        dept_baru = (SELECT nama_departemen FROM departemen WHERE id_departemen = NEW.id_departemen),
+        gaji_lama = OLD.gaji,
+        gaji_baru = NEW.gaji,
+        keterangan = v_ket,
+        waktu_perubahan = NOW();
+
+    -- Subquery pada klausa WHERE: Tambah anggaran_bonus jika NEW.gaji > rata-rata departemen
+    IF NEW.gaji > (SELECT AVG(gaji) FROM karyawan WHERE id_departemen = NEW.id_departemen) THEN
+        UPDATE departemen
+        SET anggaran_bonus = anggaran_bonus + 500000
+        WHERE id_departemen = NEW.id_departemen;
+    END IF;
+END$$
+
+-- ====================================================================
+-- 3. TRIGGER BEFORE DELETE + SUBQUERY (MAX & EXISTS Proteksi Top Earner)
+-- ====================================================================
+-- Aturan Bisnis:
+-- Karyawan yang memiliki gaji tertinggi (MAX) di departemennya TIDAK BOLEH dihapus!
+CREATE TRIGGER before_karyawan_delete_subq
+    BEFORE DELETE ON karyawan
+    FOR EACH ROW
+BEGIN
+    IF OLD.gaji = (
+        SELECT MAX(gaji)
+        FROM karyawan
+        WHERE id_departemen = OLD.id_departemen
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'DITOLAK: Karyawan dengan gaji tertinggi di departemen tidak boleh dihapus!';
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- ====================================================================
+-- SKENARIO PENGUJIAN POSTTEST (DML TEST CASES)
+-- ====================================================================
+-- Uji 1: Insert karyawan baru (Budi) ke Dept Finance (id=1) dengan gaji 6.000.000
+-- Rata-rata gaji Finance saat ini = (4jt + 5jt + 2jt)/3 = 3.666.667.
+-- Maka trigger before_karyawan_insert_subq otomatis memotong gaji Budi menjadi 3.666.667
+-- dan mengisi status_pajak = 'Pajak Region 2'!
+INSERT INTO karyawan (id_karyawan, nama_depan, nama_belakang, gaji, id_departemen)
+VALUES (117, 'Budi', 'Santoso', 6000000, 1);
+
+-- Uji 2: Mutasi Rino (111) dari HRD (id=4) ke IT (id=2) sekaligus naik gaji ke 4.200.000
+-- Trigger after_karyawan_update_subq otomatis mengambil nama 'HRD' dan 'IT' via Subquery
+-- ke tabel log_audit_karir, serta menambah anggaran_bonus Dept IT +500.000!
+UPDATE karyawan
+SET id_departemen = 2, gaji = 4200000
+WHERE id_karyawan = 111;
+
+-- Uji 3: Coba hapus Regina (112) yang bergaji 5.000.000 (Tertinggi di Finance)
+-- Trigger before_karyawan_delete_subq akan menolak penghapusan dengan pesan error!
+-- DELETE FROM karyawan WHERE id_karyawan = 112;`;
+
+    const POSTTEST_CASES_DB = [
+      {
+        badge: 'Kasus Posttest 1 • Trigger Murni (Multi-Tabel)',
+        title: 'Sistem Otomatisasi Stok Gudang, Validasi Diskon, & Log Perubahan Harga',
+        desc: 'Menguji pembuatan 3 trigger pada skema toko: (1) BEFORE INSERT untuk membatasi diskon 0%–50% dan mengisi waktu transaksi otomatis, (2) AFTER INSERT untuk memotong stok barang di tabel produk saat terjadi penjualan, dan (3) AFTER UPDATE untuk merekam selisih harga lama vs harga baru.',
+        sql: SQL_POSTTEST_SIM,
+        dlKey: 'posttest',
+        dlName: 'posttest_toko_trigger.sql',
+        breakdown: [
+          { title: '1. Trigger `before_transaksi_insert` (BEFORE INSERT)', exp: 'Memeriksa nilai <code>NEW.diskon_persen</code> sebelum baris penjualan disimpan. Jika kurang dari 0 diset ke 0, jika lebih dari 50 dipangkas menjadi 50, serta mengisi <code>NEW.waktu_transaksi = NOW()</code>.' },
+          { title: '2. Trigger `after_transaksi_insert` (AFTER INSERT)', exp: 'Begitu transaksi penjualan berhasil masuk, trigger otomatis menjalankan <code>UPDATE produk SET stok = stok - NEW.qty WHERE kode_produk = NEW.kode_produk</code>.' },
+          { title: '3. Trigger `after_produk_update` (AFTER UPDATE)', exp: 'Menggunakan kondisi <code>IF OLD.harga &lt;&gt; NEW.harga</code> agar log hanya dicatat ketika harga barang benar-benar berubah, lengkap dengan perhitungan <code>selisih = NEW.harga - OLD.harga</code>.' }
+        ],
+        simHtml: `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-cyan-400 font-bold">1. Input Transaksi (Diskon 75%):</div>
+              <div class="text-slate-300">INSERT INTO transaksi_jual (kode_produk, qty, diskon_persen) VALUES ('PRD01', 3, 75);</div>
+              <div class="text-amber-300 font-bold pt-1">&rarr; Diskon dikoreksi jadi 50%!</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-emerald-400 font-bold">2. Efek ke Tabel \`produk\`:</div>
+              <div class="text-slate-300">Stok awal PRD01 = 20 unit</div>
+              <div class="text-emerald-300 font-bold pt-1">&rarr; Stok otomatis berkurang 3 menjadi 17 unit!</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-purple-400 font-bold">3. Efek UPDATE Harga PRD01:</div>
+              <div class="text-slate-300">UPDATE produk SET harga = 65000 WHERE kode_produk = 'PRD01'; (Harga lama 50000)</div>
+              <div class="text-purple-300 font-bold pt-1">&rarr; Tercatat selisih +15000 di log!</div>
+            </div>
+          </div>`
+      },
+      {
+        badge: 'Kasus Posttest 2 • Integrasi Trigger + Subquery (Modul 11 & 12)',
+        title: 'Sistem HRD Cerdas: Validasi Plafon Gaji via Subquery `AVG`/`MIN`/`IN`, Audit Mutasi Lintas Tabel, & Proteksi Top Earner',
+        desc: 'Kasus posttest tingkat lanjut yang menggabungkan materi Subquery (Single-Row AVG/MIN/MAX, Multi-Row IN, dan Scalar Subquery) langsung di dalam blok BEGIN...END Trigger MySQL pada database karyawan & departemen.',
+        sql: SQL_POSTTEST_SUBQUERY,
+        dlKey: 'posttest_subq',
+        dlName: 'posttest_trigger_subquery_hrd.sql',
+        breakdown: [
+          { title: '1. `before_karyawan_insert_subq` (BEFORE INSERT + Subquery AVG, MIN, & IN)', exp: '• Menggunakan <strong>Single-Row Subquery <code>(SELECT ROUND(AVG(gaji)) FROM karyawan WHERE id_departemen = NEW.id_departemen)</code></strong> untuk membatasi agar gaji karyawan baru tidak melebihi rata-rata gaji departemennya.<br>• Menggunakan <strong>Multiple-Row Subquery <code>IF NEW.id_departemen IN (SELECT id_departemen FROM departemen WHERE region = 2)</code></strong> untuk menentukan <code>NEW.status_pajak</code> secara otomatis berdasarkan lokasi region departemen.' },
+          { title: '2. `after_karyawan_update_subq` (AFTER UPDATE + Scalar Subquery Lintas Tabel)', exp: '• Saat karyawan dimutasi atau naik gaji, tabel <code>karyawan</code> hanya menyimpan angka <code>id_departemen</code> (misal <code>4</code> dan <code>2</code>). Agar tabel <code>log_audit_karir</code> menyimpan nama departemen yang mudah dibaca (<code>"HRD"</code> dan <code>"IT"</code>), digunakan <strong>Scalar Subquery</strong> langsung di dalam <code>INSERT ... SET</code>:<br><code>dept_lama = (SELECT nama_departemen FROM departemen WHERE id_departemen = OLD.id_departemen)</code><br>• Selain itu, jika <code>NEW.gaji &gt; (SELECT AVG(gaji) ...)</code>, trigger otomatis menambah <code>anggaran_bonus</code> departemen sebesar Rp 500.000.' },
+          { title: '3. `before_karyawan_delete_subq` (BEFORE DELETE + Subquery MAX & SIGNAL)', exp: '• Mengecek apakah gaji karyawan yang akan dihapus sama dengan gaji tertinggi di departemennya: <code>IF OLD.gaji = (SELECT MAX(gaji) FROM karyawan WHERE id_departemen = OLD.id_departemen)</code>.<br>• Jika benar (misalnya mencoba menghapus <strong>Regina</strong> yang bergaji Rp 5.000.000 di Finance), trigger membatalkan penghapusan dengan <code>SIGNAL SQLSTATE \'45000\'</code>.' }
+        ],
+        simHtml: `
+          <div class="space-y-4 text-xs font-mono">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              <div class="p-4 rounded-xl bg-slate-950 border border-cyan-500/40 space-y-1.5">
+                <div class="text-cyan-400 font-bold">Uji 1: INSERT Budi (Gaji 6jt ke Dept 1)</div>
+                <div class="text-slate-300 font-sans">Subquery menghitung rata-rata Dept Finance (id=1): <code>(4jt + 5jt + 2jt)/3 = 3.666.667</code> dan mengecek Region Dept 1 (Region 2).</div>
+                <div class="text-emerald-300 font-bold pt-1">&rarr; Gaji Budi otomatis dikoreksi menjadi 3.666.667 &amp; status_pajak = 'Pajak Region 2'!</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-950 border border-amber-500/40 space-y-1.5">
+                <div class="text-amber-400 font-bold">Uji 2: UPDATE Mutasi Rino (111) ke IT</div>
+                <div class="text-slate-300 font-sans"><code>UPDATE karyawan SET id_departemen=2, gaji=4200000 WHERE id_karyawan=111;</code></div>
+                <div class="text-emerald-300 font-bold pt-1">&rarr; Scalar Subquery menerjemahkan OLD.id=4 ('HRD') &amp; NEW.id=2 ('IT') ke tabel log_audit_karir!</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-950 border border-rose-500/40 space-y-1.5">
+                <div class="text-rose-400 font-bold">Uji 3: DELETE Regina (112 - Gaji 5jt)</div>
+                <div class="text-slate-300 font-sans">Subquery mengecek <code>MAX(gaji)</code> di Dept 1 = <code>5.000.000</code> (milik Regina).</div>
+                <div class="text-rose-300 font-bold pt-1">&rarr; DITOLAK oleh SIGNAL SQLSTATE '45000' (Top Earner Protected)!</div>
+              </div>
+            </div>
+
+            <!-- Tabel Hasil log_audit_karir setelah Uji 2 -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-400 font-bold">Hasil Tabel \`log_audit_karir\` Setelah Uji 2 (Nama Departemen Diambil via Subquery):</div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
+                    <tr><th class="p-2">id_audit</th><th class="p-2">id_karyawan</th><th class="p-2">nama_lengkap</th><th class="p-2">dept_lama (Subquery)</th><th class="p-2">dept_baru (Subquery)</th><th class="p-2">gaji_lama</th><th class="p-2">gaji_baru</th><th class="p-2">keterangan</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="p-2">1</td>
+                      <td class="p-2 text-amber-300 font-bold">111</td>
+                      <td class="p-2 text-white">Rino Cheros</td>
+                      <td class="p-2 text-rose-300 font-bold">HRD (dari ID 4)</td>
+                      <td class="p-2 text-emerald-300 font-bold">IT (dari ID 2)</td>
+                      <td class="p-2">3,000,000</td>
+                      <td class="p-2 text-cyan-300 font-bold">4,200,000</td>
+                      <td class="p-2 text-amber-200">Mutasi Departemen &amp; Penyesuaian Gaji</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>`
+      }
+    ];
+
+    let activePosttestIdx = 1;
+
+    function selectPosttestCase(idx) {
+      activePosttestIdx = idx;
+      [0, 1].forEach(i => {
+        const b = document.getElementById(`pt-btn-${i}`);
+        if (!b) return;
+        if (i === idx) {
+          b.className = 'px-4 py-2 rounded-xl bg-purple-600 text-white font-bold shadow-lg transition-all';
+        } else {
+          b.className = 'px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 font-bold transition-all';
+        }
+      });
+
+      const c = POSTTEST_CASES_DB[idx];
+      const box = document.getElementById('posttest-case-viewer');
+      box.innerHTML = `
+        <div class="bg-slate-900 border border-purple-500/30 rounded-2xl overflow-hidden shadow-xl space-y-6 p-6">
+          <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 pb-4">
+            <div class="space-y-1">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${c.badge}</span>
+              <h3 class="text-lg font-bold text-white pt-1">${c.title}</h3>
+              <p class="text-xs text-slate-300 leading-relaxed max-w-4xl">${c.desc}</p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button onclick="copyActivePosttestSql()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white border border-slate-700">
+                <i class="fa-regular fa-copy mr-1"></i> Salin Script SQL
+              </button>
+              <button onclick="downloadSqlFile('${c.dlKey}')" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white shadow">
+                <i class="fa-solid fa-download mr-1"></i> Unduh ${c.dlName}
+              </button>
+            </div>
+          </div>
+
+          <!-- Simulasi Efek Eksekusi Trigger & Subquery -->
+          <div class="space-y-2">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
+              <i class="fa-solid fa-bolt mr-1"></i> Ilustrasi Hasil Eksekusi Trigger &amp; Evaluasi Subquery (Before &rarr; After):
+            </div>
+            ${c.simHtml}
+          </div>
+
+          <!-- Source Code SQL Lengkap -->
+          <div class="rounded-xl border border-slate-800 overflow-hidden">
+            <div class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+              <span class="text-purple-300 font-bold"><i class="fa-solid fa-code mr-1.5"></i>Source Code Lengkap: \`${c.dlName}\`</span>
+              <button onclick="copyActivePosttestSql()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+                <i class="fa-regular fa-copy mr-1"></i> Salin
+              </button>
+            </div>
+            <pre class="p-4 sql-code overflow-x-auto max-h-[520px]"><code>${highlightSQL(c.sql)}</code></pre>
+          </div>
+
+          <!-- Penjelasan Mendalam Per Trigger -->
+          <div class="space-y-2.5">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
+              <i class="fa-solid fa-magnifying-glass-chart mr-1"></i> Bedah Logika Trigger &amp; Subquery Per Bagian:
+            </div>
+            <div class="grid grid-cols-1 gap-3 text-xs">
+              ${c.breakdown.map(b => `
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                  <div class="font-mono font-bold text-cyan-300">${b.title}</div>
+                  <div class="text-slate-300 leading-relaxed">${b.exp}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function copyActivePosttestSql() {
+      if (POSTTEST_CASES_DB[activePosttestIdx]) {
+        copyRawText(POSTTEST_CASES_DB[activePosttestIdx].sql);
+      }
+    }
+
+    // 7. KUIS EVALUASI PEMAHAMAN TRIGGER (6 SOAL)
+    const TRIGGER_QUIZ_DATA = [
+      {
+        q: '1. Apa perbedaan paling mendasar antara Trigger dan Stored Procedure pada MySQL?',
+        options: [
+          'Trigger harus dipanggil menggunakan perintah CALL, sedangkan Stored Procedure berjalan otomatis.',
+          'Trigger dieksekusi secara otomatis oleh server saat terjadi peristiwa DML (INSERT, UPDATE, DELETE) pada tabel, sedangkan Stored Procedure harus dipanggil secara eksplisit.',
+          'Trigger hanya bisa berisi perintah SELECT saja.',
+          'Trigger dapat di-bypass dengan mudah dari kode PHP.'
+        ],
+        correct: 1,
+        exp: 'Sesuai Halaman 2 Modul, trigger di-invoke secara otomatis akibat aktivitas DML pada tabel dan tidak bisa di-bypass oleh program aplikasi luar.'
+      },
+      {
+        q: '2. Mengapa pada Soal Unguided Nomor 6 (validasi dan pengubahan posisi rak U-00 menjadi U-01), kita WAJIB menggunakan waktu BEFORE INSERT dan bukan AFTER INSERT?',
+        options: [
+          'Karena AFTER INSERT tidak bisa membaca nilai NEW.',
+          'Karena modifikasi nilai kolom yang sedang dimasukkan (SET NEW.posisi_buku = ...) hanya diizinkan pada tahap BEFORE INSERT sebelum baris ditulis ke disk.',
+          'Karena BEFORE INSERT tidak memerlukan DELIMITER.',
+          'Karena AFTER INSERT hanya berlaku untuk operasi DELETE.'
+        ],
+        correct: 1,
+        exp: 'Pada tahap <code>AFTER INSERT</code>, data sudah terlanjur ditulis ke dalam tabel sehingga pseudo-record <code>NEW</code> bersifat <em>read-only</em> (tidak bisa diubah dengan <code>SET NEW.kolom = ...</code>).'
+      },
+      {
+        q: '3. Pada trigger before_employee_update atau after_buku_update, bagaimana cara mengambil nilai posisi/nama SEBELUM diubah dan SESUDAH diubah?',
+        options: [
+          'PREV.posisi_buku dan NEXT.posisi_buku',
+          'BEFORE.posisi_buku dan AFTER.posisi_buku',
+          'OLD.posisi_buku untuk nilai sebelum diupdate, dan NEW.posisi_buku untuk nilai baru hasil update.',
+          'Hanya menggunakan NEW.posisi_buku saja.'
+        ],
+        correct: 2,
+        exp: 'Pada operasi <code>UPDATE</code>, MySQL menyediakan <code>OLD.nama_kolom</code> untuk membaca nilai lama dan <code>NEW.nama_kolom</code> untuk membaca nilai baru.'
+      },
+      {
+        q: '4. Perhatikan ekspresi di Soal 6: CONVERT(RIGHT(NEW.posisi_buku, 2), UNSIGNED). Mengapa hasil fungsi RIGHT() perlu dibungkus dengan CONVERT(..., UNSIGNED)?',
+        options: [
+          'Untuk mengubah huruf rak menjadi huruf kecil.',
+          'Karena RIGHT() menghasilkan tipe teks (string), sehingga perlu dikonversi menjadi angka bulat positif (UNSIGNED INTEGER) agar bisa dibandingkan secara matematis dengan <= 0 atau > 50.',
+          'Untuk menghapus tanda hubung (-).',
+          'Agar panjang karakter menjadi 10.'
+        ],
+        correct: 1,
+        exp: 'Sesuai petunjuk Modul 8 (Cast Functions), string angka seperti <code>\'61\'</code> atau <code>\'00\'</code> dikonversi ke integer dengan <code>CONVERT(..., UNSIGNED)</code> agar perbandingan numerik akurat.'
+      },
+      {
+        q: '5. Pada peristiwa DELETE (baik BEFORE DELETE maupun AFTER DELETE), pseudo-record manakah yang dapat diakses?',
+        options: [
+          'Hanya NEW',
+          'OLD dan NEW keduanya bisa diakses',
+          'Hanya OLD (karena operasi DELETE menghapus baris yang sudah ada dan tidak memasukkan nilai baru)',
+          'Tidak ada yang bisa diakses'
+        ],
+        correct: 2,
+        exp: 'Operasi <code>DELETE</code> tidak memiliki data pengganti baru, sehingga hanya <code>OLD.nama_kolom</code> yang valid.'
+      },
+      {
+        q: '6. Perintah SQL apakah yang digunakan untuk melihat daftar seluruh trigger yang telah dibuat di dalam database aktif?',
+        options: [
+          'SELECT * FROM triggers;',
+          'SHOW TRIGGERS;',
+          'DESC TRIGGERS;',
+          'DISPLAY ALL TRIGGERS;'
+        ],
+        correct: 1,
+        exp: 'Sesuai Halaman 5 Modul, daftar trigger yang aktif pada MySQL dapat diperiksa dengan perintah <code>SHOW TRIGGERS;</code>.'
+      }
+    ];
+
+    function renderTriggerQuiz() {
+      const box = document.getElementById('trig-quiz-container');
+      box.innerHTML = TRIGGER_QUIZ_DATA.map((item, qIdx) => `
+        <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+          <div class="font-bold text-xs sm:text-sm text-white leading-relaxed">${item.q}</div>
+          <div class="space-y-2 text-xs font-mono">
+            ${item.options.map((opt, oIdx) => `
+              <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-cyan-500/50 transition-colors">
+                <input type="radio" name="tquiz-${qIdx}" value="${oIdx}" class="accent-cyan-500">
+                <span class="text-slate-200">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="tquiz-exp-${qIdx}" class="hidden p-3 rounded-xl text-xs leading-relaxed"></div>
+        </div>
+      `).join('');
+    }
+
+    function gradeTriggerQuiz() {
+      let score = 0;
+      TRIGGER_QUIZ_DATA.forEach((item, qIdx) => {
+        const chosen = document.querySelector(`input[name="tquiz-${qIdx}"]:checked`);
+        const expEl = document.getElementById(`tquiz-exp-${qIdx}`);
+        expEl.classList.remove('hidden');
+        if (chosen && parseInt(chosen.value) === item.correct) {
+          score++;
+          expEl.className = 'p-3 rounded-xl text-xs leading-relaxed bg-emerald-950/50 border border-emerald-500/40 text-emerald-200';
+          expEl.innerHTML = `<strong class="text-emerald-400">✓ Benar!</strong> ${item.exp}`;
+        } else {
+          expEl.className = 'p-3 rounded-xl text-xs leading-relaxed bg-rose-950/50 border border-rose-500/40 text-rose-200';
+          expEl.innerHTML = `<strong class="text-rose-400">✗ Kurang Tepat.</strong> Jawaban benar: <code class="text-amber-300">${item.options[item.correct]}</code>.<br>${item.exp}`;
+        }
+      });
+      document.getElementById('trig-quiz-score').textContent = `Skor: ${score} / ${TRIGGER_QUIZ_DATA.length} (${Math.round((score / TRIGGER_QUIZ_DATA.length) * 100)}%)`;
+      showToast(`Kuis selesai dinilai! Skor Anda: ${score}/${TRIGGER_QUIZ_DATA.length}`);
+    }
+
+    // 8. CLIPBOARD & DOWNLOAD HELPERS
+    function copyRawText(text) {
+      if (!text) return;
+      const fallback = (str) => {
+        const ta = document.createElement('textarea');
+        ta.value = str;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast('Script SQL berhasil disalin ke clipboard!');
+        } catch (e) {
+          showToast('Gagal menyalin.');
+        }
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => showToast('Script SQL berhasil disalin ke clipboard!')).catch(() => fallback(text));
+      } else {
+        fallback(text);
+      }
+    }
+
+    function downloadSqlFile(type) {
+      let content = FULL_UNGUIDED_SQL_SCRIPT;
+      let filename = 'unguided_buku_lengkap.sql';
+      if (type === 'guided') {
+        content = SQL_GUIDED_EMPLOYEES;
+        filename = 'guided_employees_trigger.sql';
+      } else if (type === 'posttest') {
+        content = SQL_POSTTEST_SIM;
+        filename = 'posttest_toko_trigger.sql';
+      } else if (type === 'posttest_subq') {
+        content = SQL_POSTTEST_SUBQUERY;
+        filename = 'posttest_trigger_subquery_hrd.sql';
+      }
+      const blob = new Blob([content], { type: 'application/sql;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`File ${filename} berhasil diunduh!`);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 2600);
+    }
+
+    // INITIALIZE ON LOAD
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('code-guided-employees').innerHTML = `<code>${highlightSQL(SQL_GUIDED_EMPLOYEES)}</code>`;
+
+      renderCheatSheet();
+      setGuidedSimStep(2);
+      renderUnguidedCards();
+      simPresetBuku('soal4');
+      selectPosttestCase(1);
+      renderTriggerQuiz();
+    });
+  </script>
+</body>
+</html>
