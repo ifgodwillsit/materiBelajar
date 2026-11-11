@@ -1115,9 +1115,52 @@ sub { font-size: 0.75em; }
             a<sub>ij</sub> = a<sub>ij</sub><sup>−</sup> + f<sub>ij</sub> &nbsp;&nbsp;dengan&nbsp;&nbsp; 0 ≤ f<sub>ij</sub> &lt; 1
           </div>
           <b>3. Bentuk Akhir Persamaan Kendala Gomory:</b><br>
-          Agar x<sub>i</sub> bernilai bulat, jumlah komponen pecahan non-basis harus memenuhi pertidaksamaan <b>Σ<sub>j</sub> f<sub>ij</sub> s<sub>j</sub> ≥ f<sub>i</sub></b>. Dengan menambahkan variabel slack Gomory <b>s<sub>g</sub> ≥ 0</b>, diperoleh persamaan baris baru:
+          Agar x<sub>i</sub> bernilai bulat, jumlah komponen pecahan non-basis harus memenuhi pertidaksamaan <b>Σ<sub>j</sub> f<sub>ij</sub> s<sub>j</sub> ≥ f<sub>i</sub></b>. Dengan mentransformasikan tanda pertidaksamaan (dikalikan −1 menjadi ≤) lalu menambahkan variabel slack Gomory <b>s<sub>g</sub> ≥ 0</b>, diperoleh persamaan baris baru:
           <div class="mono font-bold text-base mt-1.5 p-2 rounded border inline-block" style="background:var(--card);border-color:var(--ip);color:var(--ip)">
             s<sub>g</sub> − Σ<sub>j</sub> f<sub>ij</sub> s<sub>j</sub> = −f<sub>i</sub> &nbsp;&nbsp;atau&nbsp;&nbsp; −f<sub>i1</sub>s<sub>1</sub> − f<sub>i2</sub>s<sub>2</sub> − ... − f<sub>in</sub>s<sub>n</sub> + s<sub>g</sub> = −f<sub>i</sub>
+          </div>
+        </div>
+
+        <!-- Penjelasan Transformasi Pertidaksamaan Gomory (>= menjadi <=) Agar Tidak Menjadi Simpleks 2 Fase -->
+        <div class="p-4 rounded-xl border mt-4" style="background:var(--bg);border-color:var(--ip)">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style="background:var(--ip);color:#fff">
+              🔄 Transformasi Pertidaksamaan Potongan Gomory (≥ → ≤) Agar Cukup Simpleks Sederhana (1 Fase)
+            </span>
+            <span class="text-xs font-semibold" style="color:var(--ip)">Menghindari Variabel Buatan (+A) &amp; Simpleks 2 Fase</span>
+          </div>
+          <p class="text-xs sm:text-sm mb-3" style="color:var(--mu)">
+            Mengapa pertidaksamaan mentah potongan Gomory <span class="mono font-bold">Σ<sub>j</sub> f<sub>ij</sub> s<sub>j</sub> ≥ f<sub>i</sub></span> yang bertanda <b>"≥"</b> tidak langsung ditambahkan variabel <i>surplus</i> (<span class="mono">−s<sub>g</sub></span>) dan <i>artificial variable</i> (<span class="mono">+A</span>) seperti pada Simpleks 2 Fase? Berikut perbandingan dan dua cara transformasinya:
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3 rounded-lg border" style="background:var(--er-soft);border-color:var(--er)">
+              <div class="font-bold text-sm mb-1" style="color:var(--er)">❌ Masalah Jika Dibiarkan Bentuk "≥"</div>
+              <p class="m-0" style="color:var(--tx)">
+                Jika pertidaksamaan <span class="mono font-bold">Σ f<sub>ij</sub>s<sub>j</sub> ≥ f<sub>i</sub></span> diselesaikan secara naif:<br>
+                • Harus diubah menjadi <span class="mono">Σ f<sub>ij</sub>s<sub>j</sub> − s<sub>g</sub> + A<sub>1</sub> = f<sub>i</sub></span>.<br>
+                • Munculnya variabel buatan <b>+A<sub>1</sub></b> memaksa kita menjalankan <b>Simpleks 2 Fase</b> atau <b>Big-M</b> dari awal setiap kali menambah potongan baru!
+              </p>
+            </div>
+
+            <div class="p-3 rounded-lg border" style="background:var(--ok-soft);border-color:var(--ok)">
+              <div class="font-bold text-sm mb-1" style="color:var(--ok)">✅ Cara 1: Kalikan −1 (Ubah ≥ menjadi ≤ di Tabel Berjalan)</div>
+              <p class="m-0" style="color:var(--tx)">
+                Kalikan kedua ruas <span class="mono">Σ f<sub>ij</sub>s<sub>j</sub> ≥ f<sub>i</sub></span> dengan <b>−1</b> sehingga tanda berbalik menjadi <b>"≤"</b>:<br>
+                <span class="mono font-bold">−Σ f<sub>ij</sub>s<sub>j</sub> ≤ −f<sub>i</sub></span><br>
+                Karena sudah bertanda <b>≤</b>, cukup tambahkan <b>1 variabel slack (<span class="mono">+s<sub>g</sub> ≥ 0</span>)</b> tanpa variabel buatan <b>A</b>:<br>
+                <span class="mono font-bold" style="color:var(--ip)">−Σ f<sub>ij</sub>s<sub>j</sub> + s<sub>g</sub> = −f<sub>i</sub></span><br>
+                Variabel <span class="mono">s<sub>g</sub></span> langsung menjadi basis baru dan cukup diselesaikan dengan 1 pivot sederhana!
+              </p>
+            </div>
+
+            <div class="p-3 rounded-lg border" style="background:var(--card);border-color:var(--ac)">
+              <div class="font-bold text-sm mb-1" style="color:var(--ac)">✅ Cara 2: Substitusi Kembali s<sub>j</sub> ke Variabel Asli x<sub>i</sub> (Bentuk ≤ Murni)</div>
+              <p class="m-0" style="color:var(--tx)">
+                Substitusikan definisi variabel slack awal (<span class="mono">s<sub>i</sub> = b<sub>i</sub> − Σ a<sub>ij</sub>x<sub>j</sub></span>) ke dalam pertidaksamaan <span class="mono">Σ f<sub>ij</sub>s<sub>j</sub> ≥ f<sub>i</sub></span>.<br>
+                Hasilnya selalu tereduksi menjadi <b>pertidaksamaan linear bulat bertanda ≤ dengan RHS positif</b> dalam variabel asli <span class="mono">x<sub>1</sub>, x<sub>2</sub></span> (contoh: <span class="mono font-bold">x<sub>2</sub> ≤ 3</span> atau <span class="mono font-bold">x<sub>1</sub> + x<sub>2</sub> ≤ 9</span>) yang dapat dikerjakan dengan <b>Simpleks 1 Fase biasa</b>!
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1234,6 +1277,12 @@ sub { font-size: 0.75em; }
         <!-- Ringkasan Soal Aktif -->
         <div id="wt-problem-box" class="p-4 rounded-xl border mb-4" style="background:var(--bg);border-color:var(--bd)"></div>
 
+        <!-- Visualisasi Pohon Alur Tahapan Pemotongan Gomory (SVG Tree untuk Soal PDF) -->
+        <div class="mb-4">
+          <div class="text-xs font-semibold uppercase tracking-wider mb-1.5" style="color:var(--ip)">🌳 Pohon Alur Tahapan Pemotongan Gomory (Klik Node untuk Lompat ke Langkah):</div>
+          <div id="wt-tree-box"></div>
+        </div>
+
         <!-- Navigasi Stepper Kasus -->
         <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
           <span class="text-xs font-semibold uppercase tracking-wider" style="color:var(--mu)">Tahapan Penyelesaian Runtut:</span>
@@ -1319,6 +1368,13 @@ sub { font-size: 0.75em; }
             </button>
           </div>
         </div>
+
+        <!-- Visualisasi Pohon Alur Tahapan Pemotongan Gomory (SVG Cutting Plane Tree) -->
+        <div class="mb-4">
+          <h3 class="font-bold text-sm mb-1.5" style="color:var(--ip)">🌳 Visualisasi Pohon Alur Pemotongan Gomory (Klik Node untuk Membuka Langkah):</h3>
+          <div id="ip-gomory-tree-box"></div>
+        </div>
+
         <div class="pills ip-pills" id="ip-tabs"></div>
         <div id="ip-view"></div>
         <div id="ip-nav-bottom" class="flex justify-between items-center mt-5 pt-3 border-t" style="border-color:var(--bd)">
@@ -1757,70 +1813,178 @@ function updateFracTester() {
 const WALKTHROUGH_CASES = {
   1: {
     problemHTML: `<b>Kasus 1 (Metode_Gomory.pdf):</b> Maksimumkan <b>Z = 7x₁ + 9x₂</b> dengan kendala <b>−x₁ + 3x₂ ≤ 6</b> dan <b>7x₁ + x₂ ≤ 35</b>, x₁, x₂ ≥ 0 bulat.`,
+    treeNodes: [
+      { id: 0, parentId: null, depth: 0, edgeLabel: "", state: "branched", line1: "x₁=9/2, x₂=7/2", line2: "Relaksasi LP Awal", line3: "Z = 63 (Pecahan)", stepIdx: 0 },
+      { id: 1, parentId: 0, depth: 1, edgeLabel: "Cut 1: sg₁ (x₂ ≤ 3)", state: "branched", line1: "x₁=32/7, x₂=3", line2: "sg₁ − 7/22s₁ − 1/22s₂ = −1/2", line3: "Z = 59 (x₁ Pecahan)", stepIdx: 1 },
+      { id: 2, parentId: 1, depth: 2, edgeLabel: "Cut 2: sg₂ (x₁+x₂ ≤ 7)", state: "integer", line1: "x₁ = 4, x₂ = 3", line2: "★ Solusi Bulat Optimal", line3: "Z = 55", stepIdx: 2 }
+    ],
+    bestTreeNodeId: 2,
     steps: [
       {
-        title: "1. Tabel Optimal Simpleks",
+        title: "1. Tabel Optimal Simpleks & Audit Pecahan",
         html: `<p>Hasil optimal kontinu metode simpleks memberikan <b>x₂ = 7/2 (3.5)</b>, <b>x₁ = 9/2 (4.5)</b>, dan <b>Z = 63</b>:</p>
         <div class="scroll"><table class="simplex">
-          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>Solusi</th></tr>
-          <tr><td class="b">Z</td><td>0</td><td>0</td><td>28/11</td><td>15/11</td><td><b>63</b></td></tr>
-          <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>7/22</td><td>1/22</td><td><b>7/2 (3 + 1/2)</b></td></tr>
-          <tr><td class="b">x₁</td><td>1</td><td>0</td><td>−1/22</td><td>3/22</td><td><b>9/2 (4 + 1/2)</b></td></tr>
+          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>Solusi (b<sub>i</sub>)</th><th>Status &amp; Dekomposisi (⌊b<sub>i</sub>⌋ + f<sub>i</sub>)</th></tr>
+          <tr><td class="b">Z</td><td>0</td><td>0</td><td>28/11</td><td>15/11</td><td><b>63</b></td><td><span class="badge-frac" style="background:var(--ac-soft);color:var(--ac)">Baris Tujuan (Z ≥ 0)</span></td></tr>
+          <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>7/22</td><td>1/22</td><td><b>7/2</b></td><td><span class="badge-frac" style="background:var(--ip);color:#fff">3 + 1/2 (f = 1/2) ★ Baris Sumber Cut 1</span></td></tr>
+          <tr><td class="b">x₁</td><td>1</td><td>0</td><td>−1/22</td><td>3/22</td><td><b>9/2</b></td><td><span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">4 + 1/2 (f = 1/2) · Pecahan</span></td></tr>
         </table></div>`
       },
       {
-        title: "2. Potongan Gomory 1 (sg₁) & OBE",
-        html: `<p>Dari baris x₂ diperoleh <b>s<sub>g1</sub> − (7/22)s₁ − (1/22)s₂ = −1/2</b>. Dengan Dual Simpleks (kolom masuk <b>s₁</b>, elemen pivot <b>−7/22</b>), setelah OBE diperoleh:</p>
+        title: "2. Transformasi Cut 1 (sg₁) & Simpleks",
+        html: `<div class="p-3.5 rounded-xl border mb-3" style="background:var(--ip-soft);border-color:var(--ip)">
+          <div class="font-bold text-sm mb-1" style="color:var(--ip)">🔄 Transformasi Pertidaksamaan Potongan 1 Agar Tidak Menjadi Simpleks 2 Fase:</div>
+          <ul class="text-xs space-y-1.5 list-disc pl-4 m-0">
+            <li><b>Pertidaksamaan Pecahan Mentah (Bertanda ≥):</b> Dari baris <b>x₂</b>: <span class="mono">x₂ + (0 + 7/22)s₁ + (0 + 1/22)s₂ = 3 + 1/2</span> &nbsp;⇒&nbsp; <span class="mono font-bold">(7/22)s₁ + (1/22)s₂ ≥ 1/2</span>.<br>
+            <span style="color:var(--er)">Jika dibiarkan bertanda <b>≥</b>, kita harus menambah surplus (−sg₁) dan variabel buatan (+A₁) yang memaksa penggunaan <b>Simpleks 2 Fase</b>!</span></li>
+            <li><b>Cara 1 — Kalikan −1 (Ubah ≥ menjadi ≤ pada Tabel Simpleks):</b><br>
+            Kalikan kedua ruas dengan −1 menjadi <span class="mono font-bold">−(7/22)s₁ − (1/22)s₂ ≤ −1/2</span>, lalu tambahkan 1 variabel slack <span class="mono">+sg₁ ≥ 0</span>:
+            <div class="mono font-bold mt-1 p-1.5 rounded border inline-block" style="background:var(--card);border-color:var(--ip)">sg₁ − (7/22)s₁ − (1/22)s₂ = −1/2</div></li>
+            <li><b>Cara 2 — Substitusi Kembali s₁, s₂ ke Variabel Asli x₁, x₂ (Menjadi Kendala ≤ Sederhana):</b><br>
+            Substitusikan <span class="mono">s₁ = 6 + x₁ − 3x₂</span> dan <span class="mono">s₂ = 35 − 7x₁ − x₂</span> ke dalam <span class="mono">(7/22)s₁ + (1/22)s₂ ≥ 1/2</span>:<br>
+            <span class="mono">(7/22)(6 + x₁ − 3x₂) + (1/22)(35 − 7x₁ − x₂) ≥ 11/22 &nbsp;⇔&nbsp; 42 + 7x₁ − 21x₂ + 35 − 7x₁ − x₂ ≥ 11 &nbsp;⇔&nbsp; −22x₂ ≥ −66 &nbsp;⇔&nbsp; <b style="color:var(--ok)">x₂ ≤ 3</b> (atau <b>x₂ + sg₁ = 3</b>)!</span></li>
+          </ul>
+        </div>
+        <p class="text-xs sm:text-sm">Dengan menyisipkan baris <b>sg₁</b> dan melakukan 1 langkah pivot pada kolom <b>s₁</b> (Rasio minimum: <span class="mono">(28/11) ÷ (7/22) = 8</span> vs <span class="mono">(15/11) ÷ (1/22) = 30</span>, elemen pivot = <b>−7/22</b>), diperoleh tabel baru:</p>
         <div class="scroll"><table class="simplex">
-          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>s<sub>g1</sub></th><th>Solusi</th></tr>
-          <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>1</td><td>8</td><td><b>59</b></td></tr>
-          <tr><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td><b>3</b></td></tr>
-          <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>1/7</td><td>−1/7</td><td><b>32/7 (4 + 4/7)</b></td></tr>
-          <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>1/7</td><td>−22/7</td><td><b>11/7</b></td></tr>
+          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>s<sub>g1</sub></th><th>Solusi (b<sub>i</sub>)</th><th>Status &amp; Dekomposisi (⌊b<sub>i</sub>⌋ + f<sub>i</sub>)</th></tr>
+          <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>1</td><td>8</td><td><b>59</b></td><td><span class="badge-frac" style="background:var(--ac-soft);color:var(--ac)">Baris Tujuan (Z ≥ 0)</span></td></tr>
+          <tr><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td><b>3</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">3 + 0 (Bulat ✓)</span></td></tr>
+          <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>1/7</td><td>−1/7</td><td><b>32/7</b></td><td><span class="badge-frac" style="background:var(--ip);color:#fff">4 + 4/7 (f = 4/7) ★ Baris Sumber Cut 2</span></td></tr>
+          <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>1/7</td><td>−22/7</td><td><b>11/7</b></td><td><span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">1 + 4/7 (f = 4/7)</span></td></tr>
         </table></div>`
       },
       {
-        title: "3. Potongan Gomory 2 (sg₂) & Optimal Bulat",
-        html: `<p>Dari baris x₁ (32/7 = 4 + 4/7, dan −1/7 = −1 + 6/7) diperoleh <b>s<sub>g2</sub> − (1/7)s₂ − (6/7)s<sub>g1</sub> = −4/7</b>. Setelah OBE pada kolom <b>s₂</b> (pivot −1/7), diperoleh solusi bulat optimal:</p>
-        <div class="note ok"><b>STOP — Solusi Optimal Integer: x₁ = 4, x₂ = 3, dan Z<sub>maks</sub> = 55.</b></div>`
+        title: "3. Transformasi Cut 2 (sg₂) & Optimal Bulat",
+        html: `<div class="p-3.5 rounded-xl border mb-3" style="background:var(--ip-soft);border-color:var(--ip)">
+          <div class="font-bold text-sm mb-1" style="color:var(--ip)">🔄 Transformasi Pertidaksamaan Potongan 2 (sg₂) Agar Cukup Simpleks 1 Fase:</div>
+          <ul class="text-xs space-y-1.5 list-disc pl-4 m-0">
+            <li><b>Dekomposisi Baris x₁:</b> <span class="mono">x₁ + (0 + 1/7)s₂ + (−1 + 6/7)sg₁ = 4 + 4/7</span> &nbsp;⇒&nbsp; Pertidaksamaan pecahan: <span class="mono font-bold">(1/7)s₂ + (6/7)sg₁ ≥ 4/7</span>.</li>
+            <li><b>Cara 1 — Kalikan −1 (Ubah ≥ menjadi ≤ + Slack sg₂):</b><br>
+            <span class="mono font-bold">−(1/7)s₂ − (6/7)sg₁ ≤ −4/7 &nbsp;⇒&nbsp; sg₂ − (1/7)s₂ − (6/7)sg₁ = −4/7</span>.</li>
+            <li><b>Cara 2 — Substitusi Kembali ke Variabel Asli x₁, x₂ (Kendala ≤ Murni):</b><br>
+            Karena <span class="mono">s₂ = 35 − 7x₁ − x₂</span> dan dari Cut 1 diketahui <span class="mono">sg₁ = 3 − x₂</span>, maka:<br>
+            <span class="mono">(1/7)(35 − 7x₁ − x₂) + (6/7)(3 − x₂) ≥ 4/7 &nbsp;⇔&nbsp; 35 − 7x₁ − x₂ + 18 − 6x₂ ≥ 4 &nbsp;⇔&nbsp; −7x₁ − 7x₂ ≥ −49 &nbsp;⇔&nbsp; <b style="color:var(--ok)">x₁ + x₂ ≤ 7</b> (atau <b>x₁ + x₂ + sg₂ = 7</b>)!</span></li>
+          </ul>
+        </div>
+        <p class="text-xs sm:text-sm">Setelah dilakukan OBE pada kolom <b>s₂</b> (Rasio minimum: <span class="mono">1 ÷ (1/7) = 7</span> vs <span class="mono">8 ÷ (6/7) = 28/3</span>, elemen pivot = <b>−1/7</b>), diperoleh tabel optimal bulat:</p>
+        <div class="scroll"><table class="simplex">
+          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>s<sub>g1</sub></th><th>s<sub>g2</sub></th><th>Solusi (b<sub>i</sub>)</th><th>Status Kebulatan</th></tr>
+          <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>0</td><td>2</td><td>7</td><td><b>55</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">★ Z Maksimum = 55</span></td></tr>
+          <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td><b>3</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+          <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>0</td><td>−1</td><td>1</td><td><b>4</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+          <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>0</td><td>−4</td><td>1</td><td><b>1</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+          <tr><td class="b">s₂</td><td>0</td><td>0</td><td>0</td><td>1</td><td>6</td><td>−7</td><td><b>4</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+        </table></div>
+        <div class="note ok"><b>★ STOP — Solusi Optimal Integer: x₁ = 4, x₂ = 3, dan Z<sub>maks</sub> = 7(4) + 9(3) = 55.</b></div>`
       }
     ]
   },
   2: {
     problemHTML: `<b>Kasus 2 (Soal_Jawab_Permasalahan_IP_Metode_Gomory.pdf):</b> Maksimumkan <b>Z = 3x₁ + 4x₂</b> dengan kendala <b>3x₁ − x₂ ≤ 12</b> dan <b>3x₁ + 11x₂ ≤ 66</b>, x₁, x₂ ≥ 0 bulat.`,
+    treeNodes: [
+      { id: 0, parentId: null, depth: 0, edgeLabel: "", state: "branched", line1: "x₁=5.5, x₂=4.5", line2: "Relaksasi LP (Tabel 2)", line3: "Z = 34.5", stepIdx: 0 },
+      { id: 1, parentId: 0, depth: 1, edgeLabel: "Cut 1: S₁ (x₁ ≤ 5)", state: "branched", line1: "x₁=5, x₂=51/11", line2: "Tabel 4 (x₂ Pecahan)", line3: "Z = 369/11 ≈ 33.55", stepIdx: 1 },
+      { id: 2, parentId: 1, depth: 2, edgeLabel: "Cut 2: S₂ (x₁+3x₂ ≤ 19)", state: "branched", line1: "x₁=33/8, x₂=39/8", line2: "Tabel 6 (Masih Pecahan)", line3: "Z = 255/8 = 31.875", stepIdx: 2 },
+      { id: 3, parentId: 2, depth: 3, edgeLabel: "Cut 3: S₃ (x₁+2x₂ ≤ 14)", state: "integer", line1: "x₁ = 5, x₂ = 4", line2: "★ Optimal Bulat (Tabel 8)", line3: "Z = 31", stepIdx: 3 }
+    ],
+    bestTreeNodeId: 3,
     steps: [
       {
-        title: "1. Relaksasi LP (Tabel 2)",
-        html: `<p>Solusi kontinu optimal: <b>x₁ = 5.5, x₂ = 4.5, Z = 34.5</b>.</p>
+        title: "1. Relaksasi LP (Tabel 2) & Audit Pecahan",
+        html: `<p>Solusi kontinu optimal: <b>x₁ = 5.5 (11/2), x₂ = 4.5 (9/2), Z = 34.5</b>.</p>
         <div class="scroll"><table class="simplex">
-          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>Sisi Kanan</th></tr>
-          <tr><td class="b">Z</td><td>0</td><td>0</td><td>7/12</td><td>5/12</td><td><b>34.5</b></td></tr>
-          <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>11/36</td><td>1/36</td><td><b>5.5</b></td></tr>
-          <tr><td class="b">x₂</td><td>0</td><td>1</td><td>−1/12</td><td>1/12</td><td><b>4.5</b></td></tr>
+          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>Sisi Kanan (b<sub>i</sub>)</th><th>Status &amp; Dekomposisi (⌊b<sub>i</sub>⌋ + f<sub>i</sub>)</th></tr>
+          <tr><td class="b">Z</td><td>0</td><td>0</td><td>7/12</td><td>5/12</td><td><b>34.5 (69/2)</b></td><td><span class="badge-frac" style="background:var(--ac-soft);color:var(--ac)">Baris Tujuan (Z ≥ 0)</span></td></tr>
+          <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>11/36</td><td>1/36</td><td><b>5.5 (11/2)</b></td><td><span class="badge-frac" style="background:var(--ip);color:#fff">5 + 1/2 (f = 1/2) ★ Dipilih Cut 1</span></td></tr>
+          <tr><td class="b">x₂</td><td>0</td><td>1</td><td>−1/12</td><td>1/12</td><td><b>4.5 (9/2)</b></td><td><span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">4 + 1/2 (f = 1/2) · Pecahan</span></td></tr>
         </table></div>`
       },
       {
-        title: "2. Potongan Pertama (S₁) → Tabel 4",
-        html: `<p>Dari baris x₁: <b>(−11/36)s₁ + (−1/36)s₂ + S₁ = −1/2</b>. Pivot Dual Simpleks pada <b>s₁ (−11/36)</b> menghasilkan <b>x₁ = 5, x₂ = 51/11 (4 + 7/11), Z = 369/11 ≈ 33.55</b>.</p>`
+        title: "2. Transformasi Potongan 1 (S₁) → Tabel 4",
+        html: `<div class="p-3.5 rounded-xl border mb-3" style="background:var(--ip-soft);border-color:var(--ip)">
+          <div class="font-bold text-sm mb-1" style="color:var(--ip)">🔄 Transformasi Pertidaksamaan Potongan 1 (S₁) Agar Tidak Menjadi Simpleks 2 Fase:</div>
+          <ul class="text-xs space-y-1.5 list-disc pl-4 m-0">
+            <li><b>Pertidaksamaan Mentah (≥):</b> Dari baris <b>x₁</b> diperoleh <span class="mono font-bold">(11/36)s₁ + (1/36)s₂ ≥ 1/2</span>.</li>
+            <li><b>Cara 1 — Kalikan −1 (Ubah ≥ menjadi ≤ + Slack S₁):</b><br>
+            Kalikan kedua ruas dengan −1 menjadi <span class="mono">−(11/36)s₁ − (1/36)s₂ ≤ −1/2</span>, lalu tambahkan slack <span class="mono">+S₁ ≥ 0</span>:
+            <span class="mono font-bold" style="color:var(--ip)">(−11/36)s₁ + (−1/36)s₂ + S₁ = −1/2</span> (Tanpa variabel buatan!).</li>
+            <li><b>Cara 2 — Substitusi Kembali s₁, s₂ ke Variabel Asli x₁, x₂:</b><br>
+            Substitusikan <span class="mono">s₁ = 12 − 3x₁ + x₂</span> dan <span class="mono">s₂ = 66 − 3x₁ − 11x₂</span> ke <span class="mono">(11/36)s₁ + (1/36)s₂ ≥ 18/36</span>:<br>
+            <span class="mono">11(12 − 3x₁ + x₂) + 1(66 − 3x₁ − 11x₂) ≥ 18 &nbsp;⇔&nbsp; 198 − 36x₁ ≥ 18 &nbsp;⇔&nbsp; −36x₁ ≥ −180 &nbsp;⇔&nbsp; <b style="color:var(--ok)">x₁ ≤ 5</b> (atau <b>x₁ + S₁ = 5</b>)!</span></li>
+          </ul>
+        </div>
+        <p class="text-xs sm:text-sm">Pivot pada kolom <b>s₁</b> (elemen pivot <b>−11/36</b>) menghasilkan <b>Tabel 4</b> dengan <b>x₁ = 5 (bulat), x₂ = 51/11 (4 + 7/11), Z = 369/11 ≈ 33.55</b>:</p>
+        <div class="scroll"><table class="simplex">
+          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>Sisi Kanan (b<sub>i</sub>)</th><th>Status &amp; Dekomposisi</th></tr>
+          <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>4/11</td><td>21/11</td><td><b>369/11</b></td><td><span class="badge-frac" style="background:var(--ac-soft);color:var(--ac)">Baris Tujuan (Z ≈ 33.55)</span></td></tr>
+          <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td><b>5</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">5 + 0 (Bulat ✓)</span></td></tr>
+          <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>1/11</td><td>−3/11</td><td><b>51/11</b></td><td><span class="badge-frac" style="background:var(--ip);color:#fff">4 + 7/11 (f = 7/11) ★ Sumber Cut 2</span></td></tr>
+          <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>1/11</td><td>−36/11</td><td><b>18/11</b></td><td><span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">1 + 7/11 (f = 7/11)</span></td></tr>
+        </table></div>`
       },
       {
-        title: "3. Potongan Kedua (S₂) → Tabel 6",
-        html: `<p>Dari baris x₂: <b>(−1/11)s₂ + (−8/11)S₁ + S₂ = −7/11</b>. Pivot Dual Simpleks pada <b>S₁ (−8/11)</b> menghasilkan <b>x₁ = 33/8 (4.125), x₂ = 39/8 (4.875), Z = 255/8 = 31.875</b>.</p>`
+        title: "3. Transformasi Potongan 2 (S₂) → Tabel 6",
+        html: `<div class="p-3.5 rounded-xl border mb-3" style="background:var(--ip-soft);border-color:var(--ip)">
+          <div class="font-bold text-sm mb-1" style="color:var(--ip)">🔄 Transformasi Pertidaksamaan Potongan 2 (S₂) Agar Tidak Menjadi Simpleks 2 Fase:</div>
+          <ul class="text-xs space-y-1.5 list-disc pl-4 m-0">
+            <li><b>Pertidaksamaan Mentah (≥):</b> Dari baris <b>x₂</b> (<span class="mono">−3/11 = −1 + 8/11</span>): <span class="mono font-bold">(1/11)s₂ + (8/11)S₁ ≥ 7/11</span>.</li>
+            <li><b>Cara 1 — Kalikan −1 (Ubah ≥ menjadi ≤ + Slack S₂):</b><br>
+            <span class="mono font-bold" style="color:var(--ip)">(−1/11)s₂ + (−8/11)S₁ + S₂ = −7/11</span>.</li>
+            <li><b>Cara 2 — Substitusi Kembali ke Variabel Asli x₁, x₂:</b><br>
+            Substitusikan <span class="mono">s₂ = 66 − 3x₁ − 11x₂</span> dan <span class="mono">S₁ = 5 − x₁</span> ke <span class="mono">(1/11)s₂ + (8/11)S₁ ≥ 7/11</span>:<br>
+            <span class="mono">(66 − 3x₁ − 11x₂) + 8(5 − x₁) ≥ 7 &nbsp;⇔&nbsp; 106 − 11x₁ − 11x₂ ≥ 7 &nbsp;⇔&nbsp; −11x₁ − 11x₂ ≥ −99 &nbsp;⇔&nbsp; <b style="color:var(--ok)">x₁ + x₂ ≤ 9</b> (atau <b>x₁ + x₂ + S₂ = 9</b>)!</span></li>
+          </ul>
+        </div>
+        <p class="text-xs sm:text-sm">Pivot pada kolom <b>S₁</b> (elemen pivot <b>−8/11</b>) menghasilkan <b>Tabel 6</b> dengan <b>x₁ = 33/8 (4 + 1/8), x₂ = 39/8 (4 + 7/8), Z = 255/8 = 31.875</b>:</p>
+        <div class="scroll"><table class="simplex">
+          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>S₂</th><th>Sisi Kanan (b<sub>i</sub>)</th><th>Status &amp; Dekomposisi</th></tr>
+          <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>1/8</td><td>0</td><td>21/8</td><td><b>255/8</b></td><td><span class="badge-frac" style="background:var(--ac-soft);color:var(--ac)">Baris Tujuan (Z = 31.875)</span></td></tr>
+          <tr><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>−1/8</td><td>0</td><td>11/8</td><td><b>33/8</b></td><td><span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">4 + 1/8 (f = 1/8)</span></td></tr>
+          <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>1/8</td><td>0</td><td>−3/8</td><td><b>39/8</b></td><td><span class="badge-frac" style="background:var(--ip);color:#fff">4 + 7/8 (f = 7/8) ★ Sumber Cut 3</span></td></tr>
+          <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>1/2</td><td>0</td><td>−9/2</td><td><b>9/2</b></td><td><span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">4 + 1/2 (f = 1/2)</span></td></tr>
+          <tr><td class="b">S₁</td><td>0</td><td>0</td><td>0</td><td>1/8</td><td>1</td><td>−11/8</td><td><b>7/8</b></td><td><span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">0 + 7/8 (f = 7/8)</span></td></tr>
+        </table></div>`
       },
       {
-        title: "4. Potongan Ketiga (S₃) → Optimal (Tabel 8)",
-        html: `<p>Dari baris x₂ (f = 7/8): <b>(−1/8)s₂ + (−5/8)S₂ + S₃ = −7/8</b>. Pivot Dual Simpleks pada <b>s₂ (−1/8)</b> menghasilkan solusi bulat akhir:</p>
+        title: "4. Transformasi Potongan 3 (S₃) → Optimal (Tabel 8)",
+        html: `<div class="p-3.5 rounded-xl border mb-3" style="background:var(--ip-soft);border-color:var(--ip)">
+          <div class="font-bold text-sm mb-1" style="color:var(--ip)">🔄 Transformasi Pertidaksamaan Potongan 3 (S₃) Agar Cukup Simpleks 1 Fase:</div>
+          <ul class="text-xs space-y-1.5 list-disc pl-4 m-0">
+            <li><b>Pertidaksamaan Mentah (≥):</b> Dari baris <b>x₂</b> (<span class="mono">−3/8 = −1 + 5/8</span>): <span class="mono font-bold">(1/8)s₂ + (5/8)S₂ ≥ 7/8</span>.</li>
+            <li><b>Cara 1 — Kalikan −1 (Ubah ≥ menjadi ≤ + Slack S₃):</b><br>
+            <span class="mono font-bold" style="color:var(--ip)">(−1/8)s₂ + (−5/8)S₂ + S₃ = −7/8</span>.</li>
+            <li><b>Cara 2 — Substitusi Kembali ke Variabel Asli x₁, x₂:</b><br>
+            Karena <span class="mono">s₂ = 66 − 3x₁ − 11x₂</span> dan <span class="mono">S₂ = 9 − x₁ − x₂</span>, maka:<br>
+            <span class="mono">(66 − 3x₁ − 11x₂) + 5(9 − x₁ − x₂) ≥ 7 &nbsp;⇔&nbsp; 111 − 8x₁ − 16x₂ ≥ 7 &nbsp;⇔&nbsp; −8x₁ − 16x₂ ≥ −104 &nbsp;⇔&nbsp; <b style="color:var(--ok)">x₁ + 2x₂ ≤ 13</b> (atau <b>x₁ + 2x₂ + S₃ = 13</b>)!</span></li>
+          </ul>
+        </div>
+        <p class="text-xs sm:text-sm">Pivot pada kolom <b>s₂</b> (elemen pivot <b>−1/8</b>) menghasilkan <b>Tabel 8 (Optimal Bulat)</b>:</p>
+        <div class="scroll"><table class="simplex">
+          <tr><th>Basis</th><th>x₁</th><th>x₂</th><th>s₁</th><th>s₂</th><th>S₁</th><th>S₂</th><th>S₃</th><th>Sisi Kanan (b<sub>i</sub>)</th><th>Status Kebulatan</th></tr>
+          <tr><td class="b">Z</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>2</td><td>1</td><td><b>31</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">★ Z Maksimum = 31</span></td></tr>
+          <tr class="r"><td class="b">x₁</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>2</td><td>−1</td><td><b>5</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+          <tr class="r"><td class="b">x₂</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>−1</td><td>1</td><td><b>4</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+          <tr><td class="b">s₁</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>−7</td><td>4</td><td><b>1</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+          <tr><td class="b">S₁</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>−2</td><td>1</td><td><b>0</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+          <tr><td class="b">s₂</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>5</td><td>−8</td><td><b>7</b></td><td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">Bulat (Integer) ✓</span></td></tr>
+        </table></div>
         <div class="note ok"><b>★ Solusi Optimal Integer (Tabel 8): x₁ = 5, x₂ = 4, dan Z = 3(5) + 4(4) = 31.</b></div>`
       }
     ]
   },
   3: {
     problemHTML: `<b>Kasus 3 (Latihan 3 Variabel PDF):</b> Maksimumkan <b>Z = 3x₁ + 2x₂ + x₃</b> dengan kendala <b>x₁ + x₂ + x₃ ≤ 4</b> dan <b>2x₁ + x₂ ≤ 5</b>, x₁, x₂, x₃ ≥ 0 bulat.`,
+    treeNodes: [
+      { id: 0, parentId: null, depth: 0, edgeLabel: "", state: "branched", line1: "x₁=1.5, x₂=2, x₃=0.5", line2: "Basis Pecahan Alternatif", line3: "Z = 9 (Pecahan)", stepIdx: 0 },
+      { id: 1, parentId: 0, depth: 1, edgeLabel: "Cut 1: sg₁ (x₁+x₂ ≤ 3)", state: "integer", line1: "x₁=2, x₂=1, x₃=1", line2: "★ Solusi Optimal Bulat", line3: "Z = 9", stepIdx: 0 }
+    ],
+    bestTreeNodeId: 1,
     steps: [
       {
-        title: "1. Relaksasi LP & Potongan Gomory",
-        html: `<p>Relaksasi LP menghasilkan <b>x₁ = 1, x₂ = 3, x₃ = 0, Z = 9</b> (atau pada basis alternatif dengan pecahan 1/2 yang setelah 1 potongan Gomory menghasilkan solusi bulat).</p>
-          <div class=" note ok"><b>★ Kunci Jawaban Optimal Integer: x₁ = 2, x₂ = 1, x₃ = 1 (atau x₁ = 1, x₂ = 3, x₃ = 0) dengan Nilai Maksimum Z = 9.</b></div>`
+        title: "1. Relaksasi LP, Transformasi Cut & Optimal Bulat",
+        html: `<p>Apabila pada tabel optimal relaksasi LP terpilih basis pecahan <b>x₁ = 3/2 (1.5), x₂ = 2, x₃ = 1/2 (0.5)</b> dengan <b>Z = 9</b>, maka potongan Gomory dari baris <b>x₁</b> (<span class="mono">(1/2)s₂ + (1/2)x₂ ≥ 1/2</span>) ditransformasikan dengan dikalikan −1 menjadi <span class="mono font-bold">−(1/2)s₂ − (1/2)x₂ + sg₁ = −1/2</span> sehingga tidak memerlukan Simpleks 2 Fase.</p>
+          <div class="note ok"><b>★ Kunci Jawaban Optimal Integer: x₁ = 2, x₂ = 1, x₃ = 1 (atau x₁ = 1, x₂ = 3, x₃ = 0) dengan Nilai Maksimum Z = 3(2) + 2(1) + 1(1) = 9.</b></div>`
       }
     ]
   }
@@ -1837,9 +2001,21 @@ function selectWalkthroughCase(c) {
   });
   renderWalkthrough();
 }
+function selectWTTreeNode(nodeId) {
+  const data = WALKTHROUGH_CASES[curWTCase];
+  const nd = (data.treeNodes || []).find(n => n.id === nodeId);
+  if (nd && nd.stepIdx !== undefined) {
+    curWTStep = nd.stepIdx;
+    renderWalkthrough();
+  }
+}
 function renderWalkthrough() {
   const data = WALKTHROUGH_CASES[curWTCase];
   $('wt-problem-box').innerHTML = data.problemHTML;
+  if (data.treeNodes && $('wt-tree-box')) {
+    const activeNode = data.treeNodes.find(n => n.stepIdx === curWTStep) || data.treeNodes[0];
+    renderInteractiveSVGTree('wt-tree-box', data.treeNodes, data.bestTreeNodeId, activeNode.id, 'selectWTTreeNode');
+  }
   $('wt-step-indicator').textContent = `Langkah ${curWTStep + 1} / ${data.steps.length}`;
   $('wt-pills').innerHTML = '';
   data.steps.forEach((stObj, idx) => {
@@ -1906,6 +2082,20 @@ $('ip-form').addEventListener('input', e => {
 });
 
 let ipSteps = [], ipCur = 0, ipViewMode = 'step';
+let gomoryFlowNodes = [], gomoryBestFlowId = 0;
+
+function selectGomoryFlowNode(nodeId) {
+  const nd = gomoryFlowNodes.find(n => n.id === nodeId);
+  if (!nd) return;
+  ipCur = nd.stepIdx;
+  if (ipViewMode === 'all') {
+    showIPStep();
+    const el = document.getElementById('gomory-step-block-' + ipCur);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    showIPStep();
+  }
+}
 
 function setIPViewMode(mode) {
   ipViewMode = mode;
@@ -2058,12 +2248,30 @@ function runGomorySolver() {
   const n = ipSt.n, m = ipSt.m;
   const cutRule = $('ip-cut-rule') ? $('ip-cut-rule').value : 'maxf';
   ipSteps = [];
+  gomoryFlowNodes = [];
+  gomoryBestFlowId = 0;
+  let flowNodeCounter = 0;
+
   const nm = [];
   for (let j = 0; j < n; j++) nm.push("x" + sb(j + 1));
   for (let i = 0; i < m; i++) nm.push("s" + sb(i + 1));
   let N = nm.length;
   const bs = [];
   for (let i = 0; i < m; i++) bs.push(n + i);
+
+  // Track ekspresi setiap variabel terhadap variabel keputusan asli x_1..x_n:
+  // varExpr[colIdx] = { constTerm: b, xCoefs: [a1, a2, ...] } dimana var = constTerm - sum(xCoefs[j]*x_j)
+  // Untuk x_j asli (j < n): x_j = 0 - (-1)*x_j
+  // Untuk slack awal s_i (n + i): s_i = b_i - sum(a_ij * x_j)
+  const varExpr = [];
+  for (let j = 0; j < n; j++) {
+    const xc = Array(n).fill(0);
+    xc[j] = -1;
+    varExpr.push({ constTerm: 0, xCoefs: xc });
+  }
+  for (let i = 0; i < m; i++) {
+    varExpr.push({ constTerm: ipSt.rows[i].b, xCoefs: ipSt.rows[i].a.slice() });
+  }
 
   // Baris 0 adalah Z, baris 1..m adalah kendala
   let R = [Array(N + 1).fill(0)];
@@ -2078,17 +2286,53 @@ function runGomorySolver() {
 
   const trajectory = [];
 
-  const renderGTable = (pc, pr, cutRowIdx, ratioMap, ratioTitle) => {
+  // Format Tabel Simpleks Seragam (lengkap dengan c_j, Basis, Variabel, Solusi, Status/Dekomposisi Baris, dan Rasio)
+  const renderGTable = (pc, pr, cutRowIdx, ratioMap, ratioTitle, showDecompCol = true) => {
     const showRatio = !!ratioMap;
-    let h = `<div class="scroll"><table class="simplex"><tr><th>Basis</th>${nm.map(x => `<th>${x}</th>`).join('')}<th>Solusi (RHS)</th>${showRatio ? `<th>${ratioTitle || 'Rasio'}</th>` : ''}</tr>`;
+    const cjHeader = nm.map((_, j) => j < n ? fr(ipSt.c[j]) : '0');
+    let h = `<div class="scroll"><table class="simplex">
+      <tr>
+        <th>c<sub>j</sub></th>
+        ${cjHeader.map(cVal => `<th>${cVal}</th>`).join('')}
+        <th>${ipSt.min ? 'Min Z' : 'Maks Z'}</th>
+        ${showDecompCol ? '<th></th>' : ''}
+        ${showRatio ? '<th></th>' : ''}
+      </tr>
+      <tr>
+        <th>Basis</th>
+        ${nm.map(x => `<th>${x}</th>`).join('')}
+        <th>Solusi (RHS / b<sub>i</sub>)</th>
+        ${showDecompCol ? '<th>Status &amp; Dekomposisi (⌊b<sub>i</sub>⌋ + f<sub>i</sub>)</th>' : ''}
+        ${showRatio ? `<th>${ratioTitle || 'Rasio Pivot'}</th>` : ''}
+      </tr>`;
+
     R.forEach((r, ri) => {
       const bName = ri === 0 ? 'Z' : nm[bs[ri - 1]];
       const trCls = ri === cutRowIdx ? 'cut-row' : '';
+      let statusCell = '';
+      if (showDecompCol) {
+        if (ri === 0) {
+          const zOptOk = r.slice(0, N).every(v => v >= -E);
+          const zDisp = ipSt.min ? -r[N] : r[N];
+          statusCell = `<td><span class="badge-frac" style="background:${zOptOk ? 'var(--ac-soft)' : 'var(--row)'};color:${zOptOk ? 'var(--ac)' : 'var(--pv)'}">Z = ${fr(zDisp)} (${zOptOk ? 'Baris Z ≥ 0 ✓' : 'Belum Optimal'})</span></td>`;
+        } else if (ri === cutRowIdx && r[N] < -E) {
+          statusCell = `<td><span class="badge-frac" style="background:var(--er-soft);color:var(--er)">RHS Negatif (${fr(r[N])}) → Baris Keluar</span></td>`;
+        } else {
+          const val = r[N];
+          const { intPart, fracPart } = gomoryDecomp(val);
+          const isFrac = fracPart > 1e-5 && fracPart < 1 - 1e-5;
+          statusCell = isFrac
+            ? `<td><span class="badge-frac" style="background:var(--ip-soft);color:var(--ip)">${intPart} + ${fr(fracPart)} (f = ${fr(fracPart)}) · Pecahan</span></td>`
+            : `<td><span class="badge-frac" style="background:var(--ok-soft);color:var(--ok)">${intPart} + 0 (Bulat ✓)</span></td>`;
+        }
+      }
+
       h += `<tr class="${trCls}"><td class="b">${bName}</td>` +
         r.map((val, ci) => {
           const cl = (ri === pr && ci === pc) ? 'p' : (ri === pr ? 'r' : (ci === pc ? 'c' : ''));
           return `<td class="${cl}">${ci === N ? `<b>${fr(val)}</b>` : fr(val)}</td>`;
         }).join('') +
+        statusCell +
         (showRatio ? `<td>${ri > 0 && ratioMap[ri] !== undefined ? `<b>${fr(ratioMap[ri])}</b>` : (ri === 0 ? '' : '<span style="color:var(--mu)">—</span>')}</td>` : '') +
         `</tr>`;
     });
@@ -2339,6 +2583,19 @@ function runGomorySolver() {
     `
   });
 
+  // Tambahkan Node 0 (Relaksasi LP) ke Pohon Alur Pemotongan Gomory
+  gomoryFlowNodes.push({
+    id: flowNodeCounter++,
+    parentId: null,
+    depth: 0,
+    edgeLabel: "",
+    state: maxFracRowInit > 0 ? "branched" : "integer",
+    line1: lpOptX.map(o => `${o.name}=${fr(o.val)}`).join(', '),
+    line2: "Relaksasi LP Optimal",
+    line3: `Z = ${fr(lpOptZ)}`,
+    stepIdx: ipSteps.length - 1
+  });
+
   /* ----------------------------------------------------------------------- */
   /* TAHAP 2 & 3: LOOP PEMOTONGAN GOMORY (6 SUB-LANGKAH) & DUAL SIMPLEKS     */
   /* ----------------------------------------------------------------------- */
@@ -2528,10 +2785,31 @@ function runGomorySolver() {
     R.forEach(row => row.splice(N - 1, 0, 0));
 
     const newRow = Array(N + 1).fill(0);
+    // Hitung juga ekspresi potongan dalam variabel keputusan asli x_1..x_n (Cara 2: Substitusi Kembali ke x_i)
+    // Pertidaksamaan pecahan: sum_j f_ij * var_j >= rhsF
+    // Karena var_j = constTerm_j - sum_k xCoefs_jk * x_k, maka:
+    // sum_j f_ij * (constTerm_j - sum_k xCoefs_jk * x_k) >= rhsF
+    // <=> sum_k (sum_j f_ij * xCoefs_jk) * x_k <= (sum_j f_ij * constTerm_j) - rhsF
+    let cutOrigRHS = -rhsF;
+    const cutOrigXCoefs = Array(n).fill(0);
+    const subExplainParts = [];
+
     for (let j = 0; j < N - 1; j++) {
       const { fracPart } = gomoryDecomp(R[chosenRow][j]);
       newRow[j] = -fracPart;
+      if (fracPart > E && varExpr[j]) {
+        cutOrigRHS += fracPart * varExpr[j].constTerm;
+        for (let k = 0; k < n; k++) {
+          cutOrigXCoefs[k] += fracPart * varExpr[j].xCoefs[k];
+        }
+        const exprStr = `${fr(varExpr[j].constTerm)} − (${eq(varExpr[j].xCoefs, nm.slice(0, n), '').replace(/ = $/, '')})`;
+        subExplainParts.push(`${ nm[j] } = ${ exprStr }`);
+      }
     }
+    // Simpan varExpr untuk variabel slack Gomory baru sg_k: sg_k = cutOrigRHS - sum(cutOrigXCoefs[k]*x_k)
+    varExpr.push({ constTerm: cutOrigRHS, xCoefs: cutOrigXCoefs.slice() });
+    const cutOrigIneqLHS = eq(cutOrigXCoefs, nm.slice(0, n), '').replace(/ = $/, '') || '0';
+
     newRow[N - 1] = 1;
     newRow[N] = -rhsF;
     R.push(newRow);
@@ -2545,7 +2823,7 @@ function runGomorySolver() {
       : `Hanya baris <b>${srcVar}</b> yang masih bernilai pecahan (RHS = ${fr(rhsVal)}, f = <b>${fr(rhsF)}</b>), sehingga baris ini dipilih sebagai pembentuk potongan Gomory.`;
 
     ipSteps.push({
-      t: `Konstruksi Potongan ${cutName} (Cut #${cutNo})`,
+      t: `Konstruksi & Transformasi ${cutName} (Cut #${cutNo})`,
       h: `
         <div class="note ip-note">
           <b>Alasan Pemilihan Baris Sumber Potongan Gomory ke-${cutNo} (${cutName}):</b><br>
@@ -2606,31 +2884,42 @@ function runGomorySolver() {
             </div>
           </div>
 
-          <!-- Sub-langkah 4d & 4e -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="p-3.5 rounded-xl border" style="background:var(--bg);border-color:var(--bd)">
-              <div class="font-bold text-xs uppercase tracking-wider mb-1" style="color:var(--ip)">
-                Sub-Langkah 4d · Pertidaksamaan Potongan Gomory
-              </div>
-              <p class="text-xs mb-1.5" style="color:var(--mu)">
-                Agar semua variabel bernilai bulat, ruas kiri harus bulat. Karena setiap variabel non-basis ≥ 0 dan f<sub>ij</sub> ≥ 0, maka jumlah komponen pecahan harus memenuhi <b>Σ f<sub>ij</sub>s<sub>j</sub> ≥ f<sub>i</sub></b>:
-              </p>
-              <div class="mono font-bold text-xs sm:text-sm p-2 rounded border" style="background:var(--card);border-color:var(--bd)">
-                ${ineqFracTerms.join(' + ')} ≥ ${fr(rhsF)}<br>
-                <span style="color:var(--mu)">(Kalikan −1 agar bertanda ≤):</span><br>
-                <span style="color:var(--ip)">${negFracTerms.join(' ')} ≤ −${fr(rhsF)}</span>
-              </div>
+          <!-- Sub-langkah 4d & 4e: Penjelasan Transformasi Pertidaksamaan Agar Tidak Menjadi Simpleks 2 Fase -->
+          <div class="p-4 rounded-xl border" style="background:var(--ip-soft);border-color:var(--ip)">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style="background:var(--ip);color:#fff">
+                🔄 Sub-Langkah 4d &amp; 4e · Transformasi Pertidaksamaan Potongan Gomory (≥ → ≤) Agar Tidak Menjadi Simpleks 2 Fase
+              </span>
+              <span class="text-xs font-semibold" style="color:var(--ip)">Cukup Simpleks Sederhana (Tanpa Variabel Buatan +A)</span>
             </div>
 
-            <div class="p-3.5 rounded-xl border" style="background:var(--bg);border-color:var(--bd)">
-              <div class="font-bold text-xs uppercase tracking-wider mb-1" style="color:var(--ok)">
-                Sub-Langkah 4e · Tambah Variabel Slack Gomory (${cutName} ≥ 0)
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div class="p-3 rounded-lg border" style="background:var(--er-soft);border-color:var(--er)">
+                <div class="font-bold mb-1" style="color:var(--er)">1. Pertidaksamaan Mentah (≥) &amp; Implikasi 2 Fase</div>
+                <p class="m-0">
+                  Syarat pecahan menghasilkan pertidaksamaan bertanda <b>≥</b>:<br>
+                  <span class="mono font-bold">${ineqFracTerms.join(' + ')} ≥ ${fr(rhsF)}</span><br>
+                  Jika langsung diubah ke bentuk standar biasa (<span class="mono">− ${cutName} + A<sub>${cutNo}</sub> = ${fr(rhsF)}</span>), munculnya <b>variabel buatan +A<sub>${cutNo}</sub></b> akan memaksa kita menggunakan <b>Simpleks 2 Fase / Big-M</b>!
+                </p>
               </div>
-              <p class="text-xs mb-1.5" style="color:var(--mu)">
-                Ubah pertidaksamaan ≤ menjadi persamaan dengan menambahkan variabel slack Gomory <b>+${cutName} ≥ 0</b> yang menjadi basis pada baris baru:
-              </p>
-              <div class="mono font-bold text-xs sm:text-sm p-2 rounded border" style="background:var(--ok-soft);border-color:var(--ok);color:var(--tx)">
-                ${negFracTerms.join(' ')} + <b>${cutName}</b> = <b>−${fr(rhsF)}</b>
+
+              <div class="p-3 rounded-lg border" style="background:var(--ok-soft);border-color:var(--ok)">
+                <div class="font-bold mb-1" style="color:var(--ok)">2. Cara 1: Kalikan −1 (Transformasi ≥ menjadi ≤)</div>
+                <p class="m-0">
+                  Agar tidak perlu variabel buatan, <b>kalikan kedua ruas dengan −1</b> sehingga tanda <b>≥</b> berbalik menjadi <b>≤</b>:<br>
+                  <span class="mono font-bold" style="color:var(--ip)">${negFracTerms.join(' ')} ≤ −${fr(rhsF)}</span><br>
+                  Karena sudah bertanda <b>≤</b>, cukup tambahkan <b>1 variabel slack (+${cutName} ≥ 0)</b>:<br>
+                  <span class="mono font-bold">${negFracTerms.join(' ')} + ${cutName} = −${fr(rhsF)}</span>
+                </p>
+              </div>
+
+              <div class="p-3 rounded-lg border" style="background:var(--card);border-color:var(--ac)">
+                <div class="font-bold mb-1" style="color:var(--ac)">3. Cara 2: Substitusi ke Variabel Asli x (Bentuk ≤ Murni)</div>
+                <p class="m-0">
+                  Jika variabel non-basis disubstitusikan kembali ke variabel asli (${subExplainParts.join('; ')}), pertidaksamaan di atas ekuivalen dengan kendala <b>≤</b> murni:<br>
+                  <span class="mono font-bold" style="color:var(--ok)">${cutOrigIneqLHS} ≤ ${fr(cutOrigRHS)}</span><br>
+                  atau <span class="mono font-bold">${cutOrigIneqLHS} + ${cutName} = ${fr(cutOrigRHS)}</span> (Simpleks 1 Fase biasa!).
+                </p>
               </div>
             </div>
           </div>
@@ -2641,7 +2930,7 @@ function runGomorySolver() {
               Sub-Langkah 4f · Penyisipan Baris &amp; Kolom Baru (${cutName}) ke Tabel Simpleks
             </div>
             <p class="text-xs mb-2" style="color:var(--mu)">
-              Persamaan kendala Gomory di atas disisipkan sebagai baris paling bawah pada tabel simpleks (ditandai warna ungu). Perhatikan bahwa nilai Solusi (RHS) pada baris <b>${cutName}</b> bernilai negatif (<b>−${fr(rhsF)}</b>), sehingga akan diselesaikan dengan <b>Metode Dual Simpleks</b> pada langkah berikutnya:
+              Persamaan hasil transformasi (<span class="mono font-semibold">${negFracTerms.join(' ')} + ${cutName} = −${fr(rhsF)}</span>) disisipkan ke baris paling bawah tabel simpleks tanpa satu pun variabel buatan, lalu diselesaikan cukup dengan 1 kali pivot sederhana pada langkah berikutnya:
             </p>
             ${tblAfterCutInsert}
           </div>
@@ -2677,8 +2966,12 @@ function runGomorySolver() {
     const p = R[pr][pc];
     const evName = nm[pc];
     const R_beforeDual = R.map(row => row.slice());
+    const dualRatioMapForTable = {};
+    dualRatioRows.forEach(dr => {
+      if (dr.valid) dualRatioMapForTable[pr] = bestDual;
+    });
     const tblDualHighlight = renderGTable(pc, pr, pr);
-    const obeDualHTML = buildDetailedOBEBlock(R_beforeDual, pr, pc, nm, bs, `Dual Simpleks Potongan ${cutName}`);
+    const obeDualHTML = buildDetailedOBEBlock(R_beforeDual, pr, pc, nm, bs, `Simpleks Potongan ${cutName}`);
 
     // Eksekusi OBE Dual Simpleks pada R
     const newPivot = R[pr].map(x => x / p);
@@ -2702,7 +2995,7 @@ function runGomorySolver() {
       return fracPart <= 1e-5 || fracPart >= 1 - 1e-5;
     });
     trajectory.push({
-      stage: `Setelah Potongan #${cutNo} (${cutName})`,
+      stage: `Setelah Potongan #${cutNo} (${cutName}: ${cutOrigIneqLHS} ≤ ${fr(cutOrigRHS)})`,
       xStr: curXAfterCut.map(o => `${o.name} = ${fr(o.val)} (${o.val.toFixed(2)})`).join(', '),
       zVal: curZAfterCut,
       note: allIntNow ? "★ Semua Variabel Bulat (Optimal Integer!)" : "Masih Ada Pecahan (Lanjut Potongan Berikutnya)"
@@ -2788,6 +3081,26 @@ function runGomorySolver() {
         </div>
       `
     });
+
+    // Tambahkan Node Potongan ke-k ke Pohon Alur Pemotongan Gomory
+    const prevFlowId = gomoryFlowNodes.length ? gomoryFlowNodes[gomoryFlowNodes.length - 1].id : null;
+    const newFlowNodeId = flowNodeCounter++;
+    gomoryFlowNodes.push({
+      id: newFlowNodeId,
+      parentId: prevFlowId,
+      depth: cutNo,
+      edgeLabel: `Cut #${cutNo}: ${cutOrigIneqLHS} ≤ ${fr(cutOrigRHS)}`,
+      state: allIntNow ? "integer" : "branched",
+      line1: curXAfterCut.map(o => `${o.name}=${fr(o.val)}`).join(', '),
+      line2: `${cutName} = −${fr(rhsF)} (Pivot ${evName})`,
+      line3: `Z = ${fr(curZAfterCut)}`,
+      stepIdx: ipSteps.length - 1
+    });
+    if (allIntNow) gomoryBestFlowId = newFlowNodeId;
+  }
+
+  if (gomoryFlowNodes.length && !gomoryBestFlowId) {
+    gomoryBestFlowId = gomoryFlowNodes[gomoryFlowNodes.length - 1].id;
   }
 
   ipCur = 0;
@@ -2797,6 +3110,14 @@ function runGomorySolver() {
 
 function showIPStep() {
   if (!ipSteps.length) return;
+  if ($('ip-gomory-tree-box') && gomoryFlowNodes.length) {
+    // Temukan node alur yang paling sesuai dengan ipCur saat ini
+    let matchedNode = gomoryFlowNodes[0];
+    for (const fn of gomoryFlowNodes) {
+      if (ipCur >= fn.stepIdx) matchedNode = fn;
+    }
+    renderInteractiveSVGTree('ip-gomory-tree-box', gomoryFlowNodes, gomoryBestFlowId, matchedNode.id, 'selectGomoryFlowNode');
+  }
   $('ip-tabs').innerHTML = '';
   ipSteps.forEach((stObj, k) => {
     const b = document.createElement('button');
