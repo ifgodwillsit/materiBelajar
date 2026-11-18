@@ -26,12 +26,11 @@ st.write("Mengambil data destinasi melalui web scraping dan suhu melalui REST AP
 
 if st.button("Ambil Data dan Tampilkan Dashboard", type="primary"):
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     
     section = None
-    for url in ["https://indonesia.travel/gb/en/home", "https://www.indonesia.travel/gb/en/home", "https://indonesia.travel"]:
+    for url in ["https://indonesia.travel", "https://www.indonesia.travel/gb/en/home.html"]:
         try:
             response = requests.get(url, headers=headers, timeout=15)
             soup = BeautifulSoup(response.text, "html.parser")
@@ -46,38 +45,34 @@ if st.button("Ambil Data dan Tampilkan Dashboard", type="primary"):
 
     if section:
         items = section.find_all("h3", class_="title-non-active")
-    else:
-        items = soup.find_all("h3", class_="title-non-active") if 'soup' in locals() else []
+        for h3 in items:
+            destinasi = h3.get_text(strip=True)
+            if destinasi not in seen and destinasi in KOORDINAT:
+                seen.add(destinasi)
+                span = h3.find_next("span")
+                provinsi = span.get_text(strip=True) if span else ""
+                lat, lon = KOORDINAT[destinasi]
 
-    for h3 in items:
-        destinasi = h3.get_text(strip=True)
-        span = h3.find_next_sibling("span") or h3.find_next("span")
-        provinsi = span.get_text(strip=True) if span else ""
+                api_url = "https://api.open-meteo.com/v1/forecast"
+                params = {
+                    "latitude": lat,
+                    "longitude": lon,
+                    "current": "temperature_2m",
+                    "timezone": "Asia/Jakarta"
+                }
+                res_api = requests.get(api_url, params=params).json()
+                suhu = res_api.get("current", {}).get("temperature_2m", None)
 
-        if destinasi in KOORDINAT and destinasi not in seen:
-            seen.add(destinasi)
-            lat, lon = KOORDINAT[destinasi]
+                data_wisata.append({
+                    "destinasi": destinasi,
+                    "provinsi": provinsi,
+                    "latitude": lat,
+                    "longitude": lon,
+                    "suhu": suhu
+                })
 
-            api_url = "https://api.open-meteo.com/v1/forecast"
-            params = {
-                "latitude": lat,
-                "longitude": lon,
-                "current": "temperature_2m",
-                "timezone": "Asia/Jakarta"
-            }
-            res_api = requests.get(api_url, params=params).json()
-            suhu = res_api.get("current", {}).get("temperature_2m", None)
-
-            data_wisata.append({
-                "destinasi": destinasi,
-                "provinsi": provinsi,
-                "latitude": lat,
-                "longitude": lon,
-                "suhu": suhu
-            })
-
-            if len(data_wisata) == 13:
-                break
+                if len(data_wisata) == 13:
+                    break
 
     df = pd.DataFrame(data_wisata, columns=["destinasi", "provinsi", "latitude", "longitude", "suhu"])
 
@@ -85,10 +80,10 @@ if st.button("Ambil Data dan Tampilkan Dashboard", type="primary"):
     st.caption(f"{len(df)} destinasi berhasil diambil.")
     st.dataframe(df, use_container_width=True)
 
-    st.subheader("Visualisasi")
-    col1, col2 = st.columns(2)
-
     if not df.empty:
+        st.subheader("Visualisasi")
+        col1, col2 = st.columns(2)
+
         with col1:
             prov_counts = df["provinsi"].value_counts()
             fig1, ax1 = plt.subplots()
